@@ -20,7 +20,6 @@
 
 	<ItemGroup>
 		<Folder Include="Registry\" />
-		<Folder Include="Services\" />
 	</ItemGroup>
 
 </Project>
