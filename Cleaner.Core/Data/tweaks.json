@@ -1,0 +1,138 @@
+{
+  "schemaVersion": 1,
+  "tweaks": [
+    {
+      "key": "Cortana",
+      "category": "privacy",
+      "level": "safe",
+      "requiresReboot": false,
+      "conflictsWith": [],
+      "nameKey": "tweak.Cortana.name",
+      "shortKey": "tweak.Cortana.short",
+      "descKey": "tweak.Cortana.desc",
+      "warnKey": "tweak.Cortana.warn",
+      "apply": [
+        {
+          "type": "regSet",
+          "hive": "HKLM",
+          "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+          "name": "AllowCortana",
+          "kind": "DWord",
+          "value": 0,
+          "createKeyIfMissing": true
+        }
+      ],
+      "unapply": [
+        {
+          "type": "regSet",
+          "hive": "HKLM",
+          "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+          "name": "AllowCortana",
+          "kind": "DWord",
+          "value": 1,
+          "createKeyIfMissing": true
+        }
+      ],
+      "state": [
+        {
+          "type": "regGet",
+          "hive": "HKLM",
+          "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+          "name": "AllowCortana",
+          "kind": "DWord",
+          "expected": 0
+        }
+      ]
+    },
+    {
+      "key": "VisualFx",
+      "category": "perf",
+      "level": "safe",
+      "requiresReboot": false,
+      "conflictsWith": [],
+      "nameKey": "tweak.VisualFx.name",
+      "shortKey": "tweak.VisualFx.short",
+      "descKey": "tweak.VisualFx.desc",
+      "warnKey": "tweak.VisualFx.warn",
+      "apply": [
+        {
+          "type": "regSet",
+          "hive": "HKCU",
+          "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VisualEffects",
+          "name": "VisualFXSetting",
+          "kind": "DWord",
+          "value": 2,
+          "createKeyIfMissing": true
+        },
+        {
+          "type": "regSet",
+          "hive": "HKCU",
+          "key": "Control Panel\\Desktop",
+          "name": "UserPreferencesMask",
+          "kind": "Binary",
+          "value": "9012038010000000"
+        }
+      ],
+      "unapply": [
+        {
+          "type": "regSet",
+          "hive": "HKCU",
+          "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VisualEffects",
+          "name": "VisualFXSetting",
+          "kind": "DWord",
+          "value": 0,
+          "createKeyIfMissing": true
+        },
+        {
+          "type": "regRemove",
+          "hive": "HKCU",
+          "key": "Control Panel\\Desktop",
+          "name": "UserPreferencesMask"
+        }
+      ],
+      "state": [
+        {
+          "type": "regGet",
+          "hive": "HKCU",
+          "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VisualEffects",
+          "name": "VisualFXSetting",
+          "kind": "DWord",
+          "expected": 2
+        }
+      ]
+    },
+    {
+      "key": "SysMain",
+      "category": "perf",
+      "level": "caution",
+      "requiresReboot": true,
+      "conflictsWith": [],
+      "nameKey": "tweak.SysMain.name",
+      "shortKey": "tweak.SysMain.short",
+      "descKey": "tweak.SysMain.desc",
+      "warnKey": "tweak.SysMain.warn",
+      "apply": [
+        {
+          "type": "serviceSet",
+          "serviceName": "SysMain",
+          "startupType": "Disabled",
+          "stopFirst": true
+        }
+      ],
+      "unapply": [
+        {
+          "type": "serviceSet",
+          "serviceName": "SysMain",
+          "startupType": "Automatic"
+        }
+      ],
+      "state": [
+        {
+          "type": "serviceGet",
+          "serviceName": "SysMain",
+          "expectedStartupType": "Disabled"
+        }
+      ]
+    }
+  ]
+}

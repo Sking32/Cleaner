@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="Cleaner.App/Cleaner.App.csproj" />
+    <Project Path="Cleaner.Cli/Cleaner.Cli.csproj" />
+    <Project Path="Cleaner.Core.Tests/Cleaner.Core.Tests.csproj" />
+    <Project Path="Cleaner.Core/Cleaner.Core.csproj" />
+  </Folder>
+</Solution>
