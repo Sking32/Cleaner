@@ -1,0 +1,12 @@
+﻿<Page x:Class="Cleaner.App.Views.SystemPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Title="Система">
+    <Grid Margin="24">
+        <StackPanel>
+            <TextBlock Text="Система" FontSize="24" FontWeight="SemiBold" />
+            <TextBlock Text="Информация о системе, службы, восстановление."
+                       Margin="0,8,0,0" Opacity="0.75" />
+        </StackPanel>
+    </Grid>
+</Page>

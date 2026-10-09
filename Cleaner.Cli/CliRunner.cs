@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -30,7 +31,6 @@ public sealed class CliRunner
 
         if (opts.ListOperations) { PrintOperations(); return 0; }
 
-        // Собираем контекст.
         ISafetyService safety;
         IWhitelistService whitelist;
         IQuarantineService quarantine;
@@ -97,7 +97,6 @@ public sealed class CliRunner
             return 3;
         }
 
-        // Вывод.
         if (opts.Json)
         {
             _out.WriteJson(new
@@ -130,10 +129,9 @@ public sealed class CliRunner
                       $"| deleted: {result.FilesDeleted} " +
                       $"| skipped: {result.FilesSkipped} " +
                       $"| failed ops: {result.OperationsFailed} " +
-                      $"| time: {result.Duration.TotalSeconds:F1}s");
+                      $"| time: {result.Duration.TotalSeconds.ToString("F1", CultureInfo.InvariantCulture)}s");
         }
 
-        // Webhook.
         if (!string.IsNullOrWhiteSpace(opts.WebhookUrl))
         {
             var url = opts.WebhookUrl!;
@@ -144,10 +142,9 @@ public sealed class CliRunner
                 if (!opts.Quiet && !opts.Json)
                     _out.Line(ok ? "Webhook: OK" : "Webhook: FAILED");
             }
-            catch { /* никогда не падаем из-за webhook */ }
+            catch { }
         }
 
-        // Код выхода.
         if (result.Canceled) return 130;
         return result.OperationsFailed == 0 ? 0 : 1;
     }
@@ -197,13 +194,19 @@ public sealed class CliRunner
         }
     }
 
+    /// <summary>
+    /// Форматирует байты в человекочитаемый вид.
+    /// - 0 → "0 B" (без десятичных).
+    /// - Остальные — "X.YZ UNIT" с InvariantCulture (точка, не запятая).
+    /// </summary>
     public static string FormatBytes(long bytes)
     {
-        if (bytes < 0) return "0 B";
+        if (bytes <= 0) return "0 B";
+
         string[] units = { "B", "KB", "MB", "GB", "TB" };
         double v = bytes;
         int u = 0;
         while (v >= 1024 && u < units.Length - 1) { v /= 1024; u++; }
-        return $"{v:F2} {units[u]}";
+        return $"{v.ToString("F2", CultureInfo.InvariantCulture)} {units[u]}";
     }
 }
