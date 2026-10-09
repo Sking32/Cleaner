@@ -83,13 +83,13 @@ void MergeStrings(string targetPath, string sourcePath)
             var newVal = prop.Value?.GetValue<string>() ?? "";
             if (oldVal != newVal)
             {
-                target[prop.Key] = prop.Value.DeepClone();
+                target[prop.Key] = prop.Value?.DeepClone();
                 updated++;
             }
         }
         else
         {
-            target[prop.Key] = prop.Value.DeepClone();
+            target[prop.Key] = prop.Value?.DeepClone();
             added++;
         }
     }
@@ -117,7 +117,10 @@ void MergeOperations(string metaPath, string actionsPath)
 
         var spec = patch[key]!.AsObject();
         foreach (var field in spec)
-            entry[field.Key] = field.Value!.DeepClone();
+        {
+            if (field.Value != null)
+                entry[field.Key] = field.Value.DeepClone();
+        }
 
         count++;
     }
