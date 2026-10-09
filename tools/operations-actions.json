@@ -1,0 +1,348 @@
+{
+  "temp_user": {
+    "category": "quick",
+    "handler": "PathCleanup",
+    "paths": [ "%TEMP%" ]
+  },
+  "temp_sys": {
+    "category": "quick",
+    "handler": "PathCleanup",
+    "paths": [ "%WINDIR%\\Temp" ]
+  },
+  "prefetch": {
+    "category": "quick",
+    "handler": "PathCleanup",
+    "paths": [ "%WINDIR%\\Prefetch" ]
+  },
+  "recycle": {
+    "category": "quick",
+    "handler": "Command",
+    "command": "Clear-RecycleBin"
+  },
+  "dns": {
+    "category": "quick",
+    "handler": "Command",
+    "command": "ipconfig /flushdns"
+  },
+
+  "wer_user": {
+    "category": "reports",
+    "handler": "PathCleanup",
+    "paths": [ "%LOCALAPPDATA%\\Microsoft\\Windows\\WER" ]
+  },
+  "wer_sys": {
+    "category": "reports",
+    "handler": "PathCleanup",
+    "paths": [ "%PROGRAMDATA%\\Microsoft\\Windows\\WER" ]
+  },
+  "wer_queue": {
+    "category": "reports",
+    "handler": "PathCleanup",
+    "paths": [
+      "%PROGRAMDATA%\\Microsoft\\Windows\\WER\\ReportQueue",
+      "%PROGRAMDATA%\\Microsoft\\Windows\\WER\\ReportArchive",
+      "%LOCALAPPDATA%\\Microsoft\\Windows\\WER\\ReportQueue",
+      "%LOCALAPPDATA%\\Microsoft\\Windows\\WER\\ReportArchive"
+    ]
+  },
+  "minidump": {
+    "category": "reports",
+    "handler": "PathCleanup",
+    "paths": [ "%WINDIR%\\Minidump", "%WINDIR%\\MEMORY.DMP" ]
+  },
+  "crashdumps": {
+    "category": "reports",
+    "handler": "PathCleanup",
+    "paths": [ "%LOCALAPPDATA%\\CrashDumps" ]
+  },
+  "livekernel": {
+    "category": "reports",
+    "handler": "PathCleanup",
+    "paths": [ "%WINDIR%\\LiveKernelReports" ]
+  },
+  "cbs": {
+    "category": "reports",
+    "handler": "PathCleanup",
+    "paths": [ "%WINDIR%\\Logs\\CBS" ]
+  },
+  "winlogs": {
+    "category": "reports",
+    "handler": "PathCleanupRecursive",
+    "paths": [ "%WINDIR%\\Logs" ],
+    "skipSubdirs": [ "CBS" ]
+  },
+
+  "thumbs": {
+    "category": "syscache",
+    "handler": "ThumbnailCache"
+  },
+  "fontcache": {
+    "category": "syscache",
+    "handler": "FontCache"
+  },
+  "notifications": {
+    "category": "syscache",
+    "handler": "PathCleanup",
+    "paths": [ "%LOCALAPPDATA%\\Microsoft\\Windows\\Notifications" ]
+  },
+  "dodelivery": {
+    "category": "syscache",
+    "handler": "Command",
+    "command": "Delete-DeliveryOptimizationCache"
+  },
+  "downloadedprog": {
+    "category": "syscache",
+    "handler": "PathCleanup",
+    "paths": [ "%WINDIR%\\Downloaded Program Files" ]
+  },
+  "windows_store": {
+    "category": "syscache",
+    "handler": "WindowsStoreCache"
+  },
+  "onedrive": {
+    "category": "syscache",
+    "handler": "PathCleanup",
+    "paths": [
+      "%LOCALAPPDATA%\\Microsoft\\OneDrive\\Cache",
+      "%LOCALAPPDATA%\\Microsoft\\OneDrive\\logs",
+      "%LOCALAPPDATA%\\Microsoft\\OneDrive\\setup\\logs"
+    ]
+  },
+
+  "d3dscache": {
+    "category": "gfx",
+    "handler": "PathCleanup",
+    "paths": [ "%LOCALAPPDATA%\\D3DSCache" ]
+  },
+  "nvidia": {
+    "category": "gfx",
+    "handler": "PathCleanup",
+    "paths": [
+      "%LOCALAPPDATA%\\NVIDIA\\DXCache",
+      "%LOCALAPPDATA%\\NVIDIA\\GLCache"
+    ]
+  },
+  "amd": {
+    "category": "gfx",
+    "handler": "PathCleanup",
+    "paths": [
+      "%LOCALAPPDATA%\\AMD\\DxCache",
+      "%LOCALAPPDATA%\\AMD\\GLCache"
+    ]
+  },
+  "steam_shader": {
+    "category": "gfx",
+    "handler": "PathCleanup",
+    "paths": [
+      "%PROGRAMFILES(X86)%\\Steam\\steamapps\\shadercache",
+      "%PROGRAMFILES%\\Steam\\steamapps\\shadercache"
+    ]
+  },
+
+  "chrome": {
+    "category": "browsers",
+    "handler": "BrowserProfiles",
+    "paths": [ "%LOCALAPPDATA%\\Google\\Chrome\\User Data" ]
+  },
+  "edge": {
+    "category": "browsers",
+    "handler": "BrowserProfiles",
+    "paths": [ "%LOCALAPPDATA%\\Microsoft\\Edge\\User Data" ]
+  },
+  "opera": {
+    "category": "browsers",
+    "handler": "PathCleanup",
+    "paths": [
+      "%LOCALAPPDATA%\\Opera Software\\Opera Stable\\Cache",
+      "%LOCALAPPDATA%\\Opera Software\\Opera GX Stable\\Cache"
+    ]
+  },
+  "yandex": {
+    "category": "browsers",
+    "handler": "PathCleanup",
+    "paths": [ "%LOCALAPPDATA%\\Yandex\\YandexBrowser\\User Data\\Default\\Cache" ]
+  },
+  "firefox": {
+    "category": "browsers",
+    "handler": "FirefoxProfiles"
+  },
+
+  "teams": {
+    "category": "apps",
+    "handler": "MultiPathCleanup",
+    "paths": [
+      "%APPDATA%\\Microsoft\\Teams\\Cache",
+      "%APPDATA%\\Microsoft\\Teams\\Code Cache",
+      "%APPDATA%\\Microsoft\\Teams\\GPUCache",
+      "%APPDATA%\\Microsoft\\Teams\\blob_storage",
+      "%APPDATA%\\Microsoft\\Teams\\tmp",
+      "%LOCALAPPDATA%\\Packages\\MSTeams_8wekyb3d8bbwe\\LocalCache\\Microsoft\\MSTeams\\Cache",
+      "%LOCALAPPDATA%\\Packages\\MSTeams_8wekyb3d8bbwe\\LocalCache\\Microsoft\\MSTeams\\Code Cache",
+      "%LOCALAPPDATA%\\Packages\\MSTeams_8wekyb3d8bbwe\\LocalCache\\Microsoft\\MSTeams\\GPUCache"
+    ]
+  },
+  "discord": {
+    "category": "apps",
+    "handler": "MultiPathCleanup",
+    "paths": [
+      "%APPDATA%\\discord\\Cache",
+      "%APPDATA%\\discord\\Code Cache",
+      "%APPDATA%\\discord\\GPUCache"
+    ]
+  },
+  "vscode": {
+    "category": "apps",
+    "handler": "MultiPathCleanup",
+    "paths": [
+      "%APPDATA%\\Code\\Cache",
+      "%APPDATA%\\Code\\Code Cache",
+      "%APPDATA%\\Code\\GPUCache"
+    ]
+  },
+  "office": {
+    "category": "apps",
+    "handler": "PathCleanup",
+    "paths": [ "%LOCALAPPDATA%\\Microsoft\\Office\\16.0\\OfficeFileCache" ]
+  },
+  "steam": {
+    "category": "apps",
+    "handler": "PathCleanup",
+    "paths": [
+      "%PROGRAMFILES(X86)%\\Steam\\appcache\\httpcache",
+      "%PROGRAMFILES%\\Steam\\appcache\\httpcache"
+    ]
+  },
+  "epic": {
+    "category": "apps",
+    "handler": "PathCleanup",
+    "paths": [ "%LOCALAPPDATA%\\EpicGamesLauncher\\Saved\\webcache" ]
+  },
+  "spotify": {
+    "category": "apps",
+    "handler": "PathCleanup",
+    "paths": [
+      "%LOCALAPPDATA%\\Spotify\\Data",
+      "%LOCALAPPDATA%\\Spotify\\Storage"
+    ]
+  },
+  "telegram": {
+    "category": "apps",
+    "handler": "PathCleanup",
+    "paths": [
+      "%APPDATA%\\Telegram Desktop\\tdata\\user_data\\cache",
+      "%APPDATA%\\Telegram Desktop\\tdata\\user_data\\media_cache",
+      "%APPDATA%\\Telegram Desktop\\tdata\\emoji"
+    ]
+  },
+  "zoom": {
+    "category": "apps",
+    "handler": "MultiPathCleanup",
+    "paths": [
+      "%APPDATA%\\Zoom\\data\\Cache",
+      "%APPDATA%\\Zoom\\data\\Code Cache",
+      "%APPDATA%\\Zoom\\data\\GPUCache"
+    ]
+  },
+  "slack": {
+    "category": "apps",
+    "handler": "MultiPathCleanup",
+    "paths": [
+      "%APPDATA%\\Slack\\Cache",
+      "%APPDATA%\\Slack\\Code Cache",
+      "%APPDATA%\\Slack\\GPUCache"
+    ]
+  },
+  "notion": {
+    "category": "apps",
+    "handler": "MultiPathCleanup",
+    "paths": [
+      "%APPDATA%\\Notion\\Cache",
+      "%APPDATA%\\Notion\\Code Cache",
+      "%APPDATA%\\Notion\\GPUCache"
+    ]
+  },
+  "obs_logs": {
+    "category": "apps",
+    "handler": "ObsLogs",
+    "olderThanDays": 7
+  },
+
+  "npm_cache": {
+    "category": "dev",
+    "handler": "PathCleanup",
+    "paths": [
+      "%APPDATA%\\npm-cache",
+      "%LOCALAPPDATA%\\npm-cache",
+      "%LOCALAPPDATA%\\npm\\_cacache"
+    ]
+  },
+  "pip_cache": {
+    "category": "dev",
+    "handler": "PathCleanup",
+    "paths": [
+      "%LOCALAPPDATA%\\pip\\Cache",
+      "%LOCALAPPDATA%\\pip\\cache"
+    ]
+  },
+  "nuget_cache": {
+    "category": "dev",
+    "handler": "PathCleanup",
+    "paths": [
+      "%LOCALAPPDATA%\\NuGet\\v3-cache",
+      "%LOCALAPPDATA%\\NuGet\\Cache"
+    ]
+  },
+
+  "recent": {
+    "category": "privacy",
+    "handler": "PathCleanup",
+    "paths": [ "%APPDATA%\\Microsoft\\Windows\\Recent" ]
+  },
+  "jump_lists": {
+    "category": "privacy",
+    "handler": "JumpLists"
+  },
+  "clipboard_history": {
+    "category": "privacy",
+    "handler": "PathCleanup",
+    "paths": [ "%LOCALAPPDATA%\\Microsoft\\Windows\\Clipboard" ]
+  },
+  "recent_typed": {
+    "category": "privacy",
+    "handler": "RegCleanKey",
+    "registryKey": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\TypedPaths"
+  },
+  "run_history": {
+    "category": "privacy",
+    "handler": "RegCleanRunMRU"
+  },
+  "activity_history": {
+    "category": "privacy",
+    "handler": "ActivityHistory"
+  },
+  "downloads_smart": {
+    "category": "privacy",
+    "handler": "SmartDownloads"
+  },
+
+  "wupdate": {
+    "category": "heavy",
+    "handler": "WindowsUpdateCache"
+  },
+  "winsxs": {
+    "category": "heavy",
+    "handler": "DismComponentCleanup"
+  },
+  "windowsold": {
+    "category": "heavy",
+    "handler": "WindowsOld"
+  },
+  "shadowcopy": {
+    "category": "heavy",
+    "handler": "ShadowCopy"
+  },
+  "hibernate": {
+    "category": "heavy",
+    "handler": "ToggleHibernation"
+  }
+}

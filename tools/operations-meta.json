@@ -1,0 +1,834 @@
+﻿{
+    "schemaVersion":  1,
+    "entries":  [
+                    {
+                        "kind":  "section",
+                        "key":  "sec.quick",
+                        "nameKey":  "section.sec.quick.name"
+                    },
+                    {
+                        "kind":  "section",
+                        "key":  "sec.reports",
+                        "nameKey":  "section.sec.reports.name"
+                    },
+                    {
+                        "kind":  "section",
+                        "key":  "sec.syscache",
+                        "nameKey":  "section.sec.syscache.name"
+                    },
+                    {
+                        "kind":  "section",
+                        "key":  "sec.gfx",
+                        "nameKey":  "section.sec.gfx.name"
+                    },
+                    {
+                        "kind":  "section",
+                        "key":  "sec.browsers",
+                        "nameKey":  "section.sec.browsers.name"
+                    },
+                    {
+                        "kind":  "section",
+                        "key":  "sec.apps",
+                        "nameKey":  "section.sec.apps.name"
+                    },
+                    {
+                        "kind":  "section",
+                        "key":  "sec.dev",
+                        "nameKey":  "section.sec.dev.name"
+                    },
+                    {
+                        "kind":  "section",
+                        "key":  "sec.privacy",
+                        "nameKey":  "section.sec.privacy.name"
+                    },
+                    {
+                        "kind":  "section",
+                        "key":  "sec.heavy",
+                        "nameKey":  "section.sec.heavy.name"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "temp_user",
+                        "category":  "",
+                        "level":  "safe",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.temp_user.name",
+                        "descKey":  "op.temp_user.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "temp_sys",
+                        "category":  "",
+                        "level":  "safe",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.temp_sys.name",
+                        "descKey":  "op.temp_sys.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "prefetch",
+                        "category":  "",
+                        "level":  "safe",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.prefetch.name",
+                        "descKey":  "op.prefetch.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "recycle",
+                        "category":  "",
+                        "level":  "medium",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.recycle.name",
+                        "descKey":  "op.recycle.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "dns",
+                        "category":  "",
+                        "level":  "safe",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.dns.name",
+                        "descKey":  "op.dns.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "wer_user",
+                        "category":  "",
+                        "level":  "safe",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.wer_user.name",
+                        "descKey":  "op.wer_user.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "wer_sys",
+                        "category":  "",
+                        "level":  "safe",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.wer_sys.name",
+                        "descKey":  "op.wer_sys.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "wer_queue",
+                        "category":  "",
+                        "level":  "safe",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.wer_queue.name",
+                        "descKey":  "op.wer_queue.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "minidump",
+                        "category":  "",
+                        "level":  "safe",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.minidump.name",
+                        "descKey":  "op.minidump.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "crashdumps",
+                        "category":  "",
+                        "level":  "safe",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.crashdumps.name",
+                        "descKey":  "op.crashdumps.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "livekernel",
+                        "category":  "",
+                        "level":  "safe",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.livekernel.name",
+                        "descKey":  "op.livekernel.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "cbs",
+                        "category":  "",
+                        "level":  "safe",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.cbs.name",
+                        "descKey":  "op.cbs.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "winlogs",
+                        "category":  "",
+                        "level":  "safe",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.winlogs.name",
+                        "descKey":  "op.winlogs.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "thumbs",
+                        "category":  "",
+                        "level":  "medium",
+                        "defaultChecked":  false,
+                        "hint":  "restart Explorer",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.thumbs.name",
+                        "descKey":  "op.thumbs.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "fontcache",
+                        "category":  "",
+                        "level":  "safe",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.fontcache.name",
+                        "descKey":  "op.fontcache.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "notifications",
+                        "category":  "",
+                        "level":  "safe",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.notifications.name",
+                        "descKey":  "op.notifications.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "dodelivery",
+                        "category":  "",
+                        "level":  "safe",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.dodelivery.name",
+                        "descKey":  "op.dodelivery.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "downloadedprog",
+                        "category":  "",
+                        "level":  "safe",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.downloadedprog.name",
+                        "descKey":  "op.downloadedprog.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "windows_store",
+                        "category":  "",
+                        "level":  "safe",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.windows_store.name",
+                        "descKey":  "op.windows_store.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "onedrive",
+                        "category":  "",
+                        "level":  "safe",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.onedrive.name",
+                        "descKey":  "op.onedrive.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "d3dscache",
+                        "category":  "",
+                        "level":  "safe",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.d3dscache.name",
+                        "descKey":  "op.d3dscache.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "nvidia",
+                        "category":  "",
+                        "level":  "safe",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.nvidia.name",
+                        "descKey":  "op.nvidia.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "amd",
+                        "category":  "",
+                        "level":  "safe",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.amd.name",
+                        "descKey":  "op.amd.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "steam_shader",
+                        "category":  "",
+                        "level":  "safe",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.steam_shader.name",
+                        "descKey":  "op.steam_shader.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "chrome",
+                        "category":  "",
+                        "level":  "medium",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.chrome.name",
+                        "descKey":  "op.chrome.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "edge",
+                        "category":  "",
+                        "level":  "medium",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.edge.name",
+                        "descKey":  "op.edge.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "opera",
+                        "category":  "",
+                        "level":  "medium",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.opera.name",
+                        "descKey":  "op.opera.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "yandex",
+                        "category":  "",
+                        "level":  "medium",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.yandex.name",
+                        "descKey":  "op.yandex.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "firefox",
+                        "category":  "",
+                        "level":  "medium",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.firefox.name",
+                        "descKey":  "op.firefox.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "teams",
+                        "category":  "",
+                        "level":  "medium",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.teams.name",
+                        "descKey":  "op.teams.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "discord",
+                        "category":  "",
+                        "level":  "medium",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.discord.name",
+                        "descKey":  "op.discord.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "vscode",
+                        "category":  "",
+                        "level":  "medium",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.vscode.name",
+                        "descKey":  "op.vscode.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "office",
+                        "category":  "",
+                        "level":  "medium",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.office.name",
+                        "descKey":  "op.office.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "steam",
+                        "category":  "",
+                        "level":  "medium",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.steam.name",
+                        "descKey":  "op.steam.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "epic",
+                        "category":  "",
+                        "level":  "medium",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.epic.name",
+                        "descKey":  "op.epic.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "spotify",
+                        "category":  "",
+                        "level":  "medium",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.spotify.name",
+                        "descKey":  "op.spotify.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "telegram",
+                        "category":  "",
+                        "level":  "medium",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.telegram.name",
+                        "descKey":  "op.telegram.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "zoom",
+                        "category":  "",
+                        "level":  "medium",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.zoom.name",
+                        "descKey":  "op.zoom.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "slack",
+                        "category":  "",
+                        "level":  "medium",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.slack.name",
+                        "descKey":  "op.slack.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "notion",
+                        "category":  "",
+                        "level":  "medium",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.notion.name",
+                        "descKey":  "op.notion.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "obs_logs",
+                        "category":  "",
+                        "level":  "safe",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.obs_logs.name",
+                        "descKey":  "op.obs_logs.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "npm_cache",
+                        "category":  "",
+                        "level":  "safe",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.npm_cache.name",
+                        "descKey":  "op.npm_cache.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "pip_cache",
+                        "category":  "",
+                        "level":  "safe",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.pip_cache.name",
+                        "descKey":  "op.pip_cache.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "nuget_cache",
+                        "category":  "",
+                        "level":  "safe",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.nuget_cache.name",
+                        "descKey":  "op.nuget_cache.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "recent",
+                        "category":  "",
+                        "level":  "safe",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.recent.name",
+                        "descKey":  "op.recent.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "jump_lists",
+                        "category":  "",
+                        "level":  "safe",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.jump_lists.name",
+                        "descKey":  "op.jump_lists.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "clipboard_history",
+                        "category":  "",
+                        "level":  "safe",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.clipboard_history.name",
+                        "descKey":  "op.clipboard_history.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "recent_typed",
+                        "category":  "",
+                        "level":  "safe",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.recent_typed.name",
+                        "descKey":  "op.recent_typed.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "run_history",
+                        "category":  "",
+                        "level":  "safe",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.run_history.name",
+                        "descKey":  "op.run_history.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "activity_history",
+                        "category":  "",
+                        "level":  "safe",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.activity_history.name",
+                        "descKey":  "op.activity_history.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "downloads_smart",
+                        "category":  "",
+                        "level":  "medium",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.downloads_smart.name",
+                        "descKey":  "op.downloads_smart.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "wupdate",
+                        "category":  "",
+                        "level":  "danger",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.wupdate.name",
+                        "descKey":  "op.wupdate.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "winsxs",
+                        "category":  "",
+                        "level":  "danger",
+                        "defaultChecked":  false,
+                        "hint":  "5-60 min",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.winsxs.name",
+                        "descKey":  "op.winsxs.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "windowsold",
+                        "category":  "",
+                        "level":  "danger",
+                        "defaultChecked":  false,
+                        "hint":  "10-30 min",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.windowsold.name",
+                        "descKey":  "op.windowsold.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "shadowcopy",
+                        "category":  "",
+                        "level":  "danger",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.shadowcopy.name",
+                        "descKey":  "op.shadowcopy.desc"
+                    },
+                    {
+                        "kind":  "operation",
+                        "key":  "hibernate",
+                        "category":  "",
+                        "level":  "danger",
+                        "defaultChecked":  false,
+                        "hint":  "",
+                        "handler":  "",
+                        "paths":  [
+
+                                  ],
+                        "nameKey":  "op.hibernate.name",
+                        "descKey":  "op.hibernate.desc"
+                    }
+                ]
+}

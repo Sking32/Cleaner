@@ -1,0 +1,841 @@
+{
+  "schemaVersion": 1,
+  "entries": [
+    {
+      "kind": "section",
+      "key": "sec.quick",
+      "nameKey": "section.sec.quick.name"
+    },
+    {
+      "kind": "section",
+      "key": "sec.reports",
+      "nameKey": "section.sec.reports.name"
+    },
+    {
+      "kind": "section",
+      "key": "sec.syscache",
+      "nameKey": "section.sec.syscache.name"
+    },
+    {
+      "kind": "section",
+      "key": "sec.gfx",
+      "nameKey": "section.sec.gfx.name"
+    },
+    {
+      "kind": "section",
+      "key": "sec.browsers",
+      "nameKey": "section.sec.browsers.name"
+    },
+    {
+      "kind": "section",
+      "key": "sec.apps",
+      "nameKey": "section.sec.apps.name"
+    },
+    {
+      "kind": "section",
+      "key": "sec.dev",
+      "nameKey": "section.sec.dev.name"
+    },
+    {
+      "kind": "section",
+      "key": "sec.privacy",
+      "nameKey": "section.sec.privacy.name"
+    },
+    {
+      "kind": "section",
+      "key": "sec.heavy",
+      "nameKey": "section.sec.heavy.name"
+    },
+    {
+      "kind": "operation",
+      "key": "temp_user",
+      "category": "quick",
+      "level": "safe",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "PathCleanup",
+      "paths": [
+        "%TEMP%"
+      ],
+      "nameKey": "op.temp_user.name",
+      "descKey": "op.temp_user.desc"
+    },
+    {
+      "kind": "operation",
+      "key": "temp_sys",
+      "category": "quick",
+      "level": "safe",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "PathCleanup",
+      "paths": [
+        "%WINDIR%\\Temp"
+      ],
+      "nameKey": "op.temp_sys.name",
+      "descKey": "op.temp_sys.desc"
+    },
+    {
+      "kind": "operation",
+      "key": "prefetch",
+      "category": "quick",
+      "level": "safe",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "PathCleanup",
+      "paths": [
+        "%WINDIR%\\Prefetch"
+      ],
+      "nameKey": "op.prefetch.name",
+      "descKey": "op.prefetch.desc"
+    },
+    {
+      "kind": "operation",
+      "key": "recycle",
+      "category": "quick",
+      "level": "medium",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "Command",
+      "paths": [],
+      "nameKey": "op.recycle.name",
+      "descKey": "op.recycle.desc",
+      "command": "Clear-RecycleBin"
+    },
+    {
+      "kind": "operation",
+      "key": "dns",
+      "category": "quick",
+      "level": "safe",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "Command",
+      "paths": [],
+      "nameKey": "op.dns.name",
+      "descKey": "op.dns.desc",
+      "command": "ipconfig /flushdns"
+    },
+    {
+      "kind": "operation",
+      "key": "wer_user",
+      "category": "reports",
+      "level": "safe",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "PathCleanup",
+      "paths": [
+        "%LOCALAPPDATA%\\Microsoft\\Windows\\WER"
+      ],
+      "nameKey": "op.wer_user.name",
+      "descKey": "op.wer_user.desc"
+    },
+    {
+      "kind": "operation",
+      "key": "wer_sys",
+      "category": "reports",
+      "level": "safe",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "PathCleanup",
+      "paths": [
+        "%PROGRAMDATA%\\Microsoft\\Windows\\WER"
+      ],
+      "nameKey": "op.wer_sys.name",
+      "descKey": "op.wer_sys.desc"
+    },
+    {
+      "kind": "operation",
+      "key": "wer_queue",
+      "category": "reports",
+      "level": "safe",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "PathCleanup",
+      "paths": [
+        "%PROGRAMDATA%\\Microsoft\\Windows\\WER\\ReportQueue",
+        "%PROGRAMDATA%\\Microsoft\\Windows\\WER\\ReportArchive",
+        "%LOCALAPPDATA%\\Microsoft\\Windows\\WER\\ReportQueue",
+        "%LOCALAPPDATA%\\Microsoft\\Windows\\WER\\ReportArchive"
+      ],
+      "nameKey": "op.wer_queue.name",
+      "descKey": "op.wer_queue.desc"
+    },
+    {
+      "kind": "operation",
+      "key": "minidump",
+      "category": "reports",
+      "level": "safe",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "PathCleanup",
+      "paths": [
+        "%WINDIR%\\Minidump",
+        "%WINDIR%\\MEMORY.DMP"
+      ],
+      "nameKey": "op.minidump.name",
+      "descKey": "op.minidump.desc"
+    },
+    {
+      "kind": "operation",
+      "key": "crashdumps",
+      "category": "reports",
+      "level": "safe",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "PathCleanup",
+      "paths": [
+        "%LOCALAPPDATA%\\CrashDumps"
+      ],
+      "nameKey": "op.crashdumps.name",
+      "descKey": "op.crashdumps.desc"
+    },
+    {
+      "kind": "operation",
+      "key": "livekernel",
+      "category": "reports",
+      "level": "safe",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "PathCleanup",
+      "paths": [
+        "%WINDIR%\\LiveKernelReports"
+      ],
+      "nameKey": "op.livekernel.name",
+      "descKey": "op.livekernel.desc"
+    },
+    {
+      "kind": "operation",
+      "key": "cbs",
+      "category": "reports",
+      "level": "safe",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "PathCleanup",
+      "paths": [
+        "%WINDIR%\\Logs\\CBS"
+      ],
+      "nameKey": "op.cbs.name",
+      "descKey": "op.cbs.desc"
+    },
+    {
+      "kind": "operation",
+      "key": "winlogs",
+      "category": "reports",
+      "level": "safe",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "PathCleanupRecursive",
+      "paths": [
+        "%WINDIR%\\Logs"
+      ],
+      "nameKey": "op.winlogs.name",
+      "descKey": "op.winlogs.desc",
+      "skipSubdirs": [
+        "CBS"
+      ]
+    },
+    {
+      "kind": "operation",
+      "key": "thumbs",
+      "category": "syscache",
+      "level": "medium",
+      "defaultChecked": false,
+      "hint": "restart Explorer",
+      "handler": "ThumbnailCache",
+      "paths": [],
+      "nameKey": "op.thumbs.name",
+      "descKey": "op.thumbs.desc"
+    },
+    {
+      "kind": "operation",
+      "key": "fontcache",
+      "category": "syscache",
+      "level": "safe",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "FontCache",
+      "paths": [],
+      "nameKey": "op.fontcache.name",
+      "descKey": "op.fontcache.desc"
+    },
+    {
+      "kind": "operation",
+      "key": "notifications",
+      "category": "syscache",
+      "level": "safe",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "PathCleanup",
+      "paths": [
+        "%LOCALAPPDATA%\\Microsoft\\Windows\\Notifications"
+      ],
+      "nameKey": "op.notifications.name",
+      "descKey": "op.notifications.desc"
+    },
+    {
+      "kind": "operation",
+      "key": "dodelivery",
+      "category": "syscache",
+      "level": "safe",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "Command",
+      "paths": [],
+      "nameKey": "op.dodelivery.name",
+      "descKey": "op.dodelivery.desc",
+      "command": "Delete-DeliveryOptimizationCache"
+    },
+    {
+      "kind": "operation",
+      "key": "downloadedprog",
+      "category": "syscache",
+      "level": "safe",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "PathCleanup",
+      "paths": [
+        "%WINDIR%\\Downloaded Program Files"
+      ],
+      "nameKey": "op.downloadedprog.name",
+      "descKey": "op.downloadedprog.desc"
+    },
+    {
+      "kind": "operation",
+      "key": "windows_store",
+      "category": "syscache",
+      "level": "safe",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "WindowsStoreCache",
+      "paths": [],
+      "nameKey": "op.windows_store.name",
+      "descKey": "op.windows_store.desc"
+    },
+    {
+      "kind": "operation",
+      "key": "onedrive",
+      "category": "syscache",
+      "level": "safe",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "PathCleanup",
+      "paths": [
+        "%LOCALAPPDATA%\\Microsoft\\OneDrive\\Cache",
+        "%LOCALAPPDATA%\\Microsoft\\OneDrive\\logs",
+        "%LOCALAPPDATA%\\Microsoft\\OneDrive\\setup\\logs"
+      ],
+      "nameKey": "op.onedrive.name",
+      "descKey": "op.onedrive.desc"
+    },
+    {
+      "kind": "operation",
+      "key": "d3dscache",
+      "category": "gfx",
+      "level": "safe",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "PathCleanup",
+      "paths": [
+        "%LOCALAPPDATA%\\D3DSCache"
+      ],
+      "nameKey": "op.d3dscache.name",
+      "descKey": "op.d3dscache.desc"
+    },
+    {
+      "kind": "operation",
+      "key": "nvidia",
+      "category": "gfx",
+      "level": "safe",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "PathCleanup",
+      "paths": [
+        "%LOCALAPPDATA%\\NVIDIA\\DXCache",
+        "%LOCALAPPDATA%\\NVIDIA\\GLCache"
+      ],
+      "nameKey": "op.nvidia.name",
+      "descKey": "op.nvidia.desc"
+    },
+    {
+      "kind": "operation",
+      "key": "amd",
+      "category": "gfx",
+      "level": "safe",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "PathCleanup",
+      "paths": [
+        "%LOCALAPPDATA%\\AMD\\DxCache",
+        "%LOCALAPPDATA%\\AMD\\GLCache"
+      ],
+      "nameKey": "op.amd.name",
+      "descKey": "op.amd.desc"
+    },
+    {
+      "kind": "operation",
+      "key": "steam_shader",
+      "category": "gfx",
+      "level": "safe",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "PathCleanup",
+      "paths": [
+        "%PROGRAMFILES(X86)%\\Steam\\steamapps\\shadercache",
+        "%PROGRAMFILES%\\Steam\\steamapps\\shadercache"
+      ],
+      "nameKey": "op.steam_shader.name",
+      "descKey": "op.steam_shader.desc"
+    },
+    {
+      "kind": "operation",
+      "key": "chrome",
+      "category": "browsers",
+      "level": "medium",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "BrowserProfiles",
+      "paths": [
+        "%LOCALAPPDATA%\\Google\\Chrome\\User Data"
+      ],
+      "nameKey": "op.chrome.name",
+      "descKey": "op.chrome.desc"
+    },
+    {
+      "kind": "operation",
+      "key": "edge",
+      "category": "browsers",
+      "level": "medium",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "BrowserProfiles",
+      "paths": [
+        "%LOCALAPPDATA%\\Microsoft\\Edge\\User Data"
+      ],
+      "nameKey": "op.edge.name",
+      "descKey": "op.edge.desc"
+    },
+    {
+      "kind": "operation",
+      "key": "opera",
+      "category": "browsers",
+      "level": "medium",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "PathCleanup",
+      "paths": [
+        "%LOCALAPPDATA%\\Opera Software\\Opera Stable\\Cache",
+        "%LOCALAPPDATA%\\Opera Software\\Opera GX Stable\\Cache"
+      ],
+      "nameKey": "op.opera.name",
+      "descKey": "op.opera.desc"
+    },
+    {
+      "kind": "operation",
+      "key": "yandex",
+      "category": "browsers",
+      "level": "medium",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "PathCleanup",
+      "paths": [
+        "%LOCALAPPDATA%\\Yandex\\YandexBrowser\\User Data\\Default\\Cache"
+      ],
+      "nameKey": "op.yandex.name",
+      "descKey": "op.yandex.desc"
+    },
+    {
+      "kind": "operation",
+      "key": "firefox",
+      "category": "browsers",
+      "level": "medium",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "FirefoxProfiles",
+      "paths": [],
+      "nameKey": "op.firefox.name",
+      "descKey": "op.firefox.desc"
+    },
+    {
+      "kind": "operation",
+      "key": "teams",
+      "category": "apps",
+      "level": "medium",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "MultiPathCleanup",
+      "paths": [
+        "%APPDATA%\\Microsoft\\Teams\\Cache",
+        "%APPDATA%\\Microsoft\\Teams\\Code Cache",
+        "%APPDATA%\\Microsoft\\Teams\\GPUCache",
+        "%APPDATA%\\Microsoft\\Teams\\blob_storage",
+        "%APPDATA%\\Microsoft\\Teams\\tmp",
+        "%LOCALAPPDATA%\\Packages\\MSTeams_8wekyb3d8bbwe\\LocalCache\\Microsoft\\MSTeams\\Cache",
+        "%LOCALAPPDATA%\\Packages\\MSTeams_8wekyb3d8bbwe\\LocalCache\\Microsoft\\MSTeams\\Code Cache",
+        "%LOCALAPPDATA%\\Packages\\MSTeams_8wekyb3d8bbwe\\LocalCache\\Microsoft\\MSTeams\\GPUCache"
+      ],
+      "nameKey": "op.teams.name",
+      "descKey": "op.teams.desc"
+    },
+    {
+      "kind": "operation",
+      "key": "discord",
+      "category": "apps",
+      "level": "medium",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "MultiPathCleanup",
+      "paths": [
+        "%APPDATA%\\discord\\Cache",
+        "%APPDATA%\\discord\\Code Cache",
+        "%APPDATA%\\discord\\GPUCache"
+      ],
+      "nameKey": "op.discord.name",
+      "descKey": "op.discord.desc"
+    },
+    {
+      "kind": "operation",
+      "key": "vscode",
+      "category": "apps",
+      "level": "medium",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "MultiPathCleanup",
+      "paths": [
+        "%APPDATA%\\Code\\Cache",
+        "%APPDATA%\\Code\\Code Cache",
+        "%APPDATA%\\Code\\GPUCache"
+      ],
+      "nameKey": "op.vscode.name",
+      "descKey": "op.vscode.desc"
+    },
+    {
+      "kind": "operation",
+      "key": "office",
+      "category": "apps",
+      "level": "medium",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "PathCleanup",
+      "paths": [
+        "%LOCALAPPDATA%\\Microsoft\\Office\\16.0\\OfficeFileCache"
+      ],
+      "nameKey": "op.office.name",
+      "descKey": "op.office.desc"
+    },
+    {
+      "kind": "operation",
+      "key": "steam",
+      "category": "apps",
+      "level": "medium",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "PathCleanup",
+      "paths": [
+        "%PROGRAMFILES(X86)%\\Steam\\appcache\\httpcache",
+        "%PROGRAMFILES%\\Steam\\appcache\\httpcache"
+      ],
+      "nameKey": "op.steam.name",
+      "descKey": "op.steam.desc"
+    },
+    {
+      "kind": "operation",
+      "key": "epic",
+      "category": "apps",
+      "level": "medium",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "PathCleanup",
+      "paths": [
+        "%LOCALAPPDATA%\\EpicGamesLauncher\\Saved\\webcache"
+      ],
+      "nameKey": "op.epic.name",
+      "descKey": "op.epic.desc"
+    },
+    {
+      "kind": "operation",
+      "key": "spotify",
+      "category": "apps",
+      "level": "medium",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "PathCleanup",
+      "paths": [
+        "%LOCALAPPDATA%\\Spotify\\Data",
+        "%LOCALAPPDATA%\\Spotify\\Storage"
+      ],
+      "nameKey": "op.spotify.name",
+      "descKey": "op.spotify.desc"
+    },
+    {
+      "kind": "operation",
+      "key": "telegram",
+      "category": "apps",
+      "level": "medium",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "PathCleanup",
+      "paths": [
+        "%APPDATA%\\Telegram Desktop\\tdata\\user_data\\cache",
+        "%APPDATA%\\Telegram Desktop\\tdata\\user_data\\media_cache",
+        "%APPDATA%\\Telegram Desktop\\tdata\\emoji"
+      ],
+      "nameKey": "op.telegram.name",
+      "descKey": "op.telegram.desc"
+    },
+    {
+      "kind": "operation",
+      "key": "zoom",
+      "category": "apps",
+      "level": "medium",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "MultiPathCleanup",
+      "paths": [
+        "%APPDATA%\\Zoom\\data\\Cache",
+        "%APPDATA%\\Zoom\\data\\Code Cache",
+        "%APPDATA%\\Zoom\\data\\GPUCache"
+      ],
+      "nameKey": "op.zoom.name",
+      "descKey": "op.zoom.desc"
+    },
+    {
+      "kind": "operation",
+      "key": "slack",
+      "category": "apps",
+      "level": "medium",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "MultiPathCleanup",
+      "paths": [
+        "%APPDATA%\\Slack\\Cache",
+        "%APPDATA%\\Slack\\Code Cache",
+        "%APPDATA%\\Slack\\GPUCache"
+      ],
+      "nameKey": "op.slack.name",
+      "descKey": "op.slack.desc"
+    },
+    {
+      "kind": "operation",
+      "key": "notion",
+      "category": "apps",
+      "level": "medium",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "MultiPathCleanup",
+      "paths": [
+        "%APPDATA%\\Notion\\Cache",
+        "%APPDATA%\\Notion\\Code Cache",
+        "%APPDATA%\\Notion\\GPUCache"
+      ],
+      "nameKey": "op.notion.name",
+      "descKey": "op.notion.desc"
+    },
+    {
+      "kind": "operation",
+      "key": "obs_logs",
+      "category": "apps",
+      "level": "safe",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "ObsLogs",
+      "paths": [],
+      "nameKey": "op.obs_logs.name",
+      "descKey": "op.obs_logs.desc",
+      "olderThanDays": 7
+    },
+    {
+      "kind": "operation",
+      "key": "npm_cache",
+      "category": "dev",
+      "level": "safe",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "PathCleanup",
+      "paths": [
+        "%APPDATA%\\npm-cache",
+        "%LOCALAPPDATA%\\npm-cache",
+        "%LOCALAPPDATA%\\npm\\_cacache"
+      ],
+      "nameKey": "op.npm_cache.name",
+      "descKey": "op.npm_cache.desc"
+    },
+    {
+      "kind": "operation",
+      "key": "pip_cache",
+      "category": "dev",
+      "level": "safe",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "PathCleanup",
+      "paths": [
+        "%LOCALAPPDATA%\\pip\\Cache",
+        "%LOCALAPPDATA%\\pip\\cache"
+      ],
+      "nameKey": "op.pip_cache.name",
+      "descKey": "op.pip_cache.desc"
+    },
+    {
+      "kind": "operation",
+      "key": "nuget_cache",
+      "category": "dev",
+      "level": "safe",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "PathCleanup",
+      "paths": [
+        "%LOCALAPPDATA%\\NuGet\\v3-cache",
+        "%LOCALAPPDATA%\\NuGet\\Cache"
+      ],
+      "nameKey": "op.nuget_cache.name",
+      "descKey": "op.nuget_cache.desc"
+    },
+    {
+      "kind": "operation",
+      "key": "recent",
+      "category": "privacy",
+      "level": "safe",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "PathCleanup",
+      "paths": [
+        "%APPDATA%\\Microsoft\\Windows\\Recent"
+      ],
+      "nameKey": "op.recent.name",
+      "descKey": "op.recent.desc"
+    },
+    {
+      "kind": "operation",
+      "key": "jump_lists",
+      "category": "privacy",
+      "level": "safe",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "JumpLists",
+      "paths": [],
+      "nameKey": "op.jump_lists.name",
+      "descKey": "op.jump_lists.desc"
+    },
+    {
+      "kind": "operation",
+      "key": "clipboard_history",
+      "category": "privacy",
+      "level": "safe",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "PathCleanup",
+      "paths": [
+        "%LOCALAPPDATA%\\Microsoft\\Windows\\Clipboard"
+      ],
+      "nameKey": "op.clipboard_history.name",
+      "descKey": "op.clipboard_history.desc"
+    },
+    {
+      "kind": "operation",
+      "key": "recent_typed",
+      "category": "privacy",
+      "level": "safe",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "RegCleanKey",
+      "paths": [],
+      "nameKey": "op.recent_typed.name",
+      "descKey": "op.recent_typed.desc",
+      "registryKey": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\TypedPaths"
+    },
+    {
+      "kind": "operation",
+      "key": "run_history",
+      "category": "privacy",
+      "level": "safe",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "RegCleanRunMRU",
+      "paths": [],
+      "nameKey": "op.run_history.name",
+      "descKey": "op.run_history.desc"
+    },
+    {
+      "kind": "operation",
+      "key": "activity_history",
+      "category": "privacy",
+      "level": "safe",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "ActivityHistory",
+      "paths": [],
+      "nameKey": "op.activity_history.name",
+      "descKey": "op.activity_history.desc"
+    },
+    {
+      "kind": "operation",
+      "key": "downloads_smart",
+      "category": "privacy",
+      "level": "medium",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "SmartDownloads",
+      "paths": [],
+      "nameKey": "op.downloads_smart.name",
+      "descKey": "op.downloads_smart.desc"
+    },
+    {
+      "kind": "operation",
+      "key": "wupdate",
+      "category": "heavy",
+      "level": "danger",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "WindowsUpdateCache",
+      "paths": [],
+      "nameKey": "op.wupdate.name",
+      "descKey": "op.wupdate.desc"
+    },
+    {
+      "kind": "operation",
+      "key": "winsxs",
+      "category": "heavy",
+      "level": "danger",
+      "defaultChecked": false,
+      "hint": "5-60 min",
+      "handler": "DismComponentCleanup",
+      "paths": [],
+      "nameKey": "op.winsxs.name",
+      "descKey": "op.winsxs.desc"
+    },
+    {
+      "kind": "operation",
+      "key": "windowsold",
+      "category": "heavy",
+      "level": "danger",
+      "defaultChecked": false,
+      "hint": "10-30 min",
+      "handler": "WindowsOld",
+      "paths": [],
+      "nameKey": "op.windowsold.name",
+      "descKey": "op.windowsold.desc"
+    },
+    {
+      "kind": "operation",
+      "key": "shadowcopy",
+      "category": "heavy",
+      "level": "danger",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "ShadowCopy",
+      "paths": [],
+      "nameKey": "op.shadowcopy.name",
+      "descKey": "op.shadowcopy.desc"
+    },
+    {
+      "kind": "operation",
+      "key": "hibernate",
+      "category": "heavy",
+      "level": "danger",
+      "defaultChecked": false,
+      "hint": "",
+      "handler": "ToggleHibernation",
+      "paths": [],
+      "nameKey": "op.hibernate.name",
+      "descKey": "op.hibernate.desc"
+    }
+  ]
+}
