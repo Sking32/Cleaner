@@ -3,39 +3,55 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Cleaner.Cli;
+
+// =============================================================
+//  Точка входа Cleaner.Cli.
+//  Сначала — старые merge-tools (для инструментов разработки),
+//  затем — runtime-режимы cleanup.
+// =============================================================
 
 var options = new JsonSerializerOptions { WriteIndented = true };
 
-if (args.Length >= 1)
+var parsed = CliOptions.Parse(args);
+
+// --- merge-tools (совместимость с прошлым поведением) ---
+if (parsed.MergeTweaks && parsed.Positional.Count == 2)
 {
-    switch (args[0])
-    {
-        case "--merge-tweaks" when args.Length == 3:
-            MergeTweaks(args[1], args[2]);
-            return;
-
-        case "--merge-strings" when args.Length == 3:
-            MergeStrings(args[1], args[2]);
-            return;
-
-        case "--merge-operations" when args.Length == 3:
-            MergeOperations(args[1], args[2]);
-            return;
-    }
+    MergeTweaks(parsed.Positional[0], parsed.Positional[1]);
+    return;
+}
+if (parsed.MergeStrings && parsed.Positional.Count == 2)
+{
+    MergeStrings(parsed.Positional[0], parsed.Positional[1]);
+    return;
+}
+if (parsed.MergeOperations && parsed.Positional.Count == 2)
+{
+    MergeOperations(parsed.Positional[0], parsed.Positional[1]);
+    return;
 }
 
-Console.WriteLine("Cleaner CLI");
-Console.WriteLine();
-Console.WriteLine("Tools:");
-Console.WriteLine("  --merge-tweaks     <tweaks.json>     <actions.json>");
-Console.WriteLine("  --merge-strings    <target.json>     <source.json>");
-Console.WriteLine("  --merge-operations <meta.json>       <actions.json>");
-Console.WriteLine();
-Console.WriteLine("Planned runtime commands:");
-Console.WriteLine("  --preset <soft|std|deep|<name>>");
-Console.WriteLine("  --silent, --json, --quiet, --webhook <url>, --log");
+// --- validation ---
+var error = parsed.Validate();
+if (error != null)
+{
+    Console.Error.WriteLine(error);
+    Console.Error.WriteLine();
+    new CliRunner(new OutputWriter(Console.Out, null, quiet: false)).PrintHelp();
+    Environment.ExitCode = 64;   // EX_USAGE
+    return;
+}
 
-// ---------------------------------------------------------------
+// --- runtime ---
+using var writer = new OutputWriter(Console.Out, parsed.LogPath, parsed.Quiet);
+var runner = new CliRunner(writer);
+var exitCode = runner.Run(parsed);
+Environment.ExitCode = exitCode;
+
+// =============================================================
+//  merge-tools (локальные функции)
+// =============================================================
 
 void MergeTweaks(string tweaksPath, string actionsPath)
 {

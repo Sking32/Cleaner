@@ -114,6 +114,18 @@ public static class RegistryHelper
         return key.GetSubKeyNames();
     }
 
+    /// <summary>
+    /// Возвращает имена значений в указанной ветке (включая "" для (Default)).
+    /// Пустой массив, если ветки нет.
+    /// </summary>
+    public static IReadOnlyList<string> GetValueNames(string hive, string subKey)
+    {
+        using var baseKey = OpenBaseKey(ParseHive(hive));
+        using var key = baseKey.OpenSubKey(subKey, writable: false);
+        if (key == null) return Array.Empty<string>();
+        return key.GetValueNames();
+    }
+
     private static string NormalizeName(string name) =>
         string.IsNullOrEmpty(name) ? "" : name;
 }

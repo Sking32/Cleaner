@@ -5,4 +5,5 @@
     <Project Path="Cleaner.Core.Tests/Cleaner.Core.Tests.csproj" />
     <Project Path="Cleaner.Core/Cleaner.Core.csproj" />
   </Folder>
+  <Project Path="Cleaner.Cli.Tests/Cleaner.Cli.Tests.csproj" Id="10e24187-dda8-4de6-b378-b038e693adc1" />
 </Solution>
