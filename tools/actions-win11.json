@@ -1,0 +1,342 @@
+{
+  "ClassicContext": {
+    "apply": [
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "Software\\Classes\\CLSID\\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\\InprocServer32",
+        "name": "",
+        "kind": "String",
+        "value": "",
+        "createKeyIfMissing": true
+      },
+      { "type": "restartExplorer" }
+    ],
+    "unapply": [
+      {
+        "type": "regDeleteKey",
+        "hive": "HKCU",
+        "key": "Software\\Classes\\CLSID\\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}"
+      },
+      { "type": "restartExplorer" }
+    ],
+    "state": [
+      {
+        "type": "regKeyExists",
+        "hive": "HKCU",
+        "key": "Software\\Classes\\CLSID\\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\\InprocServer32"
+      }
+    ]
+  },
+  "Widgets": {
+    "apply": [
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+        "name": "TaskbarDa",
+        "kind": "DWord",
+        "value": 0,
+        "createKeyIfMissing": true
+      },
+      {
+        "type": "regSet",
+        "hive": "HKLM",
+        "key": "SOFTWARE\\Policies\\Microsoft\\Dsh",
+        "name": "AllowNewsAndInterests",
+        "kind": "DWord",
+        "value": 0,
+        "createKeyIfMissing": true
+      },
+      { "type": "restartExplorer" }
+    ],
+    "unapply": [
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+        "name": "TaskbarDa",
+        "kind": "DWord",
+        "value": 1,
+        "createKeyIfMissing": true
+      },
+      {
+        "type": "regRemove",
+        "hive": "HKLM",
+        "key": "SOFTWARE\\Policies\\Microsoft\\Dsh",
+        "name": "AllowNewsAndInterests"
+      },
+      { "type": "restartExplorer" }
+    ],
+    "state": [
+      {
+        "type": "regGet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+        "name": "TaskbarDa",
+        "kind": "DWord",
+        "expected": 0
+      }
+    ]
+  },
+  "SearchHighlights": {
+    "apply": [
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Windows\\CurrentVersion\\SearchSettings",
+        "name": "IsDynamicSearchBoxEnabled",
+        "kind": "DWord",
+        "value": 0,
+        "createKeyIfMissing": true
+      }
+    ],
+    "unapply": [
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Windows\\CurrentVersion\\SearchSettings",
+        "name": "IsDynamicSearchBoxEnabled",
+        "kind": "DWord",
+        "value": 1,
+        "createKeyIfMissing": true
+      }
+    ],
+    "state": [
+      {
+        "type": "regGet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Windows\\CurrentVersion\\SearchSettings",
+        "name": "IsDynamicSearchBoxEnabled",
+        "kind": "DWord",
+        "expected": 0
+      }
+    ]
+  },
+  "StartRecommendations": {
+    "apply": [
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+        "name": "Start_IrisRecommendations",
+        "kind": "DWord",
+        "value": 0,
+        "createKeyIfMissing": true
+      },
+      {
+        "type": "regSet",
+        "hive": "HKLM",
+        "key": "SOFTWARE\\Microsoft\\PolicyManager\\current\\device\\Start",
+        "name": "HideRecommendedSection",
+        "kind": "DWord",
+        "value": 1,
+        "createKeyIfMissing": true
+      }
+    ],
+    "unapply": [
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+        "name": "Start_IrisRecommendations",
+        "kind": "DWord",
+        "value": 1,
+        "createKeyIfMissing": true
+      },
+      {
+        "type": "regRemove",
+        "hive": "HKLM",
+        "key": "SOFTWARE\\Microsoft\\PolicyManager\\current\\device\\Start",
+        "name": "HideRecommendedSection"
+      }
+    ],
+    "state": [
+      {
+        "type": "regGet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+        "name": "Start_IrisRecommendations",
+        "kind": "DWord",
+        "expected": 0
+      }
+    ]
+  },
+  "TaskbarAlign": {
+    "apply": [
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+        "name": "TaskbarAl",
+        "kind": "DWord",
+        "value": 0,
+        "createKeyIfMissing": true
+      },
+      { "type": "restartExplorer" }
+    ],
+    "unapply": [
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+        "name": "TaskbarAl",
+        "kind": "DWord",
+        "value": 1,
+        "createKeyIfMissing": true
+      },
+      { "type": "restartExplorer" }
+    ],
+    "state": [
+      {
+        "type": "regGet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+        "name": "TaskbarAl",
+        "kind": "DWord",
+        "expected": 0
+      }
+    ]
+  },
+  "SearchBox": {
+    "apply": [
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Search",
+        "name": "SearchboxTaskbarMode",
+        "kind": "DWord",
+        "value": 1,
+        "createKeyIfMissing": true
+      },
+      { "type": "restartExplorer" }
+    ],
+    "unapply": [
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Search",
+        "name": "SearchboxTaskbarMode",
+        "kind": "DWord",
+        "value": 2,
+        "createKeyIfMissing": true
+      },
+      { "type": "restartExplorer" }
+    ],
+    "state": [
+      {
+        "type": "regGet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Search",
+        "name": "SearchboxTaskbarMode",
+        "kind": "DWord",
+        "expected": 1
+      }
+    ]
+  },
+  "ChatIcon": {
+    "apply": [
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+        "name": "TaskbarMn",
+        "kind": "DWord",
+        "value": 0,
+        "createKeyIfMissing": true
+      },
+      { "type": "restartExplorer" }
+    ],
+    "unapply": [
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+        "name": "TaskbarMn",
+        "kind": "DWord",
+        "value": 1,
+        "createKeyIfMissing": true
+      },
+      { "type": "restartExplorer" }
+    ],
+    "state": [
+      {
+        "type": "regGet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+        "name": "TaskbarMn",
+        "kind": "DWord",
+        "expected": 0
+      }
+    ]
+  },
+  "TaskView": {
+    "apply": [
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+        "name": "ShowTaskViewButton",
+        "kind": "DWord",
+        "value": 0,
+        "createKeyIfMissing": true
+      },
+      { "type": "restartExplorer" }
+    ],
+    "unapply": [
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+        "name": "ShowTaskViewButton",
+        "kind": "DWord",
+        "value": 1,
+        "createKeyIfMissing": true
+      },
+      { "type": "restartExplorer" }
+    ],
+    "state": [
+      {
+        "type": "regGet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+        "name": "ShowTaskViewButton",
+        "kind": "DWord",
+        "expected": 0
+      }
+    ]
+  },
+  "EndTask": {
+    "apply": [
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced\\TaskbarDeveloperSettings",
+        "name": "TaskbarEndTask",
+        "kind": "DWord",
+        "value": 1,
+        "createKeyIfMissing": true
+      },
+      { "type": "restartExplorer" }
+    ],
+    "unapply": [
+      {
+        "type": "regRemove",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced\\TaskbarDeveloperSettings",
+        "name": "TaskbarEndTask"
+      },
+      { "type": "restartExplorer" }
+    ],
+    "state": [
+      {
+        "type": "regGet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced\\TaskbarDeveloperSettings",
+        "name": "TaskbarEndTask",
+        "kind": "DWord",
+        "expected": 1
+      }
+    ]
+  }
+}
