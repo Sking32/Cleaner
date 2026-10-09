@@ -8,6 +8,51 @@
                 <ui:ThemesDictionary Theme="Dark" />
                 <ui:ControlsDictionary />
             </ResourceDictionary.MergedDictionaries>
+
+            <!-- Глобальные стили с прямыми hex-цветами (Windows 11 dark palette). -->
+
+            <SolidColorBrush x:Key="TextPrimaryBrush"   Color="#FFFFFF" />
+            <SolidColorBrush x:Key="TextSecondaryBrush" Color="#C5C5C5" />
+            <SolidColorBrush x:Key="TextMutedBrush"     Color="#9A9A9A" />
+            <SolidColorBrush x:Key="AccentBrush"        Color="#60CDFF" />
+
+            <Style TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+                <Setter Property="TextOptions.TextFormattingMode" Value="Display" />
+                <Setter Property="TextOptions.TextRenderingMode" Value="ClearType" />
+            </Style>
+
+            <Style TargetType="Label">
+                <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+            </Style>
+
+            <Style TargetType="CheckBox">
+                <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+            </Style>
+
+            <Style TargetType="RadioButton">
+                <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+            </Style>
+
+            <Style TargetType="ComboBox">
+                <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+            </Style>
+
+            <Style TargetType="ComboBoxItem">
+                <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+            </Style>
+
+            <Style TargetType="ListBoxItem">
+                <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+            </Style>
+
+            <Style TargetType="ScrollViewer">
+                <Setter Property="Background" Value="Transparent" />
+            </Style>
+
+            <Style TargetType="ProgressBar">
+                <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+            </Style>
         </ResourceDictionary>
     </Application.Resources>
 </Application>
