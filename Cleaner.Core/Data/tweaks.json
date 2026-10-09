@@ -1985,9 +1985,36 @@
       "shortKey": "tweak.NetworkThrottle.short",
       "descKey": "tweak.NetworkThrottle.desc",
       "warnKey": "tweak.NetworkThrottle.warn",
-      "apply": [],
-      "unapply": [],
-      "state": []
+      "apply": [
+        {
+          "type": "regSet",
+          "hive": "HKLM",
+          "key": "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile",
+          "name": "NetworkThrottlingIndex",
+          "kind": "DWord",
+          "value": -1
+        }
+      ],
+      "unapply": [
+        {
+          "type": "regSet",
+          "hive": "HKLM",
+          "key": "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile",
+          "name": "NetworkThrottlingIndex",
+          "kind": "DWord",
+          "value": 10
+        }
+      ],
+      "state": [
+        {
+          "type": "regGet",
+          "hive": "HKLM",
+          "key": "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile",
+          "name": "NetworkThrottlingIndex",
+          "kind": "DWord",
+          "expected": -1
+        }
+      ]
     },
     {
       "key": "TcpAutotuning",
@@ -1999,9 +2026,28 @@
       "shortKey": "tweak.TcpAutotuning.short",
       "descKey": "tweak.TcpAutotuning.desc",
       "warnKey": "tweak.TcpAutotuning.warn",
-      "apply": [],
-      "unapply": [],
-      "state": []
+      "apply": [
+        {
+          "type": "commandRun",
+          "fileName": "netsh.exe",
+          "arguments": "int tcp set global autotuninglevel=disabled"
+        }
+      ],
+      "unapply": [
+        {
+          "type": "commandRun",
+          "fileName": "netsh.exe",
+          "arguments": "int tcp set global autotuninglevel=normal"
+        }
+      ],
+      "state": [
+        {
+          "type": "commandGet",
+          "fileName": "netsh.exe",
+          "arguments": "int tcp show global",
+          "outputContains": "disabled"
+        }
+      ]
     },
     {
       "key": "Nagle",
@@ -2013,9 +2059,48 @@
       "shortKey": "tweak.Nagle.short",
       "descKey": "tweak.Nagle.desc",
       "warnKey": "tweak.Nagle.warn",
-      "apply": [],
-      "unapply": [],
-      "state": []
+      "apply": [
+        {
+          "type": "regSetAllSubKeys",
+          "hive": "HKLM",
+          "key": "SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces",
+          "name": "TcpAckFrequency",
+          "kind": "DWord",
+          "value": 1
+        },
+        {
+          "type": "regSetAllSubKeys",
+          "hive": "HKLM",
+          "key": "SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces",
+          "name": "TCPNoDelay",
+          "kind": "DWord",
+          "value": 1
+        }
+      ],
+      "unapply": [
+        {
+          "type": "regRemoveAllSubKeys",
+          "hive": "HKLM",
+          "key": "SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces",
+          "name": "TcpAckFrequency"
+        },
+        {
+          "type": "regRemoveAllSubKeys",
+          "hive": "HKLM",
+          "key": "SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces",
+          "name": "TCPNoDelay"
+        }
+      ],
+      "state": [
+        {
+          "type": "regGetAllSubKeys",
+          "hive": "HKLM",
+          "key": "SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces",
+          "name": "TcpAckFrequency",
+          "kind": "DWord",
+          "expected": 1
+        }
+      ]
     },
     {
       "key": "QosReserved",
@@ -2027,9 +2112,38 @@
       "shortKey": "tweak.QosReserved.short",
       "descKey": "tweak.QosReserved.desc",
       "warnKey": "tweak.QosReserved.warn",
-      "apply": [],
-      "unapply": [],
-      "state": []
+      "apply": [
+        {
+          "type": "regSet",
+          "hive": "HKLM",
+          "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Psched",
+          "name": "NonBestEffortLimit",
+          "kind": "DWord",
+          "value": 0,
+          "createKeyIfMissing": true
+        }
+      ],
+      "unapply": [
+        {
+          "type": "regSet",
+          "hive": "HKLM",
+          "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Psched",
+          "name": "NonBestEffortLimit",
+          "kind": "DWord",
+          "value": 20,
+          "createKeyIfMissing": true
+        }
+      ],
+      "state": [
+        {
+          "type": "regGet",
+          "hive": "HKLM",
+          "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Psched",
+          "name": "NonBestEffortLimit",
+          "kind": "DWord",
+          "expected": 0
+        }
+      ]
     },
     {
       "key": "NetBIOS",
@@ -2041,9 +2155,34 @@
       "shortKey": "tweak.NetBIOS.short",
       "descKey": "tweak.NetBIOS.desc",
       "warnKey": "tweak.NetBIOS.warn",
-      "apply": [],
-      "unapply": [],
-      "state": []
+      "apply": [
+        {
+          "type": "regSetAllSubKeys",
+          "hive": "HKLM",
+          "key": "SYSTEM\\CurrentControlSet\\Services\\NetBT\\Parameters\\Interfaces",
+          "name": "NetbiosOptions",
+          "kind": "DWord",
+          "value": 2
+        }
+      ],
+      "unapply": [
+        {
+          "type": "regRemoveAllSubKeys",
+          "hive": "HKLM",
+          "key": "SYSTEM\\CurrentControlSet\\Services\\NetBT\\Parameters\\Interfaces",
+          "name": "NetbiosOptions"
+        }
+      ],
+      "state": [
+        {
+          "type": "regGetAllSubKeys",
+          "hive": "HKLM",
+          "key": "SYSTEM\\CurrentControlSet\\Services\\NetBT\\Parameters\\Interfaces",
+          "name": "NetbiosOptions",
+          "kind": "DWord",
+          "expected": 2
+        }
+      ]
     },
     {
       "key": "IPv6",
@@ -2055,9 +2194,35 @@
       "shortKey": "tweak.IPv6.short",
       "descKey": "tweak.IPv6.desc",
       "warnKey": "tweak.IPv6.warn",
-      "apply": [],
-      "unapply": [],
-      "state": []
+      "apply": [
+        {
+          "type": "regSet",
+          "hive": "HKLM",
+          "key": "SYSTEM\\CurrentControlSet\\Services\\Tcpip6\\Parameters",
+          "name": "DisabledComponents",
+          "kind": "DWord",
+          "value": 255,
+          "createKeyIfMissing": true
+        }
+      ],
+      "unapply": [
+        {
+          "type": "regRemove",
+          "hive": "HKLM",
+          "key": "SYSTEM\\CurrentControlSet\\Services\\Tcpip6\\Parameters",
+          "name": "DisabledComponents"
+        }
+      ],
+      "state": [
+        {
+          "type": "regGet",
+          "hive": "HKLM",
+          "key": "SYSTEM\\CurrentControlSet\\Services\\Tcpip6\\Parameters",
+          "name": "DisabledComponents",
+          "kind": "DWord",
+          "expected": 255
+        }
+      ]
     },
     {
       "key": "WindowsUpdateP2P",
@@ -2069,9 +2234,38 @@
       "shortKey": "tweak.WindowsUpdateP2P.short",
       "descKey": "tweak.WindowsUpdateP2P.desc",
       "warnKey": "tweak.WindowsUpdateP2P.warn",
-      "apply": [],
-      "unapply": [],
-      "state": []
+      "apply": [
+        {
+          "type": "regSet",
+          "hive": "HKLM",
+          "key": "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\DeliveryOptimization\\Config",
+          "name": "DODownloadMode",
+          "kind": "DWord",
+          "value": 0,
+          "createKeyIfMissing": true
+        }
+      ],
+      "unapply": [
+        {
+          "type": "regSet",
+          "hive": "HKLM",
+          "key": "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\DeliveryOptimization\\Config",
+          "name": "DODownloadMode",
+          "kind": "DWord",
+          "value": 1,
+          "createKeyIfMissing": true
+        }
+      ],
+      "state": [
+        {
+          "type": "regGet",
+          "hive": "HKLM",
+          "key": "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\DeliveryOptimization\\Config",
+          "name": "DODownloadMode",
+          "kind": "DWord",
+          "expected": 0
+        }
+      ]
     },
     {
       "key": "StorageSense",
