@@ -1,0 +1,16 @@
+{
+  "tweak.Cortana.name": "Disable Cortana",
+  "tweak.Cortana.short": "Voice assistant off",
+  "tweak.Cortana.desc": "Disables the Cortana voice assistant and its background processes.",
+  "tweak.Cortana.warn": "Voice search and Cortana features stop working.",
+
+  "tweak.VisualFx.name": "Visual effects: Performance",
+  "tweak.VisualFx.short": "Disables animations, shadows",
+  "tweak.VisualFx.desc": "Sets visual effects to \"Adjust for best performance\". Disables animations, shadows, smooth scrolling.",
+  "tweak.VisualFx.warn": "Windows may look less polished.",
+
+  "tweak.SysMain.name": "Disable SysMain (Superfetch)",
+  "tweak.SysMain.short": "Not needed on SSD, uses RAM",
+  "tweak.SysMain.desc": "Disables the SysMain service (formerly Superfetch). Recommended for SSDs.",
+  "tweak.SysMain.warn": "HDD users may lose launch speed."
+}

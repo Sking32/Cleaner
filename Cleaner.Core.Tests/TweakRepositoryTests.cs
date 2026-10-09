@@ -1,4 +1,5 @@
-﻿using Cleaner.Core.Data;
+﻿using System.Linq;
+using Cleaner.Core.Data;
 using Xunit;
 
 namespace Cleaner.Core.Tests;
@@ -6,11 +7,46 @@ namespace Cleaner.Core.Tests;
 public class TweakRepositoryTests
 {
     [Fact]
-    public void Loads_All_Tweaks_From_Json()
+    public void Loads_All_62_Tweaks_From_Json()
     {
         var repo = new TweakRepository();
-        Assert.NotEmpty(repo.Tweaks);
+        Assert.Equal(62, repo.Tweaks.Count);
         Assert.Contains(repo.Tweaks, t => t.Key == "Cortana");
+        Assert.Contains(repo.Tweaks, t => t.Key == "VisualFx");
+        Assert.Contains(repo.Tweaks, t => t.Key == "SysMain");
+        Assert.Contains(repo.Tweaks, t => t.Key == "HAGS");
+        Assert.Contains(repo.Tweaks, t => t.Key == "GamePowerThrottling");
+    }
+
+    [Fact]
+    public void Every_Tweak_Has_Localization_Keys()
+    {
+        var repo = new TweakRepository();
+        var ru = new LocalizationRepository("ru");
+        var en = new LocalizationRepository("en");
+
+        foreach (var t in repo.Tweaks)
+        {
+            Assert.True(ru.Has(t.NameKey), $"RU missing: {t.NameKey}");
+            Assert.True(ru.Has(t.ShortKey), $"RU missing: {t.ShortKey}");
+            Assert.True(ru.Has(t.DescKey), $"RU missing: {t.DescKey}");
+            Assert.True(en.Has(t.NameKey), $"EN missing: {t.NameKey}");
+            Assert.True(en.Has(t.ShortKey), $"EN missing: {t.ShortKey}");
+            Assert.True(en.Has(t.DescKey), $"EN missing: {t.DescKey}");
+        }
+    }
+
+    [Fact]
+    public void All_Categories_Are_Represented()
+    {
+        var repo = new TweakRepository();
+        var categories = repo.Tweaks.Select(t => t.Category).Distinct().ToList();
+        Assert.Contains("perf", categories);
+        Assert.Contains("privacy", categories);
+        Assert.Contains("win11", categories);
+        Assert.Contains("network", categories);
+        Assert.Contains("maint", categories);
+        Assert.Contains("games", categories);
     }
 
     [Fact]

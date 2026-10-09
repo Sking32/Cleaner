@@ -1,0 +1,16 @@
+{
+  "tweak.Cortana.name": "Отключить Cortana",
+  "tweak.Cortana.short": "Голосовой помощник выключен",
+  "tweak.Cortana.desc": "Отключает голосового помощника Cortana и его фоновые процессы.",
+  "tweak.Cortana.warn": "Голосовой поиск и функции Cortana перестанут работать.",
+
+  "tweak.VisualFx.name": "Визуальные эффекты: макс. производительность",
+  "tweak.VisualFx.short": "Отключает анимации, тени",
+  "tweak.VisualFx.desc": "Устанавливает визуальные эффекты в режим «Наилучшая производительность». Отключает анимации, тени, плавную прокрутку.",
+  "tweak.VisualFx.warn": "Windows будет выглядеть проще.",
+
+  "tweak.SysMain.name": "Отключить службу SysMain (Superfetch)",
+  "tweak.SysMain.short": "Не нужна для SSD, ест ОЗУ",
+  "tweak.SysMain.desc": "Отключает службу SysMain (бывш. Superfetch). Рекомендуется для SSD.",
+  "tweak.SysMain.warn": "На HDD запуск программ может замедлиться."
+}

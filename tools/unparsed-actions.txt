@@ -1,0 +1,1738 @@
+﻿======================================================================
+TWEAK: VisualFx  (Cat=, Level=safe)
+======================================================================
+Key = 'VisualFx'; Cat = 'perf'
+        Name   = if ($isEn) { 'Visual effects: Performance' } else { 'Визуальные эффекты: макс. производительность' }
+        Short  = if ($isEn) { 'Disables animations, shadows' } else { 'Отключает анимации, тени' }
+        Desc   = if ($isEn) { 'Sets visual effects to "Adjust for best performance".' } else { 'Устанавливает визуальные эффекты в режим «Наилучшая производительность».' }
+        Warn   = if ($isEn) { 'Windows may look less polished.' } else { 'Windows будет выглядеть проще.' }
+        Level = 'safe'
+        Apply = {
+            param($Enable)
+            $path = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects'
+            Save-OptimizationBackup 'visualfx' $path 'VisualFXSetting' (Get-OptVisualFxState) -Type DWord -Category 'perf'
+            if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }
+            Set-ItemProperty -Path $path -Name 'VisualFXSetting' -Value $(if ($Enable) { 2 } else { 0 }) -Type DWord -Force
+            if ($Enable) {
+                Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name 'UserPreferencesMask' `
+                    -Value ([byte[]](0x90,0x12,0x03,0x80,0x10,0x00,0x00,0x00)) -Type Binary -Force
+            } else {
+                Remove-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name 'UserPreferencesMask' -ErrorAction SilentlyContinue
+            }
+            return $true
+        }
+        GetState = { Get-OptVisualFxState }
+
+======================================================================
+TWEAK: Transparency  (Cat=, Level=safe)
+======================================================================
+Key = 'Transparency'; Cat = 'perf'
+        Name   = if ($isEn) { 'Disable transparency' } else { 'Отключить прозрачность окон' }
+        Short  = if ($isEn) { 'Removes Acrylic/Mica blur' } else { 'Убирает Acrylic/Mica' }
+        Desc   = if ($isEn) { 'Turns off window transparency and blur.' } else { 'Отключает прозрачность и размытие окон.' }
+        Warn   = if ($isEn) { 'Start menu / taskbar lose acrylic effect.' } else { 'Пуск и панель задач потеряют акрил.' }
+        Level = 'safe'
+        Apply = {
+            param($Enable)
+            $path = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize'
+            Save-OptimizationBackup 'transparency' $path 'EnableTransparency' 1 -Type DWord -Category 'perf'
+            if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }
+            Set-ItemProperty -Path $path -Name 'EnableTransparency' -Value ([int](if ($Enable) { 0 } else { 1 })) -Type DWord -Force
+            return $true
+        }
+        GetState = {
+            try {
+                $v = Get-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize' -Name 'EnableTransparency' -ErrorAction Stop
+                return ([int]$v.EnableTransparency -eq 0)
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: StartupDelay  (Cat=, Level=safe)
+======================================================================
+Key = 'StartupDelay'; Cat = 'perf'
+        Name   = if ($isEn) { 'Disable startup app delay' } else { 'Убрать задержку запуска приложений' }
+        Short  = if ($isEn) { 'Apps start immediately after login' } else { 'Программы стартуют сразу' }
+        Desc   = if ($isEn) { 'Windows delays startup apps by ~10 seconds.' } else { 'Windows задерживает запуск программ в автозагрузке.' }
+        Warn   = if ($isEn) { 'Boot may take slightly longer.' } else { 'Загрузка может быть чуть дольше.' }
+        Level = 'safe'
+        Apply = {
+            param($Enable)
+            $path = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Serialize'
+            if ($Enable) {
+                if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }
+                Save-OptimizationBackup 'startupdelay' $path 'StartupDelayInMSec' 0 -Type 'Remove' -Category 'perf'
+                Set-ItemProperty -Path $path -Name 'StartupDelayInMSec' -Value 0 -Type DWord -Force
+                Set-ItemProperty -Path $path -Name 'WaitForIdleState' -Value 0 -Type DWord -Force
+            } else {
+                Remove-ItemProperty -Path $path -Name 'StartupDelayInMSec' -ErrorAction SilentlyContinue
+                Remove-ItemProperty -Path $path -Name 'WaitForIdleState' -ErrorAction SilentlyContinue
+            }
+            return $true
+        }
+        GetState = {
+            try {
+                $v = Get-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Serialize' -Name 'StartupDelayInMSec' -ErrorAction Stop
+                return ([int]$v.StartupDelayInMSec -eq 0)
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: MenuDelay  (Cat=, Level=safe)
+======================================================================
+Key = 'MenuDelay'; Cat = 'perf'
+        Name   = if ($isEn) { 'Remove Start menu delay' } else { 'Убрать задержку меню «Пуск»' }
+        Short  = if ($isEn) { 'Menus open instantly on hover' } else { 'Меню открывается мгновенно' }
+        Desc   = if ($isEn) { 'Sets MenuShowDelay to 0.' } else { 'Устанавливает MenuShowDelay в 0.' }
+        Warn   = if ($isEn) { 'Menus may open on accidental hover.' } else { 'Меню может открываться при случайном наведении.' }
+        Level = 'safe'
+        Apply = {
+            param($Enable)
+            $path = 'HKCU:\Control Panel\Desktop'
+            Save-OptimizationBackup 'menudelay' $path 'MenuShowDelay' '400' -Type String -Category 'perf'
+            Set-ItemProperty -Path $path -Name 'MenuShowDelay' -Value $(if ($Enable) { '0' } else { '400' }) -Type String -Force
+            return $true
+        }
+        GetState = {
+            try {
+                $v = Get-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name 'MenuShowDelay' -ErrorAction Stop
+                return ([int]$v.MenuShowDelay -le 50)
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: BackgroundApps  (Cat=, Level=safe)
+======================================================================
+Key = 'BackgroundApps'; Cat = 'perf'
+        Name   = if ($isEn) { 'Disable background apps' } else { 'Отключить фоновые приложения' }
+        Short  = if ($isEn) { 'UWP apps stop running in background' } else { 'UWP-приложения не работают в фоне' }
+        Desc   = if ($isEn) { 'Stops UWP apps from running in the background.' } else { 'Запрещает UWP-приложениям работать в фоне.' }
+        Warn   = if ($isEn) { 'Mail, Calendar, Weather will not update.' } else { 'Почта, Календарь, Погода не будут обновляться.' }
+        Level = 'safe'
+        Apply = {
+            param($Enable)
+            $path1 = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\BackgroundAccessApplications'
+            $path2 = 'HKLM:\Software\Policies\Microsoft\Windows\AppPrivacy'
+            if ($Enable) {
+                Save-OptimizationBackup 'bgapps_user' $path1 'GlobalUserDisabled' 0 -Type 'Remove' -Category 'perf'
+                if (-not (Test-Path $path1)) { New-Item -Path $path1 -Force | Out-Null }
+                Set-ItemProperty -Path $path1 -Name 'GlobalUserDisabled' -Value 1 -Type DWord -Force
+                Save-OptimizationBackup 'bgapps_pol' $path2 'LetAppsRunInBackground' 0 -Type 'Remove' -Category 'perf'
+                if (-not (Test-Path $path2)) { New-Item -Path $path2 -Force | Out-Null }
+                Set-ItemProperty -Path $path2 -Name 'LetAppsRunInBackground' -Value 2 -Type DWord -Force
+            } else {
+                Remove-ItemProperty -Path $path1 -Name 'GlobalUserDisabled' -ErrorAction SilentlyContinue
+                Remove-ItemProperty -Path $path2 -Name 'LetAppsRunInBackground' -ErrorAction SilentlyContinue
+            }
+            return $true
+        }
+        GetState = {
+            try {
+                $v = Get-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\BackgroundAccessApplications' -Name 'GlobalUserDisabled' -ErrorAction Stop
+                return ([int]$v.GlobalUserDisabled -eq 1)
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: SysMain  (Cat=, Level=caution)
+======================================================================
+Key = 'SysMain'; Cat = 'perf'
+        Name   = if ($isEn) { 'Disable SysMain (Superfetch)' } else { 'Отключить службу SysMain (Superfetch)' }
+        Short  = if ($isEn) { 'Not needed on SSD, uses RAM' } else { 'Не нужна для SSD, ест ОЗУ' }
+        Desc   = if ($isEn) { 'Disables the SysMain service (formerly Superfetch). Recommended for SSDs. On HDDs it speeds up app launch.' } else { 'Отключает службу SysMain (бывш. Superfetch). Рекомендуется для SSD. На HDD ускоряет запуск.' }
+        Warn   = if ($isEn) { 'HDD users may lose launch speed.' } else { 'На HDD запуск программ может замедлиться.' }
+        Level = 'caution'
+        Apply = {
+            param($Enable)
+            $s = Get-Service -Name 'SysMain' -ErrorAction SilentlyContinue
+            if (-not $s) { return $false }
+            Save-OptimizationBackup 'svc_SysMain' '' 'SysMain' $s.StartType -Type 'Service' -Category 'perf'
+            if ($Enable) {
+                Stop-Service -Name 'SysMain' -Force -ErrorAction SilentlyContinue
+                Set-Service  -Name 'SysMain' -StartupType Disabled -ErrorAction SilentlyContinue
+            } else {
+                # FIX: только StartType. Без Start-Service — иначе PS 5.1 зависает с WARNING.
+                Set-Service -Name 'SysMain' -StartupType Automatic -ErrorAction SilentlyContinue
+            }
+            return $true
+        }
+        GetState = {
+            try {
+                $s = Get-Service -Name 'SysMain' -ErrorAction Stop
+                return ($s.StartType -eq 'Disabled')
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: Prefetch  (Cat=, Level=caution)
+======================================================================
+Key = 'Prefetch'; Cat = 'perf'
+        Name   = if ($isEn) { 'Disable Prefetch' } else { 'Отключить Prefetch' }
+        Short  = if ($isEn) { 'Not needed on SSD' } else { 'Не нужен для SSD' }
+        Desc   = if ($isEn) { 'Disables the prefetch mechanism. Recommended for SSDs.' } else { 'Отключает механизм префетчинга. Рекомендуется для SSD.' }
+        Warn   = if ($isEn) { 'HDD users may lose launch speed.' } else { 'На HDD запуск может замедлиться.' }
+        Level = 'caution'
+        Apply = {
+            param($Enable)
+            $path = 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management\PrefetchParameters'
+            Save-OptimizationBackup 'prefetch' $path 'EnablePrefetcher' 3 -Type DWord -Category 'perf'
+            Save-OptimizationBackup 'superfetch' $path 'EnableSuperfetch' 3 -Type DWord -Category 'perf'
+            $v = if ($Enable) { 0 } else { 3 }
+            Set-ItemProperty -Path $path -Name 'EnablePrefetcher' -Value $v -Type DWord -Force -ErrorAction SilentlyContinue
+            Set-ItemProperty -Path $path -Name 'EnableSuperfetch' -Value $v -Type DWord -Force -ErrorAction SilentlyContinue
+            return $true
+        }
+        GetState = {
+            try {
+                $v = Get-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management\PrefetchParameters' -Name 'EnablePrefetcher' -ErrorAction Stop
+                return ([int]$v.EnablePrefetcher -eq 0)
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: AutoMaintenance  (Cat=, Level=safe)
+======================================================================
+Key = 'AutoMaintenance'; Cat = 'perf'
+        Name   = if ($isEn) { 'Disable auto maintenance' } else { 'Отключить автоматическое обслуживание' }
+        Short  = if ($isEn) { 'Windows stops running maintenance tasks' } else { 'Windows не запускает задачи обслуживания' }
+        Desc   = if ($isEn) { 'Disables Windows automatic maintenance (defrag, updates scheduling, etc.).' } else { 'Отключает автоматическое обслуживание Windows (дефрагментация, планирование обновлений и т.д.).' }
+        Warn   = if ($isEn) { 'You must run maintenance manually.' } else { 'Обслуживание придётся запускать вручную.' }
+        Level = 'safe'
+        Apply = {
+            param($Enable)
+            $path = 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\Maintenance'
+            Save-OptimizationBackup 'automaint' $path 'MaintenanceDisabled' 0 -Type 'Remove' -Category 'perf'
+            if ($Enable) {
+                if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }
+                Set-ItemProperty -Path $path -Name 'MaintenanceDisabled' -Value 1 -Type DWord -Force
+            } else {
+                Remove-ItemProperty -Path $path -Name 'MaintenanceDisabled' -ErrorAction SilentlyContinue
+            }
+            return $true
+        }
+        GetState = {
+            try {
+                $v = Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\Maintenance' -Name 'MaintenanceDisabled' -ErrorAction Stop
+                return ([int]$v.MaintenanceDisabled -eq 1)
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: DefenderScanLimit  (Cat=, Level=safe)
+======================================================================
+Key = 'DefenderScanLimit'; Cat = 'perf'
+        Name   = if ($isEn) { 'Limit Defender CPU to 20%' } else { 'Ограничить CPU Defender до 20%' }
+        Short  = if ($isEn) { 'Background scan uses less CPU' } else { 'Фоновая проверка ест меньше CPU' }
+        Desc   = if ($isEn) { 'Limits Windows Defender background scan CPU usage to 20%.' } else { 'Ограничивает нагрузку на CPU при фоновой проверке Windows Defender до 20%.' }
+        Warn   = if ($isEn) { 'Scans may take longer.' } else { 'Проверки могут длиться дольше.' }
+        Level = 'safe'
+        Apply = {
+            param($Enable)
+            $path = 'HKLM:\SOFTWARE\Microsoft\Windows Defender\Scan'
+            Save-OptimizationBackup 'defscan' $path 'ScanAvgCPULoadFactor' 50 -Type DWord -Category 'perf'
+            if ($Enable) {
+                if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }
+                Set-ItemProperty -Path $path -Name 'ScanAvgCPULoadFactor' -Value 20 -Type DWord -Force -ErrorAction SilentlyContinue
+            } else {
+                Set-ItemProperty -Path $path -Name 'ScanAvgCPULoadFactor' -Value 50 -Type DWord -Force -ErrorAction SilentlyContinue
+            }
+            return $true
+        }
+        GetState = {
+            try {
+                $v = Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows Defender\Scan' -Name 'ScanAvgCPULoadFactor' -ErrorAction Stop
+                return ([int]$v.ScanAvgCPULoadFactor -le 20)
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: WerSvc  (Cat=, Level=safe)
+======================================================================
+Key = 'WerSvc'; Cat = 'perf'
+        Name   = if ($isEn) { 'Disable Windows Error Reporting' } else { 'Отключить службу отчётов об ошибках' }
+        Short  = if ($isEn) { 'No crash reports to Microsoft' } else { 'Windows не отправляет отчёты в Microsoft' }
+        Desc   = if ($isEn) { 'Disables WerSvc — Windows stops collecting and sending crash reports.' } else { 'Отключает службу WerSvc — Windows перестаёт собирать и отправлять отчёты об ошибках.' }
+        Warn   = if ($isEn) { 'You lose diagnostics data for troubleshooting.' } else { 'Пропадёт диагностика для разбора сбоев.' }
+        Level = 'safe'
+        Apply = {
+            param($Enable)
+            $s = Get-Service -Name 'WerSvc' -ErrorAction SilentlyContinue
+            if (-not $s) { return $false }
+            Save-OptimizationBackup 'svc_WerSvc' '' 'WerSvc' $s.StartType -Type 'Service' -Category 'perf'
+            if ($Enable) {
+                Stop-Service -Name 'WerSvc' -Force -ErrorAction SilentlyContinue
+                Set-Service -Name 'WerSvc' -StartupType Disabled -ErrorAction SilentlyContinue
+            } else {
+                Set-Service -Name 'WerSvc' -StartupType Manual -ErrorAction SilentlyContinue
+            }
+            return $true
+        }
+        GetState = {
+            try {
+                $s = Get-Service -Name 'WerSvc' -ErrorAction Stop
+                return ($s.StartType -eq 'Disabled')
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: FastStartup  (Cat=, Level=caution)
+======================================================================
+Key = 'FastStartup'; Cat = 'perf'
+        Name   = if ($isEn) { 'Disable Fast Startup' } else { 'Отключить быстрый запуск' }
+        Short  = if ($isEn) { 'Sometimes fixes driver issues after shutdown' } else { 'Иногда лечит проблемы с драйверами' }
+        Desc   = if ($isEn) { 'Disables Fast Startup (hybrid boot). Fixes some driver issues but boot may be slightly slower.' } else { 'Отключает быстрый запуск (гибридная загрузка). Лечит некоторые проблемы с драйверами, но загрузка чуть медленнее.' }
+        Warn   = if ($isEn) { 'Boot may be slower by a few seconds.' } else { 'Загрузка может стать на несколько секунд медленнее.' }
+        Level = 'caution'
+        Apply = {
+            param($Enable)
+            $path = 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power'
+            Save-OptimizationBackup 'faststartup' $path 'HiberbootEnabled' 1 -Type DWord -Category 'perf'
+            Set-ItemProperty -Path $path -Name 'HiberbootEnabled' -Value ([int](if ($Enable) { 0 } else { 1 })) -Type DWord -Force -ErrorAction SilentlyContinue
+            return $true
+        }
+        GetState = {
+            try {
+                $v = Get-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power' -Name 'HiberbootEnabled' -ErrorAction Stop
+                return ([int]$v.HiberbootEnabled -eq 0)
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: ReservedStorage  (Cat=, Level=caution)
+======================================================================
+Key = 'ReservedStorage'; Cat = 'perf'
+        Name   = if ($isEn) { 'Disable Reserved Storage' } else { 'Отключить зарезервированное место' }
+        Short  = if ($isEn) { 'Frees ~7 GB Windows keeps for updates' } else { 'Освобождает ~7 ГБ, которые Windows держит для обновлений' }
+        Desc   = if ($isEn) { 'Windows normally reserves ~7 GB for updates and temporary files. This tweak disables the reservation.' } else { 'Windows обычно резервирует ~7 ГБ для обновлений и временных файлов. Этот твик отключает резервирование.' }
+        Warn   = if ($isEn) { 'Future updates may fail if disk is full.' } else { 'Будущие обновления могут не установиться при полном диске.' }
+        Level = 'caution'
+        Apply = {
+            param($Enable)
+            try {
+                if ($Enable) {
+                    Save-OptimizationBackup 'reservedstorage' '' 'ShippedWithReserves' 1 -Type 'Remove' -Category 'perf'
+                    $null = & DISM.exe /Online /Set-ReservedStorageState /State:Disabled 2>&1
+                } else {
+                    $null = & DISM.exe /Online /Set-ReservedStorageState /State:Enabled 2>&1
+                }
+                return $true
+            } catch { return $false }
+        }
+        GetState = {
+            try {
+                $out = & DISM.exe /Online /Get-ReservedStorageState 2>&1 | Out-String
+                return ($out -match 'Disabled|Отключено')
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: EventLogSize  (Cat=, Level=safe)
+======================================================================
+Key = 'EventLogSize'; Cat = 'perf'
+        Name   = if ($isEn) { 'Reduce Event Log size to 10 MB' } else { 'Уменьшить журналы событий до 10 МБ' }
+        Short  = if ($isEn) { 'Saves disk space' } else { 'Экономит место на диске' }
+        Desc   = if ($isEn) { 'Sets Application and System event log max size to 10 MB each.' } else { 'Устанавливает максимальный размер журналов Application и System в 10 МБ.' }
+        Warn   = if ($isEn) { 'Older events will be overwritten sooner.' } else { 'Старые события перезапишутся быстрее.' }
+        Level = 'safe'
+        Apply = {
+            param($Enable)
+            $size = if ($Enable) { 10240 } else { 20480 }
+            foreach ($log in @('Application','System')) {
+                try {
+                    $null = & wevtutil.exe sl $log /ms:$size 2>&1
+                } catch { }
+            }
+            return $true
+        }
+        GetState = {
+            try {
+                $app = & wevtutil.exe gl Application /f:xml 2>&1 | Out-String
+                return ($app -match '<maxSize>10240</maxSize>')
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: SearchIndexing  (Cat=, Level=caution)
+======================================================================
+Key = 'SearchIndexing'; Cat = 'perf'
+        Name   = if ($isEn) { 'Disable Search Indexing' } else { 'Отключить индексацию поиска' }
+        Short  = if ($isEn) { 'No indexing — faster SSD, slower search' } else { 'Индексации нет — SSD быстрее, поиск медленнее' }
+        Desc   = if ($isEn) { 'Disables Windows Search indexing service. Makes system faster but Start menu search will be slower.' } else { 'Отключает службу индексации Windows Search. Система быстрее, но поиск в «Пуске» медленнее.' }
+        Warn   = if ($isEn) { 'Start menu search and Outlook search become slower.' } else { 'Поиск в «Пуске» и Outlook станет медленнее.' }
+        Level = 'caution'
+        Apply = {
+            param($Enable)
+            $s = Get-Service -Name 'WSearch' -ErrorAction SilentlyContinue
+            if (-not $s) { return $false }
+            Save-OptimizationBackup 'svc_WSearch' '' 'WSearch' $s.StartType -Type 'Service' -Category 'perf'
+            if ($Enable) {
+                Stop-Service -Name 'WSearch' -Force -ErrorAction SilentlyContinue
+                Set-Service  -Name 'WSearch' -StartupType Disabled -ErrorAction SilentlyContinue
+            } else {
+                # FIX: только StartType. Без Start-Service — иначе PS 5.1 зависает с WARNING.
+                Set-Service -Name 'WSearch' -StartupType Automatic -ErrorAction SilentlyContinue
+            }
+            return $true
+        }
+        GetState = {
+            try {
+                $s = Get-Service -Name 'WSearch' -ErrorAction Stop
+                return ($s.StartType -eq 'Disabled')
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: PowerThrottling  (Cat=, Level=caution)
+======================================================================
+Key = 'PowerThrottling'; Cat = 'perf'
+        Name   = if ($isEn) { 'Disable Power Throttling' } else { 'Отключить Power Throttling' }
+        Short  = if ($isEn) { 'CPU runs at full speed for all apps' } else { 'CPU на полной скорости для всех приложений' }
+        Desc   = if ($isEn) { 'Disables CPU power throttling — background apps get full CPU speed. More power consumption.' } else { 'Отключает троттлинг питания CPU — фоновые приложения получают полную скорость. Больше энергопотребления.' }
+        Warn   = if ($isEn) { 'Battery drains faster on laptops.' } else { 'Батарея разряжается быстрее.' }
+        Level = 'caution'
+        Apply = {
+            param($Enable)
+            $path = 'HKLM:\SYSTEM\CurrentControlSet\Control\Power\PowerThrottling'
+            Save-OptimizationBackup 'pthrottle' $path 'PowerThrottlingOff' 0 -Type 'Remove' -Category 'perf'
+            if ($Enable) {
+                if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }
+                Set-ItemProperty -Path $path -Name 'PowerThrottlingOff' -Value 1 -Type DWord -Force
+            } else {
+                Remove-ItemProperty -Path $path -Name 'PowerThrottlingOff' -ErrorAction SilentlyContinue
+            }
+            return $true
+        }
+        GetState = {
+            try {
+                $v = Get-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Power\PowerThrottling' -Name 'PowerThrottlingOff' -ErrorAction Stop
+                return ([int]$v.PowerThrottlingOff -eq 1)
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: Telemetry  (Cat=, Level=safe)
+======================================================================
+Key = 'Telemetry'; Cat = 'privacy'
+        Name   = if ($isEn) { 'Disable telemetry (DiagTrack)' } else { 'Отключить телеметрию (DiagTrack)' }
+        Short  = if ($isEn) { 'Diagnostics minimum' } else { 'Диагностика → минимум' }
+        Desc   = if ($isEn) { 'Sets diagnostic data to minimum, disables DiagTrack service.' } else { 'Уровень диагностики в минимум, отключает службы DiagTrack и dmwappushservice.' }
+        Warn   = if ($isEn) { 'Some optional diagnostic features stop working.' } else { 'Часть диагностических функций перестанет работать.' }
+        Level = 'safe'
+        Apply = {
+            param($Enable)
+            $path = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection'
+            if ($Enable) {
+                Save-OptimizationBackup 'telemetry' $path 'AllowTelemetry' 0 -Type 'Remove' -Category 'privacy'
+                if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }
+                Set-ItemProperty -Path $path -Name 'AllowTelemetry' -Value 0 -Type DWord -Force
+                foreach ($svc in @('DiagTrack','dmwappushservice')) {
+                    try {
+                        $s = Get-Service -Name $svc -ErrorAction SilentlyContinue
+                        if ($s) {
+                            Save-OptimizationBackup "svc_$svc" '' $svc $s.StartType -Type 'Service' -Category 'privacy'
+                            Stop-Service -Name $svc -Force -ErrorAction SilentlyContinue
+                            Set-Service  -Name $svc -StartupType Disabled -ErrorAction SilentlyContinue
+                        }
+                    } catch { }
+                }
+            } else {
+                Remove-ItemProperty -Path $path -Name 'AllowTelemetry' -ErrorAction SilentlyContinue
+                foreach ($svc in @('DiagTrack','dmwappushservice')) {
+                    try {
+                        # FIX: только StartType. Без Start-Service — иначе PS 5.1 зависает с WARNING
+                        # "Waiting for service 'Служба маршрутизации push-сообщений…' to start..."
+                        Set-Service -Name $svc -StartupType Automatic -ErrorAction SilentlyContinue
+                    } catch { }
+                }
+            }
+            return $true
+        }
+        GetState = {
+            try {
+                $v = Get-ItemProperty -Path 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection' -Name 'AllowTelemetry' -ErrorAction Stop
+                return ([int]$v.AllowTelemetry -eq 0)
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: AdvertisingId  (Cat=, Level=safe)
+======================================================================
+Key = 'AdvertisingId'; Cat = 'privacy'
+        Name   = if ($isEn) { 'Disable advertising ID' } else { 'Отключить рекламный идентификатор' }
+        Short  = if ($isEn) { 'No targeted ads in apps' } else { 'Без таргетированной рекламы в приложениях' }
+        Desc   = if ($isEn) { 'Apps will not use your advertising ID for targeted ads.' } else { 'Приложения не смогут использовать ваш рекламный ID для таргетированной рекламы.' }
+        Warn   = if ($isEn) { 'Ads become less relevant.' } else { 'Реклама станет менее релевантной.' }
+        Level = 'safe'
+        Apply = {
+            param($Enable)
+            $path = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo'
+            Save-OptimizationBackup 'adid' $path 'Enabled' 1 -Type DWord -Category 'privacy'
+            if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }
+            Set-ItemProperty -Path $path -Name 'Enabled' -Value ([int](if ($Enable) { 0 } else { 1 })) -Type DWord -Force
+            return $true
+        }
+        GetState = {
+            try {
+                $v = Get-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo' -Name 'Enabled' -ErrorAction Stop
+                return ([int]$v.Enabled -eq 0)
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: ActivityHistory  (Cat=, Level=safe)
+======================================================================
+Key = 'ActivityHistory'; Cat = 'privacy'
+        Name   = if ($isEn) { 'Disable Activity History' } else { 'Отключить историю действий' }
+        Short  = if ($isEn) { 'No Timeline data collection' } else { 'Windows не собирает данные для «Хронологии»' }
+        Desc   = if ($isEn) { 'Stops Windows from collecting your activity for Timeline.' } else { 'Запрещает Windows собирать историю действий для «Хронологии».' }
+        Warn   = if ($isEn) { 'Timeline will be empty.' } else { '«Хронология» опустеет.' }
+        Level = 'safe'
+        Apply = {
+            param($Enable)
+            $path = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\System'
+            if ($Enable) {
+                Save-OptimizationBackup 'actfeed' $path 'EnableActivityFeed' 1 -Type 'Remove' -Category 'privacy'
+                Save-OptimizationBackup 'actpub' $path 'PublishUserActivities' 1 -Type 'Remove' -Category 'privacy'
+                if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }
+                Set-ItemProperty -Path $path -Name 'EnableActivityFeed' -Value 0 -Type DWord -Force
+                Set-ItemProperty -Path $path -Name 'PublishUserActivities' -Value 0 -Type DWord -Force
+            } else {
+                Remove-ItemProperty -Path $path -Name 'EnableActivityFeed' -ErrorAction SilentlyContinue
+                Remove-ItemProperty -Path $path -Name 'PublishUserActivities' -ErrorAction SilentlyContinue
+            }
+            return $true
+        }
+        GetState = {
+            try {
+                $v = Get-ItemProperty -Path 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\System' -Name 'EnableActivityFeed' -ErrorAction Stop
+                return ([int]$v.EnableActivityFeed -eq 0)
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: Cortana  (Cat=, Level=safe)
+======================================================================
+Key = 'Cortana'; Cat = 'privacy'
+        Name   = if ($isEn) { 'Disable Cortana' } else { 'Отключить Cortana' }
+        Short  = if ($isEn) { 'Voice assistant off' } else { 'Голосовой помощник выключен' }
+        Desc   = if ($isEn) { 'Disables the Cortana voice assistant and its background processes.' } else { 'Отключает голосового помощника Cortana.' }
+        Warn   = if ($isEn) { 'Voice search stops working.' } else { 'Голосовой поиск перестанет работать.' }
+        Level = 'safe'
+        Apply = {
+            param($Enable)
+            $path = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search'
+            Save-OptimizationBackup 'cortana' $path 'AllowCortana' 1 -Type DWord -Category 'privacy'
+            if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }
+            Set-ItemProperty -Path $path -Name 'AllowCortana' -Value ([int](if ($Enable) { 0 } else { 1 })) -Type DWord -Force
+            return $true
+        }
+        GetState = {
+            try {
+                $v = Get-ItemProperty -Path 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search' -Name 'AllowCortana' -ErrorAction Stop
+                return ([int]$v.AllowCortana -eq 0)
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: XboxGameBar  (Cat=, Level=safe)
+======================================================================
+Key = 'XboxGameBar'; Cat = 'privacy'
+        Name   = if ($isEn) { 'Disable Xbox Game Bar / DVR' } else { 'Отключить Xbox Game Bar и DVR' }
+        Short  = if ($isEn) { 'No Win+G overlay or recording' } else { 'Без оверлея Win+G и записи' }
+        Desc   = if ($isEn) { 'Disables the Xbox Game Bar overlay and background recording.' } else { 'Отключает оверлей Xbox Game Bar и фоновую запись.' }
+        Warn   = if ($isEn) { 'You lose Win+G overlay and clip recording.' } else { 'Пропадут оверлей Win+G и запись клипов.' }
+        Level = 'safe'
+        Apply = {
+            param($Enable)
+            $path = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\GameDVR'
+            Save-OptimizationBackup 'gamedvr' $path 'AppCaptureEnabled' 1 -Type DWord -Category 'privacy'
+            if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }
+            Set-ItemProperty -Path $path -Name 'AppCaptureEnabled' -Value ([int](if ($Enable) { 0 } else { 1 })) -Type DWord -Force
+            $p2 = 'HKCU:\System\GameConfigStore'
+            Save-OptimizationBackup 'gamebar' $p2 'GameDVR_Enabled' 1 -Type DWord -Category 'privacy'
+            if (-not (Test-Path $p2)) { New-Item -Path $p2 -Force | Out-Null }
+            Set-ItemProperty -Path $p2 -Name 'GameDVR_Enabled' -Value ([int](if ($Enable) { 0 } else { 1 })) -Type DWord -Force
+            return $true
+        }
+        GetState = {
+            try {
+                $v = Get-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\GameDVR' -Name 'AppCaptureEnabled' -ErrorAction Stop
+                return ([int]$v.AppCaptureEnabled -eq 0)
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: BingSearch  (Cat=, Level=safe)
+======================================================================
+Key = 'BingSearch'; Cat = 'privacy'
+        Name   = if ($isEn) { 'Disable Bing in Start search' } else { 'Отключить Bing в поиске «Пуск»' }
+        Short  = if ($isEn) { 'No web results and ads in Start' } else { 'Без веб-результатов и рекламы' }
+        Desc   = if ($isEn) { 'Removes web results and ads from Start menu search.' } else { 'Убирает веб-результаты и рекламу из поиска «Пуск».' }
+        Warn   = if ($isEn) { 'Cannot search the web from Start.' } else { 'Нельзя искать в интернете из «Пуска».' }
+        Level = 'safe'
+        Apply = {
+            param($Enable)
+            $path = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Search'
+            Save-OptimizationBackup 'bingsearch' $path 'BingSearchEnabled' 1 -Type DWord -Category 'privacy'
+            if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }
+            Set-ItemProperty -Path $path -Name 'BingSearchEnabled' -Value ([int](if ($Enable) { 0 } else { 1 })) -Type DWord -Force
+            $path2 = 'HKCU:\Software\Policies\Microsoft\Windows\Explorer'
+            Save-OptimizationBackup 'nosearchsugg' $path2 'DisableSearchBoxSuggestions' 0 -Type 'Remove' -Category 'privacy'
+            if (-not (Test-Path $path2)) { New-Item -Path $path2 -Force | Out-Null }
+            Set-ItemProperty -Path $path2 -Name 'DisableSearchBoxSuggestions' -Value ([int](if ($Enable) { 1 } else { 0 })) -Type DWord -Force
+            return $true
+        }
+        GetState = {
+            try {
+                $v = Get-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Search' -Name 'BingSearchEnabled' -ErrorAction Stop
+                return ([int]$v.BingSearchEnabled -eq 0)
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: LockScreenAds  (Cat=, Level=safe)
+======================================================================
+Key = 'LockScreenAds'; Cat = 'privacy'
+        Name   = if ($isEn) { 'Disable lock screen ads' } else { 'Отключить рекламу на экране блокировки' }
+        Short  = if ($isEn) { 'No Spotlight tips and ads' } else { 'Без советов и рекламы Spotlight' }
+        Desc   = if ($isEn) { 'Turns off Windows Spotlight tips on the lock screen.' } else { 'Отключает «советы и факты» Windows Spotlight на экране блокировки.' }
+        Warn   = if ($isEn) { 'Lock screen shows default background only.' } else { 'На экране блокировки — только стандартные обои.' }
+        Level = 'safe'
+        Apply = {
+            param($Enable)
+            $path = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager'
+            foreach ($n in @('RotatingLockScreenOverlayEnabled','SubscribedContent-338387Enabled')) {
+                Save-OptimizationBackup "lockscr_$n" $path $n 1 -Type DWord -Category 'privacy'
+                Set-ItemProperty -Path $path -Name $n -Value ([int](if ($Enable) { 0 } else { 1 })) -Type DWord -Force -ErrorAction SilentlyContinue
+            }
+            return $true
+        }
+        GetState = {
+            try {
+                $v = Get-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager' -Name 'RotatingLockScreenOverlayEnabled' -ErrorAction Stop
+                return ([int]$v.RotatingLockScreenOverlayEnabled -eq 0)
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: Copilot  (Cat=, Level=safe)
+======================================================================
+Key = 'Copilot'; Cat = 'privacy'
+        Name   = if ($isEn) { 'Disable Copilot (Win11)' } else { 'Отключить Copilot (Win11)' }
+        Short  = if ($isEn) { 'AI assistant off' } else { 'AI-помощник выключен' }
+        Desc   = if ($isEn) { 'Disables Windows Copilot AI assistant (Windows 11 only).' } else { 'Отключает AI-помощника Windows Copilot (только Windows 11).' }
+        Warn   = if ($isEn) { 'Windows 11 only.' } else { 'Только для Windows 11.' }
+        Level = 'safe'
+        Apply = {
+            param($Enable)
+            $path = 'HKCU:\Software\Policies\Microsoft\Windows\WindowsCopilot'
+            Save-OptimizationBackup 'copilot' $path 'TurnOffWindowsCopilot' 0 -Type 'Remove' -Category 'privacy'
+            if ($Enable) {
+                if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }
+                Set-ItemProperty -Path $path -Name 'TurnOffWindowsCopilot' -Value 1 -Type DWord -Force
+            } else {
+                Remove-ItemProperty -Path $path -Name 'TurnOffWindowsCopilot' -ErrorAction SilentlyContinue
+            }
+            return $true
+        }
+        GetState = {
+            try {
+                $v = Get-ItemProperty -Path 'HKCU:\Software\Policies\Microsoft\Windows\WindowsCopilot' -Name 'TurnOffWindowsCopilot' -ErrorAction Stop
+                return ([int]$v.TurnOffWindowsCopilot -eq 1)
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: Recall  (Cat=, Level=safe)
+======================================================================
+Key = 'Recall'; Cat = 'privacy'
+        Name   = if ($isEn) { 'Disable Recall (Win11 24H2+)' } else { 'Отключить Recall (Win11 24H2+)' }
+        Short  = if ($isEn) { 'No AI screenshots of your activity' } else { 'AI не делает скриншоты вашей активности' }
+        Desc   = if ($isEn) { 'Disables Windows Recall AI snapshots feature.' } else { 'Отключает функцию Windows Recall (AI-скриншоты).' }
+        Warn   = if ($isEn) { 'Only Windows 11 24H2+ with Copilot+ PC.' } else { 'Только Windows 11 24H2+ на Copilot+ PC.' }
+        Level = 'safe'
+        Apply = {
+            param($Enable)
+            $path = 'HKCU:\Software\Policies\Microsoft\Windows\WindowsAI'
+            Save-OptimizationBackup 'recall' $path 'DisableAIDataAnalysis' 0 -Type 'Remove' -Category 'privacy'
+            if ($Enable) {
+                if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }
+                Set-ItemProperty -Path $path -Name 'DisableAIDataAnalysis' -Value 1 -Type DWord -Force
+            } else {
+                Remove-ItemProperty -Path $path -Name 'DisableAIDataAnalysis' -ErrorAction SilentlyContinue
+            }
+            return $true
+        }
+        GetState = {
+            try {
+                $v = Get-ItemProperty -Path 'HKCU:\Software\Policies\Microsoft\Windows\WindowsAI' -Name 'DisableAIDataAnalysis' -ErrorAction Stop
+                return ([int]$v.DisableAIDataAnalysis -eq 1)
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: Feedback  (Cat=, Level=safe)
+======================================================================
+Key = 'Feedback'; Cat = 'privacy'
+        Name   = if ($isEn) { 'Disable feedback requests' } else { 'Отключить запросы отзывов' }
+        Short  = if ($isEn) { 'No "rate Windows" popups' } else { 'Без всплывающих «оцените Windows»' }
+        Desc   = if ($isEn) { 'Windows stops asking for feedback.' } else { 'Windows перестаёт запрашивать отзывы.' }
+        Warn   = if ($isEn) { 'None.' } else { 'Нет.' }
+        Level = 'safe'
+        Apply = {
+            param($Enable)
+            $path = 'HKCU:\Software\Microsoft\Siuf\Rules'
+            if ($Enable) {
+                Save-OptimizationBackup 'feedback_do' $path 'DoNotShowFeedbackNotifications' 0 -Type 'Remove' -Category 'privacy'
+                Save-OptimizationBackup 'feedback_num' $path 'NumberOfSIUFInPeriod' 0 -Type 'Remove' -Category 'privacy'
+                if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }
+                Set-ItemProperty -Path $path -Name 'DoNotShowFeedbackNotifications' -Value 1 -Type DWord -Force
+                Set-ItemProperty -Path $path -Name 'NumberOfSIUFInPeriod' -Value 0 -Type DWord -Force
+            } else {
+                Remove-ItemProperty -Path $path -Name 'DoNotShowFeedbackNotifications' -ErrorAction SilentlyContinue
+                Remove-ItemProperty -Path $path -Name 'NumberOfSIUFInPeriod' -ErrorAction SilentlyContinue
+            }
+            return $true
+        }
+        GetState = {
+            try {
+                $v = Get-ItemProperty -Path 'HKCU:\Software\Microsoft\Siuf\Rules' -Name 'DoNotShowFeedbackNotifications' -ErrorAction Stop
+                return ([int]$v.DoNotShowFeedbackNotifications -eq 1)
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: Location  (Cat=, Level=safe)
+======================================================================
+Key = 'Location'; Cat = 'privacy'
+        Name   = if ($isEn) { 'Disable location tracking' } else { 'Отключить отслеживание местоположения' }
+        Short  = if ($isEn) { 'Location services off' } else { 'Службы геолокации выключены' }
+        Desc   = if ($isEn) { 'Disables Windows location services.' } else { 'Отключает службы геолокации Windows.' }
+        Warn   = if ($isEn) { 'Maps and weather apps lose location.' } else { 'Карты и погода потеряют геолокацию.' }
+        Level = 'safe'
+        Apply = {
+            param($Enable)
+            $path = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\location'
+            Save-OptimizationBackup 'location' $path 'Value' 'Allow' -Type String -Category 'privacy'
+            Set-ItemProperty -Path $path -Name 'Value' -Value $(if ($Enable) { 'Deny' } else { 'Allow' }) -Type String -Force -ErrorAction SilentlyContinue
+            $p2 = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors'
+            if ($Enable) {
+                if (-not (Test-Path $p2)) { New-Item -Path $p2 -Force | Out-Null }
+                Set-ItemProperty -Path $p2 -Name 'DisableLocation' -Value 1 -Type DWord -Force
+            } else {
+                Remove-ItemProperty -Path $p2 -Name 'DisableLocation' -ErrorAction SilentlyContinue
+            }
+            return $true
+        }
+        GetState = {
+            try {
+                $v = Get-ItemProperty -Path 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors' -Name 'DisableLocation' -ErrorAction Stop
+                return ([int]$v.DisableLocation -eq 1)
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: Camera  (Cat=, Level=caution)
+======================================================================
+Key = 'Camera'; Cat = 'privacy'
+        Name   = if ($isEn) { 'Deny camera to apps' } else { 'Запретить приложениям доступ к камере' }
+        Short  = if ($isEn) { 'Apps cannot use the webcam' } else { 'Приложения не могут использовать веб-камеру' }
+        Desc   = if ($isEn) { 'Denies all apps access to the camera.' } else { 'Запрещает всем приложениям доступ к камере.' }
+        Warn   = if ($isEn) { 'Video calls will not work.' } else { 'Видеозвонки работать не будут.' }
+        Level = 'caution'
+        Apply = {
+            param($Enable)
+            $path = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\webcam'
+            Save-OptimizationBackup 'camera' $path 'Value' 'Allow' -Type String -Category 'privacy'
+            Set-ItemProperty -Path $path -Name 'Value' -Value $(if ($Enable) { 'Deny' } else { 'Allow' }) -Type String -Force -ErrorAction SilentlyContinue
+            return $true
+        }
+        GetState = {
+            try {
+                $v = Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\webcam' -Name 'Value' -ErrorAction Stop
+                return ([string]$v.Value -eq 'Deny')
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: Microphone  (Cat=, Level=caution)
+======================================================================
+Key = 'Microphone'; Cat = 'privacy'
+        Name   = if ($isEn) { 'Deny microphone to apps' } else { 'Запретить приложениям доступ к микрофону' }
+        Short  = if ($isEn) { 'Apps cannot use the mic' } else { 'Приложения не могут использовать микрофон' }
+        Desc   = if ($isEn) { 'Denies all apps access to the microphone.' } else { 'Запрещает всем приложениям доступ к микрофону.' }
+        Warn   = if ($isEn) { 'Voice chat will not work.' } else { 'Голосовой чат работать не будет.' }
+        Level = 'caution'
+        Apply = {
+            param($Enable)
+            $path = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\microphone'
+            Save-OptimizationBackup 'mic' $path 'Value' 'Allow' -Type String -Category 'privacy'
+            Set-ItemProperty -Path $path -Name 'Value' -Value $(if ($Enable) { 'Deny' } else { 'Allow' }) -Type String -Force -ErrorAction SilentlyContinue
+            return $true
+        }
+        GetState = {
+            try {
+                $v = Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\microphone' -Name 'Value' -ErrorAction Stop
+                return ([string]$v.Value -eq 'Deny')
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: DiagnosticData  (Cat=, Level=safe)
+======================================================================
+Key = 'DiagnosticData'; Cat = 'privacy'
+        Name   = if ($isEn) { 'Disable optional diagnostic data' } else { 'Отключить необязательные диагностические данные' }
+        Short  = if ($isEn) { 'Only required diagnostics collected' } else { 'Собирается только обязательная диагностика' }
+        Desc   = if ($isEn) { 'Disables optional diagnostic data: device name, typing, ink.' } else { 'Отключает необязательные диагностические данные: имя устройства, ввод, рукописный ввод.' }
+        Warn   = if ($isEn) { 'None.' } else { 'Нет.' }
+        Level = 'safe'
+        Apply = {
+            param($Enable)
+            $path = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection'
+            if ($Enable) {
+                Save-OptimizationBackup 'ddata_name' $path 'AllowDeviceNameInDiagnosticData' 1 -Type 'Remove' -Category 'privacy'
+                Save-OptimizationBackup 'ddata_typing' $path 'AllowSuggestedAppsInWindowsInkWorkspace' 1 -Type 'Remove' -Category 'privacy'
+                if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }
+                Set-ItemProperty -Path $path -Name 'AllowDeviceNameInDiagnosticData' -Value 0 -Type DWord -Force
+                Set-ItemProperty -Path $path -Name 'AllowSuggestedAppsInWindowsInkWorkspace' -Value 0 -Type DWord -Force
+            } else {
+                Remove-ItemProperty -Path $path -Name 'AllowDeviceNameInDiagnosticData' -ErrorAction SilentlyContinue
+                Remove-ItemProperty -Path $path -Name 'AllowSuggestedAppsInWindowsInkWorkspace' -ErrorAction SilentlyContinue
+            }
+            return $true
+        }
+        GetState = {
+            try {
+                $v = Get-ItemProperty -Path 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection' -Name 'AllowDeviceNameInDiagnosticData' -ErrorAction Stop
+                return ([int]$v.AllowDeviceNameInDiagnosticData -eq 0)
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: InkingTyping  (Cat=, Level=safe)
+======================================================================
+Key = 'InkingTyping'; Cat = 'privacy'
+        Name   = if ($isEn) { 'Disable inking & typing collection' } else { 'Отключить сбор данных ввода' }
+        Short  = if ($isEn) { 'No typing/inking data sent to Microsoft' } else { 'Данные ввода не отправляются в Microsoft' }
+        Desc   = if ($isEn) { 'Windows stops collecting typing and handwriting data for personalization.' } else { 'Windows перестаёт собирать данные ввода и рукописного ввода для персонализации.' }
+        Warn   = if ($isEn) { 'Autocorrect learns slightly slower.' } else { 'Автокоррекция обучается чуть медленнее.' }
+        Level = 'safe'
+        Apply = {
+            param($Enable)
+            $path = 'HKCU:\Software\Microsoft\InputPersonalization'
+            if ($Enable) {
+                Save-OptimizationBackup 'ink_restrict' $path 'RestrictImplicitInkCollection' 0 -Type 'Remove' -Category 'privacy'
+                Save-OptimizationBackup 'ink_text' $path 'RestrictImplicitTextCollection' 0 -Type 'Remove' -Category 'privacy'
+                if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }
+                Set-ItemProperty -Path $path -Name 'RestrictImplicitInkCollection' -Value 1 -Type DWord -Force
+                Set-ItemProperty -Path $path -Name 'RestrictImplicitTextCollection' -Value 1 -Type DWord -Force
+            } else {
+                Remove-ItemProperty -Path $path -Name 'RestrictImplicitInkCollection' -ErrorAction SilentlyContinue
+                Remove-ItemProperty -Path $path -Name 'RestrictImplicitTextCollection' -ErrorAction SilentlyContinue
+            }
+            return $true
+        }
+        GetState = {
+            try {
+                $v = Get-ItemProperty -Path 'HKCU:\Software\Microsoft\InputPersonalization' -Name 'RestrictImplicitInkCollection' -ErrorAction Stop
+                return ([int]$v.RestrictImplicitInkCollection -eq 1)
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: SpeechRecognition  (Cat=, Level=safe)
+======================================================================
+Key = 'SpeechRecognition'; Cat = 'privacy'
+        Name   = if ($isEn) { 'Disable speech recognition' } else { 'Отключить распознавание речи' }
+        Short  = if ($isEn) { 'Online speech recognition off' } else { 'Онлайн-распознавание речи выключено' }
+        Desc   = if ($isEn) { 'Disables online speech recognition and personalization.' } else { 'Отключает онлайн-распознавание речи и персонализацию.' }
+        Warn   = if ($isEn) { 'Voice typing stops working.' } else { 'Голосовой ввод перестанет работать.' }
+        Level = 'safe'
+        Apply = {
+            param($Enable)
+            $path = 'HKCU:\Software\Microsoft\Speech_OneCore\Settings\OnlineSpeechPrivacy'
+            Save-OptimizationBackup 'speech' $path 'HasAccepted' 1 -Type DWord -Category 'privacy'
+            if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }
+            Set-ItemProperty -Path $path -Name 'HasAccepted' -Value ([int](if ($Enable) { 0 } else { 1 })) -Type DWord -Force
+            $p2 = 'HKCU:\Software\Microsoft\InputPersonalization'
+            Save-OptimizationBackup 'inputpers' $p2 'AllowInputPersonalization' 1 -Type 'Remove' -Category 'privacy'
+            if (-not (Test-Path $p2)) { New-Item -Path $p2 -Force | Out-Null }
+            if ($Enable) { Set-ItemProperty -Path $p2 -Name 'AllowInputPersonalization' -Value 0 -Type DWord -Force }
+            else { Remove-ItemProperty -Path $p2 -Name 'AllowInputPersonalization' -ErrorAction SilentlyContinue }
+            return $true
+        }
+        GetState = {
+            try {
+                $v = Get-ItemProperty -Path 'HKCU:\Software\Microsoft\Speech_OneCore\Settings\OnlineSpeechPrivacy' -Name 'HasAccepted' -ErrorAction Stop
+                return ([int]$v.HasAccepted -eq 0)
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: UpdateP2P  (Cat=, Level=safe)
+======================================================================
+Key = 'UpdateP2P'; Cat = 'privacy'
+        Name   = if ($isEn) { 'Disable Update P2P sharing' } else { 'Отключить P2P-раздачу обновлений' }
+        Short  = if ($isEn) { 'Your PC stops uploading updates to others' } else { 'Ваш ПК не раздаёт обновления другим' }
+        Desc   = if ($isEn) { 'Disables Delivery Optimization P2P sharing — your PC stops uploading updates to strangers.' } else { 'Отключает P2P-раздачу обновлений Delivery Optimization — ваш ПК не раздаёт обновления посторонним.' }
+        Warn   = if ($isEn) { 'Updates may download slower.' } else { 'Обновления могут скачиваться медленнее.' }
+        Level = 'safe'
+        Apply = {
+            param($Enable)
+            $path = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\DeliveryOptimization'
+            Save-OptimizationBackup 'delopt' $path 'DODownloadMode' 1 -Type DWord -Category 'privacy'
+            if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }
+            Set-ItemProperty -Path $path -Name 'DODownloadMode' -Value ([int](if ($Enable) { 0 } else { 1 })) -Type DWord -Force
+            return $true
+        }
+        GetState = {
+            try {
+                $v = Get-ItemProperty -Path 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\DeliveryOptimization' -Name 'DODownloadMode' -ErrorAction Stop
+                return ([int]$v.DODownloadMode -eq 0)
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: ClassicContext  (Cat=, Level=safe)
+======================================================================
+Key = 'ClassicContext'; Cat = 'win11'
+        Name   = if ($isEn) { 'Classic context menu (Win11)' } else { 'Классическое меню Проводника (Win11)' }
+        Short  = if ($isEn) { 'Windows 10 style right-click menu' } else { 'Контекстное меню в стиле Windows 10' }
+        Desc   = if ($isEn) { 'Restores the Windows 10 style right-click menu.' } else { 'Возвращает контекстное меню в стиле Windows 10.' }
+        Warn   = if ($isEn) { 'Windows 11 only. Explorer restarts.' } else { 'Только для Windows 11. Проводник перезапустится.' }
+        Level = 'safe'
+        Apply = {
+            param($Enable)
+            $path = 'HKCU:\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32'
+            if ($Enable) {
+                Save-OptimizationBackup 'ctxmenu' '' 'InprocServer32' $null -Type 'Remove' -Category 'win11'
+                if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }
+                Set-ItemProperty -Path $path -Name '(Default)' -Value '' -Force
+            } else {
+                Remove-Item -Path 'HKCU:\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}' -Recurse -Force -ErrorAction SilentlyContinue
+            }
+            try { Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds 1; Start-Process explorer -ErrorAction SilentlyContinue } catch { }
+            return $true
+        }
+        GetState = {
+            try { return (Test-Path 'HKCU:\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32') } catch { return $false }
+        }
+
+======================================================================
+TWEAK: Widgets  (Cat=, Level=safe)
+======================================================================
+Key = 'Widgets'; Cat = 'win11'
+        Name   = if ($isEn) { 'Disable widgets (Win11)' } else { 'Отключить виджеты (Win11)' }
+        Short  = if ($isEn) { 'Hides widget button on taskbar' } else { 'Скрывает кнопку виджетов' }
+        Desc   = if ($isEn) { 'Hides the widgets button and disables the widget service.' } else { 'Скрывает кнопку виджетов и отключает службу виджетов.' }
+        Warn   = if ($isEn) { 'Widgets will not be available.' } else { 'Виджеты станут недоступны.' }
+        Level = 'safe'
+        Apply = {
+            param($Enable)
+            $path = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+            Save-OptimizationBackup 'widgets' $path 'TaskbarDa' 1 -Type DWord -Category 'win11'
+            if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }
+            Set-ItemProperty -Path $path -Name 'TaskbarDa' -Value ([int](if ($Enable) { 0 } else { 1 })) -Type DWord -Force
+            $pol = 'HKLM:\SOFTWARE\Policies\Microsoft\Dsh'
+            if ($Enable) {
+                if (-not (Test-Path $pol)) { New-Item -Path $pol -Force | Out-Null }
+                Set-ItemProperty -Path $pol -Name 'AllowNewsAndInterests' -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+            } else {
+                Remove-ItemProperty -Path $pol -Name 'AllowNewsAndInterests' -ErrorAction SilentlyContinue
+            }
+            try { Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds 1; Start-Process explorer -ErrorAction SilentlyContinue } catch { }
+            return $true
+        }
+        GetState = {
+            try {
+                $v = Get-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name 'TaskbarDa' -ErrorAction Stop
+                return ([int]$v.TaskbarDa -eq 0)
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: SearchHighlights  (Cat=, Level=safe)
+======================================================================
+Key = 'SearchHighlights'; Cat = 'win11'
+        Name   = if ($isEn) { 'Disable search highlights' } else { 'Отключить поисковые подсказки' }
+        Short  = if ($isEn) { 'No holiday illustrations and trends' } else { 'Без праздничных иллюстраций и трендов' }
+        Desc   = if ($isEn) { 'Removes "search highlights" from the search box.' } else { 'Убирает «поисковые подсказки» из строки поиска.' }
+        Warn   = if ($isEn) { 'Search shows local results only.' } else { 'В поиске только локальные результаты.' }
+        Level = 'safe'
+        Apply = {
+            param($Enable)
+            $path = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\SearchSettings'
+            Save-OptimizationBackup 'searchhl' $path 'IsDynamicSearchBoxEnabled' 1 -Type DWord -Category 'win11'
+            if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }
+            Set-ItemProperty -Path $path -Name 'IsDynamicSearchBoxEnabled' -Value ([int](if ($Enable) { 0 } else { 1 })) -Type DWord -Force
+            return $true
+        }
+        GetState = {
+            try {
+                $v = Get-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\SearchSettings' -Name 'IsDynamicSearchBoxEnabled' -ErrorAction Stop
+                return ([int]$v.IsDynamicSearchBoxEnabled -eq 0)
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: StartRecommendations  (Cat=, Level=safe)
+======================================================================
+Key = 'StartRecommendations'; Cat = 'win11'
+        Name   = if ($isEn) { 'Disable Start recommendations' } else { 'Отключить рекомендации в «Пуске»' }
+        Short  = if ($isEn) { 'Hides "Recommended" section' } else { 'Скрывает раздел «Рекомендуем»' }
+        Desc   = if ($isEn) { 'Hides the "Recommended" section in Start menu.' } else { 'Скрывает раздел «Рекомендуем» в меню «Пуск».' }
+        Warn   = if ($isEn) { 'No quick access to recent apps/files.' } else { 'Пропадёт быстрый доступ к недавним файлам.' }
+        Level = 'safe'
+        Apply = {
+            param($Enable)
+            $path = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+            Save-OptimizationBackup 'startrec' $path 'Start_IrisRecommendations' 1 -Type DWord -Category 'win11'
+            if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }
+            Set-ItemProperty -Path $path -Name 'Start_IrisRecommendations' -Value ([int](if ($Enable) { 0 } else { 1 })) -Type DWord -Force
+            $pm = 'HKLM:\SOFTWARE\Microsoft\PolicyManager\current\device\Start'
+            if ($Enable) {
+                if (-not (Test-Path $pm)) { New-Item -Path $pm -Force | Out-Null }
+                Set-ItemProperty -Path $pm -Name 'HideRecommendedSection' -Value 1 -Type DWord -Force
+            } else {
+                Remove-ItemProperty -Path $pm -Name 'HideRecommendedSection' -ErrorAction SilentlyContinue
+            }
+            return $true
+        }
+        GetState = {
+            try {
+                $v = Get-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name 'Start_IrisRecommendations' -ErrorAction Stop
+                return ([int]$v.Start_IrisRecommendations -eq 0)
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: TaskbarAlign  (Cat=, Level=safe)
+======================================================================
+Key = 'TaskbarAlign'; Cat = 'win11'
+        Name   = if ($isEn) { 'Taskbar left-aligned (Win11)' } else { 'Панель задач слева (Win11)' }
+        Short  = if ($isEn) { 'Icons aligned to the left' } else { 'Иконки выровнены по левому краю' }
+        Desc   = if ($isEn) { 'Aligns Windows 11 taskbar icons to the left like Windows 10.' } else { 'Выравнивает иконки панели задач Windows 11 по левому краю, как в Windows 10.' }
+        Warn   = if ($isEn) { 'Windows 11 only.' } else { 'Только для Windows 11.' }
+        Level = 'safe'
+        Apply = {
+            param($Enable)
+            $path = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+            Save-OptimizationBackup 'taskbaralign' $path 'TaskbarAl' 1 -Type DWord -Category 'win11'
+            if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }
+            Set-ItemProperty -Path $path -Name 'TaskbarAl' -Value ([int](if ($Enable) { 0 } else { 1 })) -Type DWord -Force
+            try { Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds 1; Start-Process explorer -ErrorAction SilentlyContinue } catch { }
+            return $true
+        }
+        GetState = {
+            try {
+                $v = Get-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name 'TaskbarAl' -ErrorAction Stop
+                return ([int]$v.TaskbarAl -eq 0)
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: SearchBox  (Cat=, Level=safe)
+======================================================================
+Key = 'SearchBox'; Cat = 'win11'
+        Name   = if ($isEn) { 'Hide search box on taskbar' } else { 'Убрать поиск с панели задач' }
+        Short  = if ($isEn) { 'Only icon, no wide search field' } else { 'Только иконка, без широкого поля' }
+        Desc   = if ($isEn) { 'Shows only the search icon on taskbar instead of the wide search box.' } else { 'Оставляет только иконку поиска на панели задач вместо широкого поля.' }
+        Warn   = if ($isEn) { 'Win10/11.' } else { 'Win10/11.' }
+        Level = 'safe'
+        Apply = {
+            param($Enable)
+            $path = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Search'
+            Save-OptimizationBackup 'searchbox' $path 'SearchboxTaskbarMode' 2 -Type DWord -Category 'win11'
+            if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }
+            Set-ItemProperty -Path $path -Name 'SearchboxTaskbarMode' -Value ([int](if ($Enable) { 1 } else { 2 })) -Type DWord -Force
+            try { Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds 1; Start-Process explorer -ErrorAction SilentlyContinue } catch { }
+            return $true
+        }
+        GetState = {
+            try {
+                $v = Get-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Search' -Name 'SearchboxTaskbarMode' -ErrorAction Stop
+                return ([int]$v.SearchboxTaskbarMode -eq 1)
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: ChatIcon  (Cat=, Level=safe)
+======================================================================
+Key = 'ChatIcon'; Cat = 'win11'
+        Name   = if ($isEn) { 'Hide Chat icon (Win11)' } else { 'Убрать иконку Chat (Win11)' }
+        Short  = if ($isEn) { 'Removes Teams chat button from taskbar' } else { 'Убирает кнопку чата Teams с панели задач' }
+        Desc   = if ($isEn) { 'Removes the Teams Chat icon from Windows 11 taskbar.' } else { 'Убирает иконку чата Teams с панели задач Windows 11.' }
+        Warn   = if ($isEn) { 'Windows 11 only.' } else { 'Только для Windows 11.' }
+        Level = 'safe'
+        Apply = {
+            param($Enable)
+            $path = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+            Save-OptimizationBackup 'chaticon' $path 'TaskbarMn' 1 -Type DWord -Category 'win11'
+            if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }
+            Set-ItemProperty -Path $path -Name 'TaskbarMn' -Value ([int](if ($Enable) { 0 } else { 1 })) -Type DWord -Force
+            try { Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds 1; Start-Process explorer -ErrorAction SilentlyContinue } catch { }
+            return $true
+        }
+        GetState = {
+            try {
+                $v = Get-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name 'TaskbarMn' -ErrorAction Stop
+                return ([int]$v.TaskbarMn -eq 0)
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: TaskView  (Cat=, Level=safe)
+======================================================================
+Key = 'TaskView'; Cat = 'win11'
+        Name   = if ($isEn) { 'Hide Task View button' } else { 'Убрать кнопку Task View' }
+        Short  = if ($isEn) { 'Removes Task View button from taskbar' } else { 'Убирает кнопку Task View с панели задач' }
+        Desc   = if ($isEn) { 'Hides the Task View button. Win+Tab still works.' } else { 'Скрывает кнопку Task View. Win+Tab продолжает работать.' }
+        Warn   = if ($isEn) { 'Win+Tab still works.' } else { 'Win+Tab продолжает работать.' }
+        Level = 'safe'
+        Apply = {
+            param($Enable)
+            $path = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+            Save-OptimizationBackup 'taskview' $path 'ShowTaskViewButton' 1 -Type DWord -Category 'win11'
+            if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }
+            Set-ItemProperty -Path $path -Name 'ShowTaskViewButton' -Value ([int](if ($Enable) { 0 } else { 1 })) -Type DWord -Force
+            try { Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds 1; Start-Process explorer -ErrorAction SilentlyContinue } catch { }
+            return $true
+        }
+        GetState = {
+            try {
+                $v = Get-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name 'ShowTaskViewButton' -ErrorAction Stop
+                return ([int]$v.ShowTaskViewButton -eq 0)
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: EndTask  (Cat=, Level=safe)
+======================================================================
+Key = 'EndTask'; Cat = 'win11'
+        Name   = if ($isEn) { 'End Task in taskbar right-click (Win11)' } else { 'Пункт «Завершить задачу» в ПКМ (Win11)' }
+        Short  = if ($isEn) { 'Right-click any taskbar app to end it' } else { 'ПКМ по приложению на панели — завершить его' }
+        Desc   = if ($isEn) { 'Adds "End Task" to taskbar right-click menu in Windows 11.' } else { 'Добавляет «Завершить задачу» в контекстное меню панели задач Windows 11.' }
+        Warn   = if ($isEn) { 'Windows 11 only.' } else { 'Только для Windows 11.' }
+        Level = 'safe'
+        Apply = {
+            param($Enable)
+            $path = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\TaskbarDeveloperSettings'
+            if ($Enable) {
+                Save-OptimizationBackup 'endtask' $path 'TaskbarEndTask' 0 -Type 'Remove' -Category 'win11'
+                if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }
+                Set-ItemProperty -Path $path -Name 'TaskbarEndTask' -Value 1 -Type DWord -Force
+            } else {
+                Remove-ItemProperty -Path $path -Name 'TaskbarEndTask' -ErrorAction SilentlyContinue
+            }
+            try { Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds 1; Start-Process explorer -ErrorAction SilentlyContinue } catch { }
+            return $true
+        }
+        GetState = {
+            try {
+                $v = Get-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\TaskbarDeveloperSettings' -Name 'TaskbarEndTask' -ErrorAction Stop
+                return ([int]$v.TaskbarEndTask -eq 1)
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: NetworkThrottle  (Cat=, Level=safe)
+======================================================================
+Key = 'NetworkThrottle'; Cat = 'network'
+        Name   = if ($isEn) { 'Disable network throttling' } else { 'Отключить троттлинг сети' }
+        Short  = if ($isEn) { 'Windows no longer limits packet processing' } else { 'Windows не ограничивает обработку пакетов' }
+        Desc   = if ($isEn) { 'Sets NetworkThrottlingIndex to 0xffffffff.' } else { 'Устанавливает NetworkThrottlingIndex в 0xffffffff.' }
+        Warn   = if ($isEn) { 'May increase CPU during heavy network.' } else { 'Может увеличить нагрузку на CPU при интенсивной сети.' }
+        Level = 'safe'
+        Apply = {
+            param($Enable)
+            $path = 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile'
+            Save-OptimizationBackup 'netthrottle' $path 'NetworkThrottlingIndex' 10 -Type DWord -Category 'network'
+            $val = if ($Enable) { [int]0xffffffff } else { 10 }
+            Set-ItemProperty -Path $path -Name 'NetworkThrottlingIndex' -Value $val -Type DWord -Force -ErrorAction SilentlyContinue
+            return $true
+        }
+        GetState = {
+            try {
+                $v = Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile' -Name 'NetworkThrottlingIndex' -ErrorAction Stop
+                return ([int]$v.NetworkThrottlingIndex -eq -1 -or [int]$v.NetworkThrottlingIndex -eq 0xffffffff)
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: TcpAutotuning  (Cat=, Level=caution)
+======================================================================
+Key = 'TcpAutotuning'; Cat = 'network'
+        Name   = if ($isEn) { 'Disable TCP Auto-Tuning' } else { 'Отключить TCP Auto-Tuning' }
+        Short  = if ($isEn) { 'Some ISPs work better with fixed TCP window' } else { 'Некоторые провайдеры работают лучше с фиксированным окном' }
+        Desc   = if ($isEn) { 'Disables TCP window auto-tuning. Helps on some networks with high latency.' } else { 'Отключает авто-тюнинг TCP-окна. Помогает в некоторых сетях с высокой задержкой.' }
+        Warn   = if ($isEn) { 'Might slow down on some networks.' } else { 'Может замедлить в некоторых сетях.' }
+        Level = 'caution'
+        Apply = {
+            param($Enable)
+            try {
+                if ($Enable) {
+                    Save-OptimizationBackup 'tcpauth' '' 'autotuninglevel' 'normal' -Type 'Remove' -Category 'network'
+                    $null = & netsh.exe int tcp set global autotuninglevel=disabled 2>&1
+                } else {
+                    $null = & netsh.exe int tcp set global autotuninglevel=normal 2>&1
+                }
+                return $true
+            } catch { return $false }
+        }
+        GetState = {
+            try {
+                $out = & netsh.exe int tcp show global 2>&1 | Out-String
+                return ($out -match 'disabled|отключен')
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: Nagle  (Cat=, Level=caution)
+======================================================================
+Key = 'Nagle'; Cat = 'network'
+        Name   = if ($isEn) { 'Disable Nagle algorithm' } else { 'Отключить алгоритм Нагла' }
+        Short  = if ($isEn) { 'Lower latency in games' } else { 'Меньше задержка в играх' }
+        Desc   = if ($isEn) { 'Disables Nagle buffering on all network interfaces. Reduces latency in games and VoIP.' } else { 'Отключает буферизацию Нагла на всех сетевых интерфейсах. Снижает задержку в играх и VoIP.' }
+        Warn   = if ($isEn) { 'May slightly increase packet overhead.' } else { 'Может немного увеличить накладные расходы пакетов.' }
+        Level = 'caution'
+        Apply = {
+            param($Enable)
+            try {
+                $ifaces = Get-ChildItem 'HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces' -ErrorAction SilentlyContinue
+                foreach ($iface in $ifaces) {
+                    $name = Split-Path $iface.Name -Leaf
+                    Save-OptimizationBackup "nagle_$name" $iface.PSPath 'TcpAckFrequency' 2 -Type 'Remove' -Category 'network'
+                    Save-OptimizationBackup "nagle2_$name" $iface.PSPath 'TCPNoDelay' 0 -Type 'Remove' -Category 'network'
+                    if ($Enable) {
+                        Set-ItemProperty -Path $iface.PSPath -Name 'TcpAckFrequency' -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+                        Set-ItemProperty -Path $iface.PSPath -Name 'TCPNoDelay' -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+                    } else {
+                        Remove-ItemProperty -Path $iface.PSPath -Name 'TcpAckFrequency' -ErrorAction SilentlyContinue
+                        Remove-ItemProperty -Path $iface.PSPath -Name 'TCPNoDelay' -ErrorAction SilentlyContinue
+                    }
+                }
+                return $true
+            } catch { return $false }
+        }
+        GetState = {
+            try {
+                $ifaces = Get-ChildItem 'HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces' -ErrorAction SilentlyContinue
+                foreach ($iface in $ifaces) {
+                    $v = Get-ItemProperty -Path $iface.PSPath -Name 'TcpAckFrequency' -ErrorAction SilentlyContinue
+                    if ($v -and [int]$v.TcpAckFrequency -eq 1) { return $true }
+                }
+                return $false
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: QosReserved  (Cat=, Level=safe)
+======================================================================
+Key = 'QosReserved'; Cat = 'network'
+        Name   = if ($isEn) { 'Disable QoS reserved bandwidth' } else { 'Отключить резерв 20% канала QoS' }
+        Short  = if ($isEn) { 'Frees 20% of bandwidth Windows reserves' } else { 'Освобождает 20% канала, зарезервированные Windows' }
+        Desc   = if ($isEn) { 'Windows reserves 20% of network bandwidth for QoS. This tweak frees it.' } else { 'Windows резервирует 20% сетевой полосы для QoS. Твик освобождает её.' }
+        Warn   = if ($isEn) { 'QoS priority no longer guaranteed.' } else { 'QoS-приоритет больше не гарантирован.' }
+        Level = 'safe'
+        Apply = {
+            param($Enable)
+            $path = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\Psched'
+            Save-OptimizationBackup 'qos' $path 'NonBestEffortLimit' 20 -Type DWord -Category 'network'
+            if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }
+            Set-ItemProperty -Path $path -Name 'NonBestEffortLimit' -Value ([int](if ($Enable) { 0 } else { 20 })) -Type DWord -Force
+            return $true
+        }
+        GetState = {
+            try {
+                $v = Get-ItemProperty -Path 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\Psched' -Name 'NonBestEffortLimit' -ErrorAction Stop
+                return ([int]$v.NonBestEffortLimit -eq 0)
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: NetBIOS  (Cat=, Level=caution)
+======================================================================
+Key = 'NetBIOS'; Cat = 'network'
+        Name   = if ($isEn) { 'Disable NetBIOS over TCP/IP' } else { 'Отключить NetBIOS over TCP/IP' }
+        Short  = if ($isEn) { 'Removes legacy protocol noise' } else { 'Убирает устаревший сетевой протокол' }
+        Desc   = if ($isEn) { 'Disables NetBIOS on all interfaces. Less network noise and attack surface.' } else { 'Отключает NetBIOS на всех интерфейсах. Меньше сетевого шума и поверхностей атаки.' }
+        Warn   = if ($isEn) { 'Legacy apps using NetBIOS names may break.' } else { 'Старые приложения, использующие имена NetBIOS, могут сломаться.' }
+        Level = 'caution'
+        Apply = {
+            param($Enable)
+            try {
+                $ifaces = Get-ChildItem 'HKLM:\SYSTEM\CurrentControlSet\Services\NetBT\Parameters\Interfaces' -ErrorAction SilentlyContinue
+                foreach ($iface in $ifaces) {
+                    Save-OptimizationBackup "netbios_$($iface.PSChildName)" $iface.PSPath 'NetbiosOptions' 0 -Type 'Remove' -Category 'network'
+                    if ($Enable) {
+                        Set-ItemProperty -Path $iface.PSPath -Name 'NetbiosOptions' -Value 2 -Type DWord -Force -ErrorAction SilentlyContinue
+                    } else {
+                        Remove-ItemProperty -Path $iface.PSPath -Name 'NetbiosOptions' -ErrorAction SilentlyContinue
+                    }
+                }
+                return $true
+            } catch { return $false }
+        }
+        GetState = {
+            try {
+                $ifaces = Get-ChildItem 'HKLM:\SYSTEM\CurrentControlSet\Services\NetBT\Parameters\Interfaces' -ErrorAction SilentlyContinue
+                foreach ($iface in $ifaces) {
+                    $v = Get-ItemProperty -Path $iface.PSPath -Name 'NetbiosOptions' -ErrorAction SilentlyContinue
+                    if ($v -and [int]$v.NetbiosOptions -eq 2) { return $true }
+                }
+                return $false
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: IPv6  (Cat=, Level=danger)
+======================================================================
+Key = 'IPv6'; Cat = 'network'
+        Name   = if ($isEn) { 'Disable IPv6' } else { 'Отключить IPv6' }
+        Short  = if ($isEn) { 'If your network does not need it' } else { 'Если ваша сеть его не использует' }
+        Desc   = if ($isEn) { 'Disables IPv6 on all adapters. Only if your network does not require it.' } else { 'Отключает IPv6 на всех адаптерах. Только если ваша сеть его не требует.' }
+        Warn   = if ($isEn) { 'May break some apps and services.' } else { 'Может сломать некоторые приложения и службы.' }
+        Level = 'danger'
+        Apply = {
+            param($Enable)
+            $path = 'HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters'
+            Save-OptimizationBackup 'ipv6' $path 'DisabledComponents' 0 -Type 'Remove' -Category 'network'
+            if ($Enable) {
+                Set-ItemProperty -Path $path -Name 'DisabledComponents' -Value 0xFF -Type DWord -Force -ErrorAction SilentlyContinue
+            } else {
+                Remove-ItemProperty -Path $path -Name 'DisabledComponents' -ErrorAction SilentlyContinue
+            }
+            return $true
+        }
+        GetState = {
+            try {
+                $v = Get-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters' -Name 'DisabledComponents' -ErrorAction Stop
+                return ([int]$v.DisabledComponents -eq 0xFF)
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: WindowsUpdateP2P  (Cat=, Level=safe)
+======================================================================
+Key = 'WindowsUpdateP2P'; Cat = 'network'
+        Name   = if ($isEn) { 'Disable Update P2P sharing' } else { 'Отключить P2P-раздачу обновлений' }
+        Short  = if ($isEn) { 'Stop uploading updates to others' } else { 'Прекратить раздачу обновлений другим' }
+        Desc   = if ($isEn) { 'Disables Delivery Optimization P2P sharing.' } else { 'Отключает P2P-раздачу обновлений Delivery Optimization.' }
+        Warn   = if ($isEn) { 'Updates may download slower.' } else { 'Обновления могут скачиваться медленнее.' }
+        Level = 'safe'
+        Apply = {
+            param($Enable)
+            $path = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\DeliveryOptimization\Config'
+            Save-OptimizationBackup 'dop2p' $path 'DODownloadMode' 1 -Type DWord -Category 'network'
+            if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }
+            Set-ItemProperty -Path $path -Name 'DODownloadMode' -Value ([int](if ($Enable) { 0 } else { 1 })) -Type DWord -Force
+            return $true
+        }
+        GetState = {
+            try {
+                $v = Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\DeliveryOptimization\Config' -Name 'DODownloadMode' -ErrorAction Stop
+                return ([int]$v.DODownloadMode -eq 0)
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: StorageSense  (Cat=, Level=safe)
+======================================================================
+Key = 'StorageSense'; Cat = 'maint'
+        Name   = if ($isEn) { 'Disable Storage Sense' } else { 'Отключить Storage Sense' }
+        Short  = if ($isEn) { 'Windows stops auto-deleting Downloads/temp' } else { 'Windows не удаляет файлы из «Загрузок» и TEMP' }
+        Desc   = if ($isEn) { 'Stops Windows from automatically deleting files.' } else { 'Запрещает Windows автоматически удалять файлы.' }
+        Warn   = if ($isEn) { 'You clean Downloads yourself.' } else { 'Папка «Загрузки» больше не чистится автоматически.' }
+        Level = 'safe'
+        Apply = {
+            param($Enable)
+            $path = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\StorageSense'
+            Save-OptimizationBackup 'storsense' $path 'AllowStorageSenseGlobal' 0 -Type 'Remove' -Category 'maint'
+            if ($Enable) {
+                if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }
+                Set-ItemProperty -Path $path -Name 'AllowStorageSenseGlobal' -Value 0 -Type DWord -Force
+            } else {
+                Remove-ItemProperty -Path $path -Name 'AllowStorageSenseGlobal' -ErrorAction SilentlyContinue
+            }
+            return $true
+        }
+        GetState = {
+            try {
+                $v = Get-ItemProperty -Path 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\StorageSense' -Name 'AllowStorageSenseGlobal' -ErrorAction Stop
+                return ([int]$v.AllowStorageSenseGlobal -eq 0)
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: Tips  (Cat=, Level=safe)
+======================================================================
+Key = 'Tips'; Cat = 'maint'
+        Name   = if ($isEn) { 'Disable Windows tips' } else { 'Отключить советы Windows' }
+        Short  = if ($isEn) { 'No "tips & tricks" notifications' } else { 'Без уведомлений «советы и предложения»' }
+        Desc   = if ($isEn) { 'Turns off "tips, tricks & suggestions" notifications.' } else { 'Отключает уведомления «советы и предложения».' }
+        Warn   = if ($isEn) { 'You will miss tips about new features.' } else { 'Вы не увидите подсказки о новых функциях.' }
+        Level = 'safe'
+        Apply = {
+            param($Enable)
+            $path = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager'
+            foreach ($n in @('SoftLandingEnabled','SubscribedContent-338388Enabled','SubscribedContent-338389Enabled')) {
+                Save-OptimizationBackup "tips_$n" $path $n 1 -Type DWord -Category 'maint'
+                Set-ItemProperty -Path $path -Name $n -Value ([int](if ($Enable) { 0 } else { 1 })) -Type DWord -Force -ErrorAction SilentlyContinue
+            }
+            return $true
+        }
+        GetState = {
+            try {
+                $v = Get-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager' -Name 'SoftLandingEnabled' -ErrorAction Stop
+                return ([int]$v.SoftLandingEnabled -eq 0)
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: ConsumerFeatures  (Cat=, Level=safe)
+======================================================================
+Key = 'ConsumerFeatures'; Cat = 'maint'
+        Name   = if ($isEn) { 'Disable suggested apps' } else { 'Отключить автозагрузку рекомендованных приложений' }
+        Short  = if ($isEn) { 'No more auto-installed bloatware' } else { 'Никаких автозагружаемых рекламных приложений' }
+        Desc   = if ($isEn) { 'Windows stops silently installing promoted apps.' } else { 'Windows перестаёт тихо устанавливать рекламные приложения.' }
+        Warn   = if ($isEn) { 'Pure bloatware protection.' } else { 'Чистая защита от блоатвара.' }
+        Level = 'safe'
+        Apply = {
+            param($Enable)
+            $path = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\CloudContent'
+            Save-OptimizationBackup 'consumerfeat' $path 'DisableWindowsConsumerFeatures' 0 -Type 'Remove' -Category 'maint'
+            if ($Enable) {
+                if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }
+                Set-ItemProperty -Path $path -Name 'DisableWindowsConsumerFeatures' -Value 1 -Type DWord -Force
+            } else {
+                Remove-ItemProperty -Path $path -Name 'DisableWindowsConsumerFeatures' -ErrorAction SilentlyContinue
+            }
+            return $true
+        }
+        GetState = {
+            try {
+                $v = Get-ItemProperty -Path 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\CloudContent' -Name 'DisableWindowsConsumerFeatures' -ErrorAction Stop
+                return ([int]$v.DisableWindowsConsumerFeatures -eq 1)
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: ScheduledDefrag  (Cat=, Level=caution)
+======================================================================
+Key = 'ScheduledDefrag'; Cat = 'maint'
+        Name   = if ($isEn) { 'Disable scheduled defrag' } else { 'Отключить авто-дефрагментацию' }
+        Short  = if ($isEn) { 'Not needed on SSD' } else { 'Не нужна для SSD' }
+        Desc   = if ($isEn) { 'Disables scheduled defragmentation task. Recommended for SSD.' } else { 'Отключает задачу автоматической дефрагментации. Рекомендуется для SSD.' }
+        Warn   = if ($isEn) { 'HDD users should keep it enabled.' } else { 'Пользователям HDD лучше оставить включённым.' }
+        Level = 'caution'
+        Apply = {
+            param($Enable)
+            $taskName = 'ScheduledDefrag'
+            try {
+                if ($Enable) {
+                    Save-OptimizationBackup 'defragtask' '' 'ScheduledDefrag' $null -Type 'Remove' -Category 'maint'
+                    $null = & schtasks.exe /Change /TN "\Microsoft\Windows\Defrag\$taskName" /Disable 2>&1
+                } else {
+                    $null = & schtasks.exe /Change /TN "\Microsoft\Windows\Defrag\$taskName" /Enable 2>&1
+                }
+                return $true
+            } catch { return $false }
+        }
+        GetState = {
+            try {
+                $out = & schtasks.exe /Query /TN "\Microsoft\Windows\Defrag\ScheduledDefrag" /FO LIST 2>&1 | Out-String
+                return ($out -match 'Disabled|Отключено')
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: DeliveryOptimization  (Cat=, Level=safe)
+======================================================================
+Key = 'DeliveryOptimization'; Cat = 'maint'
+        Name   = if ($isEn) { 'Disable Delivery Optimization cache' } else { 'Отключить кэш Delivery Optimization' }
+        Short  = if ($isEn) { 'No local update cache' } else { 'Без локального кэша обновлений' }
+        Desc   = if ($isEn) { 'Disables Delivery Optimization service — no P2P caching of updates.' } else { 'Отключает службу Delivery Optimization — без P2P-кэша обновлений.' }
+        Warn   = if ($isEn) { 'Updates may download slower.' } else { 'Обновления могут скачиваться медленнее.' }
+        Level = 'safe'
+        Apply = {
+            param($Enable)
+            $s = Get-Service -Name 'DoSvc' -ErrorAction SilentlyContinue
+            if (-not $s) { return $false }
+            Save-OptimizationBackup 'svc_DoSvc' '' 'DoSvc' $s.StartType -Type 'Service' -Category 'maint'
+            if ($Enable) {
+                Stop-Service -Name 'DoSvc' -Force -ErrorAction SilentlyContinue
+                Set-Service  -Name 'DoSvc' -StartupType Disabled -ErrorAction SilentlyContinue
+            } else {
+                Set-Service -Name 'DoSvc' -StartupType Automatic -ErrorAction SilentlyContinue
+            }
+            return $true
+        }
+        GetState = {
+            try {
+                $s = Get-Service -Name 'DoSvc' -ErrorAction Stop
+                return ($s.StartType -eq 'Disabled')
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: OneDriveAutoStart  (Cat=, Level=safe)
+======================================================================
+Key = 'OneDriveAutoStart'; Cat = 'maint'
+        Name   = if ($isEn) { 'Remove OneDrive from startup' } else { 'Убрать OneDrive из автозагрузки' }
+        Short  = if ($isEn) { 'OneDrive does not launch on login' } else { 'OneDrive не запускается при входе' }
+        Desc   = if ($isEn) { 'Removes OneDrive from user startup. Does NOT uninstall OneDrive.' } else { 'Убирает OneDrive из автозагрузки пользователя. НЕ удаляет OneDrive.' }
+        Warn   = if ($isEn) { 'Sync stops until you launch it manually.' } else { 'Синхронизация прекратится до ручного запуска.' }
+        Level = 'safe'
+        Apply = {
+            param($Enable)
+            $path = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run'
+            $name = 'OneDrive'
+            if ($Enable) {
+                try {
+                    $v = Get-ItemProperty -Path $path -Name $name -ErrorAction SilentlyContinue
+                    if ($v -and $v.$name) {
+                        Save-OptimizationBackup 'onedrive_autostart' $path $name ([string]$v.$name) -Type 'String' -Category 'maint'
+                    }
+                } catch { }
+                Remove-ItemProperty -Path $path -Name $name -ErrorAction SilentlyContinue
+            } else {
+                if (Test-Path $script:Paths.OptBackup) {
+                    try {
+                        $bak = Get-Content -LiteralPath $script:Paths.OptBackup -Raw -Encoding UTF8 | ConvertFrom-Json
+                        if ($bak.PSObject.Properties.Name -contains 'onedrive_autostart') {
+                            $old = [string]$bak.onedrive_autostart.OldValue
+                            if ($old) { Set-ItemProperty -Path $path -Name $name -Value $old -Type String -Force }
+                        }
+                    } catch { }
+                }
+            }
+            return $true
+        }
+        GetState = {
+            try {
+                $v = Get-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run' -Name 'OneDrive' -ErrorAction Stop
+                return (-not $v.OneDrive)
+            } catch { return $true }
+        }
+
+======================================================================
+TWEAK: EdgePreload  (Cat=, Level=safe)
+======================================================================
+Key = 'EdgePreload'; Cat = 'maint'
+        Name   = if ($isEn) { 'Disable Edge preload' } else { 'Отключить предзагрузку Edge' }
+        Short  = if ($isEn) { 'Edge does not preload in background' } else { 'Edge не подгружается в фоне' }
+        Desc   = if ($isEn) { 'Prevents Microsoft Edge from preloading into memory at login.' } else { 'Запрещает Microsoft Edge подгружаться в память при входе в систему.' }
+        Warn   = if ($isEn) { 'Edge opens slightly slower.' } else { 'Edge открывается чуть медленнее.' }
+        Level = 'safe'
+        Apply = {
+            param($Enable)
+            $path = 'HKLM:\SOFTWARE\Policies\Microsoft\MicrosoftEdge\Main'
+            Save-OptimizationBackup 'edgepreload' $path 'AllowPrelaunch' 1 -Type 'Remove' -Category 'maint'
+            Save-OptimizationBackup 'edgetab' $path 'AllowTabPreloading' 1 -Type 'Remove' -Category 'maint'
+            if ($Enable) {
+                if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }
+                Set-ItemProperty -Path $path -Name 'AllowPrelaunch' -Value 0 -Type DWord -Force
+                Set-ItemProperty -Path $path -Name 'AllowTabPreloading' -Value 0 -Type DWord -Force
+            } else {
+                Remove-ItemProperty -Path $path -Name 'AllowPrelaunch' -ErrorAction SilentlyContinue
+                Remove-ItemProperty -Path $path -Name 'AllowTabPreloading' -ErrorAction SilentlyContinue
+            }
+            return $true
+        }
+        GetState = {
+            try {
+                $v = Get-ItemProperty -Path 'HKLM:\SOFTWARE\Policies\Microsoft\MicrosoftEdge\Main' -Name 'AllowPrelaunch' -ErrorAction Stop
+                return ([int]$v.AllowPrelaunch -eq 0)
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: WindowsUpdatePause  (Cat=, Level=caution)
+======================================================================
+Key = 'WindowsUpdatePause'; Cat = 'maint'
+        Name   = if ($isEn) { 'Pause Windows Update for 35 days' } else { 'Пауза Windows Update на 35 дней' }
+        Short  = if ($isEn) { 'No forced updates for a month' } else { 'Принудительных обновлений месяц не будет' }
+        Desc   = if ($isEn) { 'Pauses Windows Update for 35 days.' } else { 'Ставит обновления Windows на паузу на 35 дней.' }
+        Warn   = if ($isEn) { 'Security updates will be delayed.' } else { 'Обновления безопасности будут отложены.' }
+        Level = 'caution'
+        Apply = {
+            param($Enable)
+            $path = 'HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings'
+            if ($Enable) {
+                if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }
+                $until = (Get-Date).AddDays(35).ToString('yyyy-MM-ddTHH:mm:ssZ')
+                Save-OptimizationBackup 'wu_pause' $path 'PauseUpdatesExpiryTime' '' -Type 'Remove' -Category 'maint'
+                Set-ItemProperty -Path $path -Name 'PauseUpdatesExpiryTime' -Value $until -Type String -Force
+            } else {
+                Remove-ItemProperty -Path $path -Name 'PauseUpdatesExpiryTime' -ErrorAction SilentlyContinue
+            }
+            return $true
+        }
+        GetState = {
+            try {
+                $v = Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings' -Name 'PauseUpdatesExpiryTime' -ErrorAction Stop
+                if ($v.PauseUpdatesExpiryTime) {
+                    return ([datetime]$v.PauseUpdatesExpiryTime -gt (Get-Date))
+                }
+                return $false
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: GameMode  (Cat=, Level=safe)
+======================================================================
+Key = 'GameMode'; Cat = 'games'
+        Name   = if ($isEn) { 'Enable Game Mode' } else { 'Включить игровой режим' }
+        Short  = if ($isEn) { 'Prioritizes games over background tasks' } else { 'Приоритет играм над фоном' }
+        Desc   = if ($isEn) { 'Prioritizes game process over background tasks.' } else { 'Приоритезирует игровой процесс над фоновыми задачами.' }
+        Warn   = if ($isEn) { 'Background apps may slow down during games.' } else { 'Фоновые приложения могут тормозить во время игр.' }
+        Level = 'safe'
+        Apply = {
+            param($Enable)
+            $path = 'HKCU:\Software\Microsoft\GameBar'
+            Save-OptimizationBackup 'gamemode' $path 'AutoGameModeEnabled' 0 -Type DWord -Category 'games'
+            if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }
+            Set-ItemProperty -Path $path -Name 'AutoGameModeEnabled' -Value ([int](if ($Enable) { 1 } else { 0 })) -Type DWord -Force
+            return $true
+        }
+        GetState = {
+            try {
+                $v = Get-ItemProperty -Path 'HKCU:\Software\Microsoft\GameBar' -Name 'AutoGameModeEnabled' -ErrorAction Stop
+                return ([int]$v.AutoGameModeEnabled -eq 1)
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: HAGS  (Cat=, Level=caution)
+======================================================================
+Key = 'HAGS'; Cat = 'games'
+        Name   = if ($isEn) { 'GPU Hardware Scheduling (HAGS)' } else { 'Аппаратное планирование GPU (HAGS)' }
+        Short  = if ($isEn) { 'GPU schedules work itself — less CPU latency' } else { 'GPU сам планирует работу — меньше задержка' }
+        Desc   = if ($isEn) { 'Moves GPU scheduling from CPU to GPU. Requires NVIDIA 456+ or AMD 20.5.1+.' } else { 'Переносит планирование GPU с CPU на GPU. Требует NVIDIA 456+ или AMD 20.5.1+.' }
+        Warn   = if ($isEn) { 'May cause stuttering on some systems. Requires reboot.' } else { 'На некоторых системах вызывает подёргивания. Требует перезагрузки.' }
+        Level = 'caution'
+        Apply = {
+            param($Enable)
+            $path = 'HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers'
+            Save-OptimizationBackup 'hags' $path 'HwSchMode' 1 -Type DWord -Category 'games'
+            Set-ItemProperty -Path $path -Name 'HwSchMode' -Value ([int](if ($Enable) { 2 } else { 1 })) -Type DWord -Force -ErrorAction SilentlyContinue
+            return $true
+        }
+        GetState = {
+            try {
+                $v = Get-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers' -Name 'HwSchMode' -ErrorAction Stop
+                return ([int]$v.HwSchMode -eq 2)
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: PowerPlan  (Cat=, Level=caution)
+======================================================================
+Key = 'PowerPlan'; Cat = 'games'
+        Name   = if ($isEn) { 'High performance power plan' } else { 'Схема питания «Высокая производительность»' }
+        Short  = if ($isEn) { 'CPU at max frequency — less lag' } else { 'CPU на максимальной частоте — меньше лагов' }
+        Desc   = if ($isEn) { 'Switches the active power plan to High Performance. More power but less lag.' } else { 'Переключает схему питания на «Высокая производительность». Больше энергии, меньше лагов.' }
+        Warn   = if ($isEn) { 'Laptops on battery will drain faster.' } else { 'Ноутбуки на батарее разряжаются быстрее.' }
+        Level = 'caution'
+        Apply = {
+            param($Enable)
+            try {
+                if ($Enable) {
+                    Save-OptimizationBackup 'powerplan' '' 'powerplan' $null -Type 'Remove' -Category 'games'
+                    & powercfg /setactive 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c 2>&1 | Out-Null
+                } else {
+                    & powercfg /setactive 381b4222-f694-41f0-9685-ff5bb260df2e 2>&1 | Out-Null
+                }
+                return $true
+            } catch { return $false }
+        }
+        GetState = {
+            try {
+                $out = & powercfg /getactivescheme 2>&1 | Out-String
+                return ($out -match '8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c')
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: FullscreenOpts  (Cat=, Level=caution)
+======================================================================
+Key = 'FullscreenOpts'; Cat = 'games'
+        Name   = if ($isEn) { 'Disable Fullscreen Optimizations' } else { 'Отключить оптимизации полного экрана' }
+        Short  = if ($isEn) { 'True exclusive fullscreen, less input lag' } else { 'Настоящий эксклюзивный полный экран, меньше инпут-лага' }
+        Desc   = if ($isEn) { 'Disables Windows fullscreen optimizations. Games run in true exclusive fullscreen mode with less input lag.' } else { 'Отключает оптимизации полного экрана Windows. Игры работают в настоящем эксклюзивном режиме с меньшим инпут-лагом.' }
+        Warn   = if ($isEn) { 'Alt-Tab may be slower in some games.' } else { 'Alt-Tab может работать медленнее в некоторых играх.' }
+        Level = 'caution'
+        Apply = {
+            param($Enable)
+            $path = 'HKCU:\System\GameConfigStore'
+            Save-OptimizationBackup 'fse_behavior' $path 'GameDVR_FSEBehaviorMode' 0 -Type DWord -Category 'games'
+            Save-OptimizationBackup 'fse_disable' $path 'GameDVR_DisableFullscreenOptimizations' 0 -Type DWord -Category 'games'
+            if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }
+            Set-ItemProperty -Path $path -Name 'GameDVR_FSEBehaviorMode' -Value ([int](if ($Enable) { 2 } else { 0 })) -Type DWord -Force
+            Set-ItemProperty -Path $path -Name 'GameDVR_DisableFullscreenOptimizations' -Value ([int](if ($Enable) { 1 } else { 0 })) -Type DWord -Force
+            return $true
+        }
+        GetState = {
+            try {
+                $v = Get-ItemProperty -Path 'HKCU:\System\GameConfigStore' -Name 'GameDVR_FSEBehaviorMode' -ErrorAction Stop
+                return ([int]$v.GameDVR_FSEBehaviorMode -eq 2)
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: MPO  (Cat=, Level=caution)
+======================================================================
+Key = 'MPO'; Cat = 'games'
+        Name   = if ($isEn) { 'Disable Multi-Plane Overlay (MPO)' } else { 'Отключить Multi-Plane Overlay (MPO)' }
+        Short  = if ($isEn) { 'Sometimes fixes flickering and stutters' } else { 'Иногда лечит мерцание и фризы' }
+        Desc   = if ($isEn) { 'Disables MPO — can fix screen flickering or stuttering on some GPUs.' } else { 'Отключает MPO — может вылечить мерцание экрана или фризы на некоторых GPU.' }
+        Warn   = if ($isEn) { 'Requires reboot. May reduce battery life.' } else { 'Требует перезагрузки. Может снизить время работы от батареи.' }
+        Level = 'caution'
+        Apply = {
+            param($Enable)
+            $path = 'HKLM:\SOFTWARE\Microsoft\Windows\Dwm'
+            Save-OptimizationBackup 'mpo' $path 'OverlayTestMode' 0 -Type 'Remove' -Category 'games'
+            if ($Enable) {
+                if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }
+                Set-ItemProperty -Path $path -Name 'OverlayTestMode' -Value 5 -Type DWord -Force
+            } else {
+                Remove-ItemProperty -Path $path -Name 'OverlayTestMode' -ErrorAction SilentlyContinue
+            }
+            return $true
+        }
+        GetState = {
+            try {
+                $v = Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\Dwm' -Name 'OverlayTestMode' -ErrorAction Stop
+                return ([int]$v.OverlayTestMode -eq 5)
+            } catch { return $false }
+        }
+
+======================================================================
+TWEAK: GamePowerThrottling  (Cat=, Level=caution)
+======================================================================
+Key = 'GamePowerThrottling'; Cat = 'games'
+        Name   = if ($isEn) { 'Disable CPU throttling for games' } else { 'Отключить троттлинг CPU для игр' }
+        Short  = if ($isEn) { 'Full CPU speed during games' } else { 'Полная скорость CPU во время игр' }
+        Desc   = if ($isEn) { 'Disables CPU power throttling — games get full CPU speed.' } else { 'Отключает троттлинг питания CPU — игры получают полную скорость.' }
+        Warn   = if ($isEn) { 'Laptop battery drains faster.' } else { 'Батарея ноутбука разряжается быстрее.' }
+        Level = 'caution'
+        Apply = {
+            param($Enable)
+            $path = 'HKLM:\SYSTEM\CurrentControlSet\Control\Power\PowerThrottling'
+            Save-OptimizationBackup 'gamethrottle' $path 'PowerThrottlingOff' 0 -Type 'Remove' -Category 'games'
+            if ($Enable) {
+                if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }
+                Set-ItemProperty -Path $path -Name 'PowerThrottlingOff' -Value 1 -Type DWord -Force
+            } else {
+                Remove-ItemProperty -Path $path -Name 'PowerThrottlingOff' -ErrorAction SilentlyContinue
+            }
+            return $true
+        }
+        GetState = {
+            try {
+                $v = Get-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Power\PowerThrottling' -Name 'PowerThrottlingOff' -ErrorAction Stop
+                return ([int]$v.PowerThrottlingOff -eq 1)
+            } catch { return $false }
+        }
+
+

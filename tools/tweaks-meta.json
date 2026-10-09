@@ -3,7 +3,7 @@
     "tweaks":  [
                    {
                        "key":  "VisualFx",
-                       "category":  "perf",
+                       "category":  "",
                        "level":  "safe",
                        "requiresReboot":  false,
                        "conflictsWith":  [
@@ -14,55 +14,18 @@
                        "descKey":  "tweak.VisualFx.desc",
                        "warnKey":  "tweak.VisualFx.warn",
                        "apply":  [
-                                     {
-                                         "type":  "regSet",
-                                         "hive":  "HKCU",
-                                         "key":  "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VisualEffects",
-                                         "name":  "VisualFXSetting",
-                                         "kind":  "DWord",
-                                         "value":  2,
-                                         "createKeyIfMissing":  true
-                                     },
-                                     {
-                                         "type":  "regSet",
-                                         "hive":  "HKCU",
-                                         "key":  "Control Panel\\Desktop",
-                                         "name":  "UserPreferencesMask",
-                                         "kind":  "Binary",
-                                         "value":  "9012038010000000"
-                                     }
+
                                  ],
                        "unapply":  [
-                                       {
-                                           "type":  "regSet",
-                                           "hive":  "HKCU",
-                                           "key":  "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VisualEffects",
-                                           "name":  "VisualFXSetting",
-                                           "kind":  "DWord",
-                                           "value":  0,
-                                           "createKeyIfMissing":  true
-                                       },
-                                       {
-                                           "type":  "regRemove",
-                                           "hive":  "HKCU",
-                                           "key":  "Control Panel\\Desktop",
-                                           "name":  "UserPreferencesMask"
-                                       }
+
                                    ],
                        "state":  [
-                                     {
-                                         "type":  "regGet",
-                                         "hive":  "HKCU",
-                                         "key":  "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VisualEffects",
-                                         "name":  "VisualFXSetting",
-                                         "kind":  "DWord",
-                                         "expected":  2
-                                     }
+
                                  ]
                    },
                    {
                        "key":  "Transparency",
-                       "category":  "perf",
+                       "category":  "",
                        "level":  "safe",
                        "requiresReboot":  false,
                        "conflictsWith":  [
@@ -84,7 +47,7 @@
                    },
                    {
                        "key":  "StartupDelay",
-                       "category":  "perf",
+                       "category":  "",
                        "level":  "safe",
                        "requiresReboot":  false,
                        "conflictsWith":  [
@@ -106,7 +69,7 @@
                    },
                    {
                        "key":  "MenuDelay",
-                       "category":  "perf",
+                       "category":  "",
                        "level":  "safe",
                        "requiresReboot":  false,
                        "conflictsWith":  [
@@ -128,7 +91,7 @@
                    },
                    {
                        "key":  "BackgroundApps",
-                       "category":  "perf",
+                       "category":  "",
                        "level":  "safe",
                        "requiresReboot":  false,
                        "conflictsWith":  [
@@ -150,9 +113,9 @@
                    },
                    {
                        "key":  "SysMain",
-                       "category":  "perf",
+                       "category":  "",
                        "level":  "caution",
-                       "requiresReboot":  true,
+                       "requiresReboot":  false,
                        "conflictsWith":  [
 
                                          ],
@@ -161,33 +124,20 @@
                        "descKey":  "tweak.SysMain.desc",
                        "warnKey":  "tweak.SysMain.warn",
                        "apply":  [
-                                     {
-                                         "type":  "serviceSet",
-                                         "serviceName":  "SysMain",
-                                         "startupType":  "Disabled",
-                                         "stopFirst":  true
-                                     }
+
                                  ],
                        "unapply":  [
-                                       {
-                                           "type":  "serviceSet",
-                                           "serviceName":  "SysMain",
-                                           "startupType":  "Automatic"
-                                       }
+
                                    ],
                        "state":  [
-                                     {
-                                         "type":  "serviceGet",
-                                         "serviceName":  "SysMain",
-                                         "expectedStartupType":  "Disabled"
-                                     }
+
                                  ]
                    },
                    {
                        "key":  "Prefetch",
-                       "category":  "perf",
+                       "category":  "",
                        "level":  "caution",
-                       "requiresReboot":  true,
+                       "requiresReboot":  false,
                        "conflictsWith":  [
 
                                          ],
@@ -207,7 +157,7 @@
                    },
                    {
                        "key":  "AutoMaintenance",
-                       "category":  "perf",
+                       "category":  "",
                        "level":  "safe",
                        "requiresReboot":  false,
                        "conflictsWith":  [
@@ -229,7 +179,7 @@
                    },
                    {
                        "key":  "DefenderScanLimit",
-                       "category":  "perf",
+                       "category":  "",
                        "level":  "safe",
                        "requiresReboot":  false,
                        "conflictsWith":  [
@@ -251,7 +201,7 @@
                    },
                    {
                        "key":  "WerSvc",
-                       "category":  "perf",
+                       "category":  "",
                        "level":  "safe",
                        "requiresReboot":  false,
                        "conflictsWith":  [
@@ -273,9 +223,9 @@
                    },
                    {
                        "key":  "FastStartup",
-                       "category":  "perf",
+                       "category":  "",
                        "level":  "caution",
-                       "requiresReboot":  true,
+                       "requiresReboot":  false,
                        "conflictsWith":  [
 
                                          ],
@@ -295,9 +245,9 @@
                    },
                    {
                        "key":  "ReservedStorage",
-                       "category":  "perf",
+                       "category":  "",
                        "level":  "caution",
-                       "requiresReboot":  true,
+                       "requiresReboot":  false,
                        "conflictsWith":  [
 
                                          ],
@@ -317,7 +267,7 @@
                    },
                    {
                        "key":  "EventLogSize",
-                       "category":  "perf",
+                       "category":  "",
                        "level":  "safe",
                        "requiresReboot":  false,
                        "conflictsWith":  [
@@ -339,9 +289,9 @@
                    },
                    {
                        "key":  "SearchIndexing",
-                       "category":  "perf",
+                       "category":  "",
                        "level":  "caution",
-                       "requiresReboot":  true,
+                       "requiresReboot":  false,
                        "conflictsWith":  [
 
                                          ],
@@ -361,9 +311,9 @@
                    },
                    {
                        "key":  "PowerThrottling",
-                       "category":  "perf",
+                       "category":  "",
                        "level":  "caution",
-                       "requiresReboot":  true,
+                       "requiresReboot":  false,
                        "conflictsWith":  [
 
                                          ],
@@ -383,7 +333,7 @@
                    },
                    {
                        "key":  "Telemetry",
-                       "category":  "privacy",
+                       "category":  "",
                        "level":  "safe",
                        "requiresReboot":  false,
                        "conflictsWith":  [
@@ -405,7 +355,7 @@
                    },
                    {
                        "key":  "AdvertisingId",
-                       "category":  "privacy",
+                       "category":  "",
                        "level":  "safe",
                        "requiresReboot":  false,
                        "conflictsWith":  [
@@ -427,7 +377,7 @@
                    },
                    {
                        "key":  "ActivityHistory",
-                       "category":  "privacy",
+                       "category":  "",
                        "level":  "safe",
                        "requiresReboot":  false,
                        "conflictsWith":  [
@@ -449,7 +399,7 @@
                    },
                    {
                        "key":  "Cortana",
-                       "category":  "privacy",
+                       "category":  "",
                        "level":  "safe",
                        "requiresReboot":  false,
                        "conflictsWith":  [
@@ -460,41 +410,18 @@
                        "descKey":  "tweak.Cortana.desc",
                        "warnKey":  "tweak.Cortana.warn",
                        "apply":  [
-                                     {
-                                         "type":  "regSet",
-                                         "hive":  "HKLM",
-                                         "key":  "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
-                                         "name":  "AllowCortana",
-                                         "kind":  "DWord",
-                                         "value":  0,
-                                         "createKeyIfMissing":  true
-                                     }
+
                                  ],
                        "unapply":  [
-                                       {
-                                           "type":  "regSet",
-                                           "hive":  "HKLM",
-                                           "key":  "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
-                                           "name":  "AllowCortana",
-                                           "kind":  "DWord",
-                                           "value":  1,
-                                           "createKeyIfMissing":  true
-                                       }
+
                                    ],
                        "state":  [
-                                     {
-                                         "type":  "regGet",
-                                         "hive":  "HKLM",
-                                         "key":  "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
-                                         "name":  "AllowCortana",
-                                         "kind":  "DWord",
-                                         "expected":  0
-                                     }
+
                                  ]
                    },
                    {
                        "key":  "XboxGameBar",
-                       "category":  "privacy",
+                       "category":  "",
                        "level":  "safe",
                        "requiresReboot":  false,
                        "conflictsWith":  [
@@ -516,7 +443,7 @@
                    },
                    {
                        "key":  "BingSearch",
-                       "category":  "privacy",
+                       "category":  "",
                        "level":  "safe",
                        "requiresReboot":  false,
                        "conflictsWith":  [
@@ -538,7 +465,7 @@
                    },
                    {
                        "key":  "LockScreenAds",
-                       "category":  "privacy",
+                       "category":  "",
                        "level":  "safe",
                        "requiresReboot":  false,
                        "conflictsWith":  [
@@ -560,7 +487,7 @@
                    },
                    {
                        "key":  "Copilot",
-                       "category":  "privacy",
+                       "category":  "",
                        "level":  "safe",
                        "requiresReboot":  false,
                        "conflictsWith":  [
@@ -582,7 +509,7 @@
                    },
                    {
                        "key":  "Recall",
-                       "category":  "privacy",
+                       "category":  "",
                        "level":  "safe",
                        "requiresReboot":  false,
                        "conflictsWith":  [
@@ -604,7 +531,7 @@
                    },
                    {
                        "key":  "Feedback",
-                       "category":  "privacy",
+                       "category":  "",
                        "level":  "safe",
                        "requiresReboot":  false,
                        "conflictsWith":  [
@@ -626,7 +553,7 @@
                    },
                    {
                        "key":  "Location",
-                       "category":  "privacy",
+                       "category":  "",
                        "level":  "safe",
                        "requiresReboot":  false,
                        "conflictsWith":  [
@@ -648,7 +575,7 @@
                    },
                    {
                        "key":  "Camera",
-                       "category":  "privacy",
+                       "category":  "",
                        "level":  "caution",
                        "requiresReboot":  false,
                        "conflictsWith":  [
@@ -670,7 +597,7 @@
                    },
                    {
                        "key":  "Microphone",
-                       "category":  "privacy",
+                       "category":  "",
                        "level":  "caution",
                        "requiresReboot":  false,
                        "conflictsWith":  [
@@ -692,7 +619,7 @@
                    },
                    {
                        "key":  "DiagnosticData",
-                       "category":  "privacy",
+                       "category":  "",
                        "level":  "safe",
                        "requiresReboot":  false,
                        "conflictsWith":  [
@@ -714,7 +641,7 @@
                    },
                    {
                        "key":  "InkingTyping",
-                       "category":  "privacy",
+                       "category":  "",
                        "level":  "safe",
                        "requiresReboot":  false,
                        "conflictsWith":  [
@@ -736,7 +663,7 @@
                    },
                    {
                        "key":  "SpeechRecognition",
-                       "category":  "privacy",
+                       "category":  "",
                        "level":  "safe",
                        "requiresReboot":  false,
                        "conflictsWith":  [
@@ -758,7 +685,7 @@
                    },
                    {
                        "key":  "UpdateP2P",
-                       "category":  "privacy",
+                       "category":  "",
                        "level":  "safe",
                        "requiresReboot":  false,
                        "conflictsWith":  [
@@ -780,9 +707,9 @@
                    },
                    {
                        "key":  "ClassicContext",
-                       "category":  "win11",
+                       "category":  "",
                        "level":  "safe",
-                       "requiresReboot":  true,
+                       "requiresReboot":  false,
                        "conflictsWith":  [
 
                                          ],
@@ -802,9 +729,9 @@
                    },
                    {
                        "key":  "Widgets",
-                       "category":  "win11",
+                       "category":  "",
                        "level":  "safe",
-                       "requiresReboot":  true,
+                       "requiresReboot":  false,
                        "conflictsWith":  [
 
                                          ],
@@ -824,7 +751,7 @@
                    },
                    {
                        "key":  "SearchHighlights",
-                       "category":  "win11",
+                       "category":  "",
                        "level":  "safe",
                        "requiresReboot":  false,
                        "conflictsWith":  [
@@ -846,7 +773,7 @@
                    },
                    {
                        "key":  "StartRecommendations",
-                       "category":  "win11",
+                       "category":  "",
                        "level":  "safe",
                        "requiresReboot":  false,
                        "conflictsWith":  [
@@ -868,9 +795,9 @@
                    },
                    {
                        "key":  "TaskbarAlign",
-                       "category":  "win11",
+                       "category":  "",
                        "level":  "safe",
-                       "requiresReboot":  true,
+                       "requiresReboot":  false,
                        "conflictsWith":  [
 
                                          ],
@@ -890,9 +817,9 @@
                    },
                    {
                        "key":  "SearchBox",
-                       "category":  "win11",
+                       "category":  "",
                        "level":  "safe",
-                       "requiresReboot":  true,
+                       "requiresReboot":  false,
                        "conflictsWith":  [
 
                                          ],
@@ -912,9 +839,9 @@
                    },
                    {
                        "key":  "ChatIcon",
-                       "category":  "win11",
+                       "category":  "",
                        "level":  "safe",
-                       "requiresReboot":  true,
+                       "requiresReboot":  false,
                        "conflictsWith":  [
 
                                          ],
@@ -934,9 +861,9 @@
                    },
                    {
                        "key":  "TaskView",
-                       "category":  "win11",
+                       "category":  "",
                        "level":  "safe",
-                       "requiresReboot":  true,
+                       "requiresReboot":  false,
                        "conflictsWith":  [
 
                                          ],
@@ -956,9 +883,9 @@
                    },
                    {
                        "key":  "EndTask",
-                       "category":  "win11",
+                       "category":  "",
                        "level":  "safe",
-                       "requiresReboot":  true,
+                       "requiresReboot":  false,
                        "conflictsWith":  [
 
                                          ],
@@ -978,7 +905,7 @@
                    },
                    {
                        "key":  "NetworkThrottle",
-                       "category":  "network",
+                       "category":  "",
                        "level":  "safe",
                        "requiresReboot":  false,
                        "conflictsWith":  [
@@ -1000,9 +927,9 @@
                    },
                    {
                        "key":  "TcpAutotuning",
-                       "category":  "network",
+                       "category":  "",
                        "level":  "caution",
-                       "requiresReboot":  true,
+                       "requiresReboot":  false,
                        "conflictsWith":  [
 
                                          ],
@@ -1022,9 +949,9 @@
                    },
                    {
                        "key":  "Nagle",
-                       "category":  "network",
+                       "category":  "",
                        "level":  "caution",
-                       "requiresReboot":  true,
+                       "requiresReboot":  false,
                        "conflictsWith":  [
 
                                          ],
@@ -1044,7 +971,7 @@
                    },
                    {
                        "key":  "QosReserved",
-                       "category":  "network",
+                       "category":  "",
                        "level":  "safe",
                        "requiresReboot":  false,
                        "conflictsWith":  [
@@ -1066,9 +993,9 @@
                    },
                    {
                        "key":  "NetBIOS",
-                       "category":  "network",
+                       "category":  "",
                        "level":  "caution",
-                       "requiresReboot":  true,
+                       "requiresReboot":  false,
                        "conflictsWith":  [
 
                                          ],
@@ -1088,9 +1015,9 @@
                    },
                    {
                        "key":  "IPv6",
-                       "category":  "network",
+                       "category":  "",
                        "level":  "danger",
-                       "requiresReboot":  true,
+                       "requiresReboot":  false,
                        "conflictsWith":  [
 
                                          ],
@@ -1110,7 +1037,7 @@
                    },
                    {
                        "key":  "WindowsUpdateP2P",
-                       "category":  "network",
+                       "category":  "",
                        "level":  "safe",
                        "requiresReboot":  false,
                        "conflictsWith":  [
@@ -1132,7 +1059,7 @@
                    },
                    {
                        "key":  "StorageSense",
-                       "category":  "maint",
+                       "category":  "",
                        "level":  "safe",
                        "requiresReboot":  false,
                        "conflictsWith":  [
@@ -1154,7 +1081,7 @@
                    },
                    {
                        "key":  "Tips",
-                       "category":  "maint",
+                       "category":  "",
                        "level":  "safe",
                        "requiresReboot":  false,
                        "conflictsWith":  [
@@ -1176,7 +1103,7 @@
                    },
                    {
                        "key":  "ConsumerFeatures",
-                       "category":  "maint",
+                       "category":  "",
                        "level":  "safe",
                        "requiresReboot":  false,
                        "conflictsWith":  [
@@ -1198,7 +1125,7 @@
                    },
                    {
                        "key":  "ScheduledDefrag",
-                       "category":  "maint",
+                       "category":  "",
                        "level":  "caution",
                        "requiresReboot":  false,
                        "conflictsWith":  [
@@ -1220,7 +1147,7 @@
                    },
                    {
                        "key":  "DeliveryOptimization",
-                       "category":  "maint",
+                       "category":  "",
                        "level":  "safe",
                        "requiresReboot":  false,
                        "conflictsWith":  [
@@ -1242,7 +1169,7 @@
                    },
                    {
                        "key":  "OneDriveAutoStart",
-                       "category":  "maint",
+                       "category":  "",
                        "level":  "safe",
                        "requiresReboot":  false,
                        "conflictsWith":  [
@@ -1264,7 +1191,7 @@
                    },
                    {
                        "key":  "EdgePreload",
-                       "category":  "maint",
+                       "category":  "",
                        "level":  "safe",
                        "requiresReboot":  false,
                        "conflictsWith":  [
@@ -1286,7 +1213,7 @@
                    },
                    {
                        "key":  "WindowsUpdatePause",
-                       "category":  "maint",
+                       "category":  "",
                        "level":  "caution",
                        "requiresReboot":  false,
                        "conflictsWith":  [
@@ -1308,7 +1235,7 @@
                    },
                    {
                        "key":  "GameMode",
-                       "category":  "games",
+                       "category":  "",
                        "level":  "safe",
                        "requiresReboot":  false,
                        "conflictsWith":  [
@@ -1330,9 +1257,9 @@
                    },
                    {
                        "key":  "HAGS",
-                       "category":  "games",
+                       "category":  "",
                        "level":  "caution",
-                       "requiresReboot":  true,
+                       "requiresReboot":  false,
                        "conflictsWith":  [
 
                                          ],
@@ -1352,9 +1279,9 @@
                    },
                    {
                        "key":  "PowerPlan",
-                       "category":  "games",
+                       "category":  "",
                        "level":  "caution",
-                       "requiresReboot":  true,
+                       "requiresReboot":  false,
                        "conflictsWith":  [
 
                                          ],
@@ -1374,7 +1301,7 @@
                    },
                    {
                        "key":  "FullscreenOpts",
-                       "category":  "games",
+                       "category":  "",
                        "level":  "caution",
                        "requiresReboot":  false,
                        "conflictsWith":  [
@@ -1396,9 +1323,9 @@
                    },
                    {
                        "key":  "MPO",
-                       "category":  "games",
+                       "category":  "",
                        "level":  "caution",
-                       "requiresReboot":  true,
+                       "requiresReboot":  false,
                        "conflictsWith":  [
 
                                          ],
@@ -1418,9 +1345,9 @@
                    },
                    {
                        "key":  "GamePowerThrottling",
-                       "category":  "games",
+                       "category":  "",
                        "level":  "caution",
-                       "requiresReboot":  true,
+                       "requiresReboot":  false,
                        "conflictsWith":  [
 
                                          ],
