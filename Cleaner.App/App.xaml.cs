@@ -1,4 +1,5 @@
 ﻿using Cleaner.App.Services;
+using Cleaner.App.ViewModels;
 using Cleaner.App.Views;
 using Cleaner.Core.Data;
 using Cleaner.Core.Services;
@@ -57,6 +58,14 @@ public partial class App : Application
         services.AddSingleton<ICleanupService>(sp =>
             new CleanupService(sp.GetRequiredService<OperationsRepository>()));
         services.AddSingleton<ICleanupRunner, CleanupRunner>();
+
+        // --- ViewModels ---
+        services.AddSingleton<CleanupViewModel>();
+
+        // --- Страницы и главное окно ---
+        services.AddSingleton<MainWindow>();
+        services.AddSingleton<CleanupPage>();
+        // ... остальные страницы без изменений
 
         services.AddSingleton<MainWindow>();
         services.AddSingleton<CleanupPage>();
