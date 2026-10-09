@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using Cleaner.App.Views;
 using Wpf.Ui.Controls;
 
@@ -28,18 +29,50 @@ public partial class MainWindow : FluentWindow
 
         InitializeComponent();
 
+        // Канал 1: стандартное событие SelectionChanged.
         RootNavigation.SelectionChanged += OnNavigationSelectionChanged;
 
-        // Показываем первую страницу сразу, минуя SelectedItem.
+        // Канал 2: прямая подписка на клик по каждому пункту (страховка).
+        Loaded += OnLoaded;
+
+        // Стартовая страница.
         RootFrame.Navigate(_cleanupPage);
+    }
+
+    private void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        foreach (var item in RootNavigation.MenuItems)
+        {
+            if (item is NavigationViewItem nvi)
+                nvi.PreviewMouseLeftButtonUp += OnNavigationItemClick;
+        }
     }
 
     private void OnNavigationSelectionChanged(object sender, RoutedEventArgs e)
     {
-        if (RootNavigation.SelectedItem is not NavigationViewItem item)
-            return;
+        var selected = RootNavigation.SelectedItem;
+        System.Diagnostics.Debug.WriteLine(
+            $"[MainWindow] SelectionChanged: {selected?.GetType().FullName ?? "null"}");
 
-        Page? page = (item.Tag as string) switch
+        if (selected is NavigationViewItem nvi)
+        {
+            System.Diagnostics.Debug.WriteLine($"[MainWindow]   tag = {nvi.Tag}");
+            NavigateByTag(nvi.Tag as string);
+        }
+    }
+
+    private void OnNavigationItemClick(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is NavigationViewItem nvi)
+        {
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] ItemClick: tag = {nvi.Tag}");
+            NavigateByTag(nvi.Tag as string);
+        }
+    }
+
+    private void NavigateByTag(string? tag)
+    {
+        Page? page = tag switch
         {
             "cleanup" => _cleanupPage,
             "optimize" => _optimizePage,
@@ -48,6 +81,9 @@ public partial class MainWindow : FluentWindow
             "disk" => _diskPage,
             _ => null
         };
+
+        System.Diagnostics.Debug.WriteLine(
+            $"[MainWindow] Navigate: tag={tag}, page={page?.GetType().Name ?? "null"}");
 
         if (page is null) return;
         if (ReferenceEquals(RootFrame.Content, page)) return;
