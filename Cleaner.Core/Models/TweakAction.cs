@@ -8,7 +8,7 @@ public sealed class TweakAction
     [JsonPropertyName("type")]
     public string Type { get; init; } = "";
 
-    // Реестр
+    // --- Реестр ---
     [JsonPropertyName("hive")]
     public string? Hive { get; init; }
 
@@ -30,7 +30,11 @@ public sealed class TweakAction
     [JsonPropertyName("createKeyIfMissing")]
     public bool CreateKeyIfMissing { get; init; }
 
-    // Службы
+    /// <summary>Для state-проверок: значение &lt;= указанному.</summary>
+    [JsonPropertyName("lessOrEqualInt")]
+    public int? LessOrEqualInt { get; init; }
+
+    // --- Службы ---
     [JsonPropertyName("serviceName")]
     public string? ServiceName { get; init; }
 
@@ -42,4 +46,15 @@ public sealed class TweakAction
 
     [JsonPropertyName("stopFirst")]
     public bool StopFirst { get; init; }
+
+    // --- Внешние команды ---
+    [JsonPropertyName("fileName")]
+    public string? FileName { get; init; }
+
+    [JsonPropertyName("arguments")]
+    public string? Arguments { get; init; }
+
+    /// <summary>Для commandGet: подстрока, которая должна быть в выводе.</summary>
+    [JsonPropertyName("outputContains")]
+    public string? OutputContains { get; init; }
 }

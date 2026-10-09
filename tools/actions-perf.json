@@ -1,0 +1,444 @@
+{
+  "Transparency": {
+    "apply": [
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+        "name": "EnableTransparency",
+        "kind": "DWord",
+        "value": 0,
+        "createKeyIfMissing": true
+      }
+    ],
+    "unapply": [
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+        "name": "EnableTransparency",
+        "kind": "DWord",
+        "value": 1,
+        "createKeyIfMissing": true
+      }
+    ],
+    "state": [
+      {
+        "type": "regGet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+        "name": "EnableTransparency",
+        "kind": "DWord",
+        "expected": 0
+      }
+    ]
+  },
+  "StartupDelay": {
+    "apply": [
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Serialize",
+        "name": "StartupDelayInMSec",
+        "kind": "DWord",
+        "value": 0,
+        "createKeyIfMissing": true
+      },
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Serialize",
+        "name": "WaitForIdleState",
+        "kind": "DWord",
+        "value": 0,
+        "createKeyIfMissing": true
+      }
+    ],
+    "unapply": [
+      {
+        "type": "regRemove",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Serialize",
+        "name": "StartupDelayInMSec"
+      },
+      {
+        "type": "regRemove",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Serialize",
+        "name": "WaitForIdleState"
+      }
+    ],
+    "state": [
+      {
+        "type": "regGet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Serialize",
+        "name": "StartupDelayInMSec",
+        "kind": "DWord",
+        "expected": 0
+      }
+    ]
+  },
+  "MenuDelay": {
+    "apply": [
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "Control Panel\\Desktop",
+        "name": "MenuShowDelay",
+        "kind": "String",
+        "value": "0",
+        "createKeyIfMissing": true
+      }
+    ],
+    "unapply": [
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "Control Panel\\Desktop",
+        "name": "MenuShowDelay",
+        "kind": "String",
+        "value": "400",
+        "createKeyIfMissing": true
+      }
+    ],
+    "state": [
+      {
+        "type": "regGet",
+        "hive": "HKCU",
+        "key": "Control Panel\\Desktop",
+        "name": "MenuShowDelay",
+        "kind": "String",
+        "lessOrEqualInt": 50
+      }
+    ]
+  },
+  "BackgroundApps": {
+    "apply": [
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Windows\\CurrentVersion\\BackgroundAccessApplications",
+        "name": "GlobalUserDisabled",
+        "kind": "DWord",
+        "value": 1,
+        "createKeyIfMissing": true
+      },
+      {
+        "type": "regSet",
+        "hive": "HKLM",
+        "key": "Software\\Policies\\Microsoft\\Windows\\AppPrivacy",
+        "name": "LetAppsRunInBackground",
+        "kind": "DWord",
+        "value": 2,
+        "createKeyIfMissing": true
+      }
+    ],
+    "unapply": [
+      {
+        "type": "regRemove",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Windows\\CurrentVersion\\BackgroundAccessApplications",
+        "name": "GlobalUserDisabled"
+      },
+      {
+        "type": "regRemove",
+        "hive": "HKLM",
+        "key": "Software\\Policies\\Microsoft\\Windows\\AppPrivacy",
+        "name": "LetAppsRunInBackground"
+      }
+    ],
+    "state": [
+      {
+        "type": "regGet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Windows\\CurrentVersion\\BackgroundAccessApplications",
+        "name": "GlobalUserDisabled",
+        "kind": "DWord",
+        "expected": 1
+      }
+    ]
+  },
+  "Prefetch": {
+    "apply": [
+      {
+        "type": "regSet",
+        "hive": "HKLM",
+        "key": "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management\\PrefetchParameters",
+        "name": "EnablePrefetcher",
+        "kind": "DWord",
+        "value": 0
+      },
+      {
+        "type": "regSet",
+        "hive": "HKLM",
+        "key": "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management\\PrefetchParameters",
+        "name": "EnableSuperfetch",
+        "kind": "DWord",
+        "value": 0
+      }
+    ],
+    "unapply": [
+      {
+        "type": "regSet",
+        "hive": "HKLM",
+        "key": "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management\\PrefetchParameters",
+        "name": "EnablePrefetcher",
+        "kind": "DWord",
+        "value": 3
+      },
+      {
+        "type": "regSet",
+        "hive": "HKLM",
+        "key": "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management\\PrefetchParameters",
+        "name": "EnableSuperfetch",
+        "kind": "DWord",
+        "value": 3
+      }
+    ],
+    "state": [
+      {
+        "type": "regGet",
+        "hive": "HKLM",
+        "key": "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management\\PrefetchParameters",
+        "name": "EnablePrefetcher",
+        "kind": "DWord",
+        "expected": 0
+      }
+    ]
+  },
+  "AutoMaintenance": {
+    "apply": [
+      {
+        "type": "regSet",
+        "hive": "HKLM",
+        "key": "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Schedule\\Maintenance",
+        "name": "MaintenanceDisabled",
+        "kind": "DWord",
+        "value": 1,
+        "createKeyIfMissing": true
+      }
+    ],
+    "unapply": [
+      {
+        "type": "regRemove",
+        "hive": "HKLM",
+        "key": "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Schedule\\Maintenance",
+        "name": "MaintenanceDisabled"
+      }
+    ],
+    "state": [
+      {
+        "type": "regGet",
+        "hive": "HKLM",
+        "key": "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Schedule\\Maintenance",
+        "name": "MaintenanceDisabled",
+        "kind": "DWord",
+        "expected": 1
+      }
+    ]
+  },
+  "DefenderScanLimit": {
+    "apply": [
+      {
+        "type": "regSet",
+        "hive": "HKLM",
+        "key": "SOFTWARE\\Microsoft\\Windows Defender\\Scan",
+        "name": "ScanAvgCPULoadFactor",
+        "kind": "DWord",
+        "value": 20,
+        "createKeyIfMissing": true
+      }
+    ],
+    "unapply": [
+      {
+        "type": "regSet",
+        "hive": "HKLM",
+        "key": "SOFTWARE\\Microsoft\\Windows Defender\\Scan",
+        "name": "ScanAvgCPULoadFactor",
+        "kind": "DWord",
+        "value": 50,
+        "createKeyIfMissing": true
+      }
+    ],
+    "state": [
+      {
+        "type": "regGet",
+        "hive": "HKLM",
+        "key": "SOFTWARE\\Microsoft\\Windows Defender\\Scan",
+        "name": "ScanAvgCPULoadFactor",
+        "kind": "DWord",
+        "lessOrEqualInt": 20
+      }
+    ]
+  },
+  "WerSvc": {
+    "apply": [
+      {
+        "type": "serviceSet",
+        "serviceName": "WerSvc",
+        "startupType": "Disabled",
+        "stopFirst": true
+      }
+    ],
+    "unapply": [
+      {
+        "type": "serviceSet",
+        "serviceName": "WerSvc",
+        "startupType": "Manual"
+      }
+    ],
+    "state": [
+      {
+        "type": "serviceGet",
+        "serviceName": "WerSvc",
+        "expectedStartupType": "Disabled"
+      }
+    ]
+  },
+  "FastStartup": {
+    "apply": [
+      {
+        "type": "regSet",
+        "hive": "HKLM",
+        "key": "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power",
+        "name": "HiberbootEnabled",
+        "kind": "DWord",
+        "value": 0
+      }
+    ],
+    "unapply": [
+      {
+        "type": "regSet",
+        "hive": "HKLM",
+        "key": "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power",
+        "name": "HiberbootEnabled",
+        "kind": "DWord",
+        "value": 1
+      }
+    ],
+    "state": [
+      {
+        "type": "regGet",
+        "hive": "HKLM",
+        "key": "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power",
+        "name": "HiberbootEnabled",
+        "kind": "DWord",
+        "expected": 0
+      }
+    ]
+  },
+  "ReservedStorage": {
+    "apply": [
+      {
+        "type": "commandRun",
+        "fileName": "DISM.exe",
+        "arguments": "/Online /Set-ReservedStorageState /State:Disabled"
+      }
+    ],
+    "unapply": [
+      {
+        "type": "commandRun",
+        "fileName": "DISM.exe",
+        "arguments": "/Online /Set-ReservedStorageState /State:Enabled"
+      }
+    ],
+    "state": [
+      {
+        "type": "commandGet",
+        "fileName": "DISM.exe",
+        "arguments": "/Online /Get-ReservedStorageState",
+        "outputContains": "Disabled"
+      }
+    ]
+  },
+  "EventLogSize": {
+    "apply": [
+      {
+        "type": "commandRun",
+        "fileName": "wevtutil.exe",
+        "arguments": "sl Application /ms:10240"
+      },
+      {
+        "type": "commandRun",
+        "fileName": "wevtutil.exe",
+        "arguments": "sl System /ms:10240"
+      }
+    ],
+    "unapply": [
+      {
+        "type": "commandRun",
+        "fileName": "wevtutil.exe",
+        "arguments": "sl Application /ms:20480"
+      },
+      {
+        "type": "commandRun",
+        "fileName": "wevtutil.exe",
+        "arguments": "sl System /ms:20480"
+      }
+    ],
+    "state": [
+      {
+        "type": "commandGet",
+        "fileName": "wevtutil.exe",
+        "arguments": "gl Application /f:xml",
+        "outputContains": "<maxSize>10240</maxSize>"
+      }
+    ]
+  },
+  "SearchIndexing": {
+    "apply": [
+      {
+        "type": "serviceSet",
+        "serviceName": "WSearch",
+        "startupType": "Disabled",
+        "stopFirst": true
+      }
+    ],
+    "unapply": [
+      {
+        "type": "serviceSet",
+        "serviceName": "WSearch",
+        "startupType": "Automatic"
+      }
+    ],
+    "state": [
+      {
+        "type": "serviceGet",
+        "serviceName": "WSearch",
+        "expectedStartupType": "Disabled"
+      }
+    ]
+  },
+  "PowerThrottling": {
+    "apply": [
+      {
+        "type": "regSet",
+        "hive": "HKLM",
+        "key": "SYSTEM\\CurrentControlSet\\Control\\Power\\PowerThrottling",
+        "name": "PowerThrottlingOff",
+        "kind": "DWord",
+        "value": 1,
+        "createKeyIfMissing": true
+      }
+    ],
+    "unapply": [
+      {
+        "type": "regRemove",
+        "hive": "HKLM",
+        "key": "SYSTEM\\CurrentControlSet\\Control\\Power\\PowerThrottling",
+        "name": "PowerThrottlingOff"
+      }
+    ],
+    "state": [
+      {
+        "type": "regGet",
+        "hive": "HKLM",
+        "key": "SYSTEM\\CurrentControlSet\\Control\\Power\\PowerThrottling",
+        "name": "PowerThrottlingOff",
+        "kind": "DWord",
+        "expected": 1
+      }
+    ]
+  }
+}

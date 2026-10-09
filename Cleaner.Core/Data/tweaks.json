@@ -1,1442 +1,1341 @@
-﻿{
-    "schemaVersion":  1,
-    "tweaks":  [
-                   {
-                       "key":  "VisualFx",
-                       "category":  "perf",
-                       "level":  "safe",
-                       "requiresReboot":  false,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.VisualFx.name",
-                       "shortKey":  "tweak.VisualFx.short",
-                       "descKey":  "tweak.VisualFx.desc",
-                       "warnKey":  "tweak.VisualFx.warn",
-                       "apply":  [
-                                     {
-                                         "type":  "regSet",
-                                         "hive":  "HKCU",
-                                         "key":  "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VisualEffects",
-                                         "name":  "VisualFXSetting",
-                                         "kind":  "DWord",
-                                         "value":  2,
-                                         "createKeyIfMissing":  true
-                                     },
-                                     {
-                                         "type":  "regSet",
-                                         "hive":  "HKCU",
-                                         "key":  "Control Panel\\Desktop",
-                                         "name":  "UserPreferencesMask",
-                                         "kind":  "Binary",
-                                         "value":  "9012038010000000"
-                                     }
-                                 ],
-                       "unapply":  [
-                                       {
-                                           "type":  "regSet",
-                                           "hive":  "HKCU",
-                                           "key":  "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VisualEffects",
-                                           "name":  "VisualFXSetting",
-                                           "kind":  "DWord",
-                                           "value":  0,
-                                           "createKeyIfMissing":  true
-                                       },
-                                       {
-                                           "type":  "regRemove",
-                                           "hive":  "HKCU",
-                                           "key":  "Control Panel\\Desktop",
-                                           "name":  "UserPreferencesMask"
-                                       }
-                                   ],
-                       "state":  [
-                                     {
-                                         "type":  "regGet",
-                                         "hive":  "HKCU",
-                                         "key":  "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VisualEffects",
-                                         "name":  "VisualFXSetting",
-                                         "kind":  "DWord",
-                                         "expected":  2
-                                     }
-                                 ]
-                   },
-                   {
-                       "key":  "Transparency",
-                       "category":  "perf",
-                       "level":  "safe",
-                       "requiresReboot":  false,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.Transparency.name",
-                       "shortKey":  "tweak.Transparency.short",
-                       "descKey":  "tweak.Transparency.desc",
-                       "warnKey":  "tweak.Transparency.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "StartupDelay",
-                       "category":  "perf",
-                       "level":  "safe",
-                       "requiresReboot":  false,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.StartupDelay.name",
-                       "shortKey":  "tweak.StartupDelay.short",
-                       "descKey":  "tweak.StartupDelay.desc",
-                       "warnKey":  "tweak.StartupDelay.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "MenuDelay",
-                       "category":  "perf",
-                       "level":  "safe",
-                       "requiresReboot":  false,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.MenuDelay.name",
-                       "shortKey":  "tweak.MenuDelay.short",
-                       "descKey":  "tweak.MenuDelay.desc",
-                       "warnKey":  "tweak.MenuDelay.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "BackgroundApps",
-                       "category":  "perf",
-                       "level":  "safe",
-                       "requiresReboot":  false,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.BackgroundApps.name",
-                       "shortKey":  "tweak.BackgroundApps.short",
-                       "descKey":  "tweak.BackgroundApps.desc",
-                       "warnKey":  "tweak.BackgroundApps.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "SysMain",
-                       "category":  "perf",
-                       "level":  "caution",
-                       "requiresReboot":  true,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.SysMain.name",
-                       "shortKey":  "tweak.SysMain.short",
-                       "descKey":  "tweak.SysMain.desc",
-                       "warnKey":  "tweak.SysMain.warn",
-                       "apply":  [
-                                     {
-                                         "type":  "serviceSet",
-                                         "serviceName":  "SysMain",
-                                         "startupType":  "Disabled",
-                                         "stopFirst":  true
-                                     }
-                                 ],
-                       "unapply":  [
-                                       {
-                                           "type":  "serviceSet",
-                                           "serviceName":  "SysMain",
-                                           "startupType":  "Automatic"
-                                       }
-                                   ],
-                       "state":  [
-                                     {
-                                         "type":  "serviceGet",
-                                         "serviceName":  "SysMain",
-                                         "expectedStartupType":  "Disabled"
-                                     }
-                                 ]
-                   },
-                   {
-                       "key":  "Prefetch",
-                       "category":  "perf",
-                       "level":  "caution",
-                       "requiresReboot":  true,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.Prefetch.name",
-                       "shortKey":  "tweak.Prefetch.short",
-                       "descKey":  "tweak.Prefetch.desc",
-                       "warnKey":  "tweak.Prefetch.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "AutoMaintenance",
-                       "category":  "perf",
-                       "level":  "safe",
-                       "requiresReboot":  false,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.AutoMaintenance.name",
-                       "shortKey":  "tweak.AutoMaintenance.short",
-                       "descKey":  "tweak.AutoMaintenance.desc",
-                       "warnKey":  "tweak.AutoMaintenance.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "DefenderScanLimit",
-                       "category":  "perf",
-                       "level":  "safe",
-                       "requiresReboot":  false,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.DefenderScanLimit.name",
-                       "shortKey":  "tweak.DefenderScanLimit.short",
-                       "descKey":  "tweak.DefenderScanLimit.desc",
-                       "warnKey":  "tweak.DefenderScanLimit.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "WerSvc",
-                       "category":  "perf",
-                       "level":  "safe",
-                       "requiresReboot":  false,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.WerSvc.name",
-                       "shortKey":  "tweak.WerSvc.short",
-                       "descKey":  "tweak.WerSvc.desc",
-                       "warnKey":  "tweak.WerSvc.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "FastStartup",
-                       "category":  "perf",
-                       "level":  "caution",
-                       "requiresReboot":  true,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.FastStartup.name",
-                       "shortKey":  "tweak.FastStartup.short",
-                       "descKey":  "tweak.FastStartup.desc",
-                       "warnKey":  "tweak.FastStartup.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "ReservedStorage",
-                       "category":  "perf",
-                       "level":  "caution",
-                       "requiresReboot":  true,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.ReservedStorage.name",
-                       "shortKey":  "tweak.ReservedStorage.short",
-                       "descKey":  "tweak.ReservedStorage.desc",
-                       "warnKey":  "tweak.ReservedStorage.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "EventLogSize",
-                       "category":  "perf",
-                       "level":  "safe",
-                       "requiresReboot":  false,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.EventLogSize.name",
-                       "shortKey":  "tweak.EventLogSize.short",
-                       "descKey":  "tweak.EventLogSize.desc",
-                       "warnKey":  "tweak.EventLogSize.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "SearchIndexing",
-                       "category":  "perf",
-                       "level":  "caution",
-                       "requiresReboot":  true,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.SearchIndexing.name",
-                       "shortKey":  "tweak.SearchIndexing.short",
-                       "descKey":  "tweak.SearchIndexing.desc",
-                       "warnKey":  "tweak.SearchIndexing.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "PowerThrottling",
-                       "category":  "perf",
-                       "level":  "caution",
-                       "requiresReboot":  true,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.PowerThrottling.name",
-                       "shortKey":  "tweak.PowerThrottling.short",
-                       "descKey":  "tweak.PowerThrottling.desc",
-                       "warnKey":  "tweak.PowerThrottling.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "Telemetry",
-                       "category":  "privacy",
-                       "level":  "safe",
-                       "requiresReboot":  false,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.Telemetry.name",
-                       "shortKey":  "tweak.Telemetry.short",
-                       "descKey":  "tweak.Telemetry.desc",
-                       "warnKey":  "tweak.Telemetry.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "AdvertisingId",
-                       "category":  "privacy",
-                       "level":  "safe",
-                       "requiresReboot":  false,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.AdvertisingId.name",
-                       "shortKey":  "tweak.AdvertisingId.short",
-                       "descKey":  "tweak.AdvertisingId.desc",
-                       "warnKey":  "tweak.AdvertisingId.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "ActivityHistory",
-                       "category":  "privacy",
-                       "level":  "safe",
-                       "requiresReboot":  false,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.ActivityHistory.name",
-                       "shortKey":  "tweak.ActivityHistory.short",
-                       "descKey":  "tweak.ActivityHistory.desc",
-                       "warnKey":  "tweak.ActivityHistory.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "Cortana",
-                       "category":  "privacy",
-                       "level":  "safe",
-                       "requiresReboot":  false,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.Cortana.name",
-                       "shortKey":  "tweak.Cortana.short",
-                       "descKey":  "tweak.Cortana.desc",
-                       "warnKey":  "tweak.Cortana.warn",
-                       "apply":  [
-                                     {
-                                         "type":  "regSet",
-                                         "hive":  "HKLM",
-                                         "key":  "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
-                                         "name":  "AllowCortana",
-                                         "kind":  "DWord",
-                                         "value":  0,
-                                         "createKeyIfMissing":  true
-                                     }
-                                 ],
-                       "unapply":  [
-                                       {
-                                           "type":  "regSet",
-                                           "hive":  "HKLM",
-                                           "key":  "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
-                                           "name":  "AllowCortana",
-                                           "kind":  "DWord",
-                                           "value":  1,
-                                           "createKeyIfMissing":  true
-                                       }
-                                   ],
-                       "state":  [
-                                     {
-                                         "type":  "regGet",
-                                         "hive":  "HKLM",
-                                         "key":  "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
-                                         "name":  "AllowCortana",
-                                         "kind":  "DWord",
-                                         "expected":  0
-                                     }
-                                 ]
-                   },
-                   {
-                       "key":  "XboxGameBar",
-                       "category":  "privacy",
-                       "level":  "safe",
-                       "requiresReboot":  false,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.XboxGameBar.name",
-                       "shortKey":  "tweak.XboxGameBar.short",
-                       "descKey":  "tweak.XboxGameBar.desc",
-                       "warnKey":  "tweak.XboxGameBar.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "BingSearch",
-                       "category":  "privacy",
-                       "level":  "safe",
-                       "requiresReboot":  false,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.BingSearch.name",
-                       "shortKey":  "tweak.BingSearch.short",
-                       "descKey":  "tweak.BingSearch.desc",
-                       "warnKey":  "tweak.BingSearch.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "LockScreenAds",
-                       "category":  "privacy",
-                       "level":  "safe",
-                       "requiresReboot":  false,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.LockScreenAds.name",
-                       "shortKey":  "tweak.LockScreenAds.short",
-                       "descKey":  "tweak.LockScreenAds.desc",
-                       "warnKey":  "tweak.LockScreenAds.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "Copilot",
-                       "category":  "privacy",
-                       "level":  "safe",
-                       "requiresReboot":  false,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.Copilot.name",
-                       "shortKey":  "tweak.Copilot.short",
-                       "descKey":  "tweak.Copilot.desc",
-                       "warnKey":  "tweak.Copilot.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "Recall",
-                       "category":  "privacy",
-                       "level":  "safe",
-                       "requiresReboot":  false,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.Recall.name",
-                       "shortKey":  "tweak.Recall.short",
-                       "descKey":  "tweak.Recall.desc",
-                       "warnKey":  "tweak.Recall.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "Feedback",
-                       "category":  "privacy",
-                       "level":  "safe",
-                       "requiresReboot":  false,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.Feedback.name",
-                       "shortKey":  "tweak.Feedback.short",
-                       "descKey":  "tweak.Feedback.desc",
-                       "warnKey":  "tweak.Feedback.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "Location",
-                       "category":  "privacy",
-                       "level":  "safe",
-                       "requiresReboot":  false,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.Location.name",
-                       "shortKey":  "tweak.Location.short",
-                       "descKey":  "tweak.Location.desc",
-                       "warnKey":  "tweak.Location.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "Camera",
-                       "category":  "privacy",
-                       "level":  "caution",
-                       "requiresReboot":  false,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.Camera.name",
-                       "shortKey":  "tweak.Camera.short",
-                       "descKey":  "tweak.Camera.desc",
-                       "warnKey":  "tweak.Camera.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "Microphone",
-                       "category":  "privacy",
-                       "level":  "caution",
-                       "requiresReboot":  false,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.Microphone.name",
-                       "shortKey":  "tweak.Microphone.short",
-                       "descKey":  "tweak.Microphone.desc",
-                       "warnKey":  "tweak.Microphone.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "DiagnosticData",
-                       "category":  "privacy",
-                       "level":  "safe",
-                       "requiresReboot":  false,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.DiagnosticData.name",
-                       "shortKey":  "tweak.DiagnosticData.short",
-                       "descKey":  "tweak.DiagnosticData.desc",
-                       "warnKey":  "tweak.DiagnosticData.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "InkingTyping",
-                       "category":  "privacy",
-                       "level":  "safe",
-                       "requiresReboot":  false,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.InkingTyping.name",
-                       "shortKey":  "tweak.InkingTyping.short",
-                       "descKey":  "tweak.InkingTyping.desc",
-                       "warnKey":  "tweak.InkingTyping.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "SpeechRecognition",
-                       "category":  "privacy",
-                       "level":  "safe",
-                       "requiresReboot":  false,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.SpeechRecognition.name",
-                       "shortKey":  "tweak.SpeechRecognition.short",
-                       "descKey":  "tweak.SpeechRecognition.desc",
-                       "warnKey":  "tweak.SpeechRecognition.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "UpdateP2P",
-                       "category":  "privacy",
-                       "level":  "safe",
-                       "requiresReboot":  false,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.UpdateP2P.name",
-                       "shortKey":  "tweak.UpdateP2P.short",
-                       "descKey":  "tweak.UpdateP2P.desc",
-                       "warnKey":  "tweak.UpdateP2P.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "ClassicContext",
-                       "category":  "win11",
-                       "level":  "safe",
-                       "requiresReboot":  true,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.ClassicContext.name",
-                       "shortKey":  "tweak.ClassicContext.short",
-                       "descKey":  "tweak.ClassicContext.desc",
-                       "warnKey":  "tweak.ClassicContext.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "Widgets",
-                       "category":  "win11",
-                       "level":  "safe",
-                       "requiresReboot":  true,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.Widgets.name",
-                       "shortKey":  "tweak.Widgets.short",
-                       "descKey":  "tweak.Widgets.desc",
-                       "warnKey":  "tweak.Widgets.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "SearchHighlights",
-                       "category":  "win11",
-                       "level":  "safe",
-                       "requiresReboot":  false,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.SearchHighlights.name",
-                       "shortKey":  "tweak.SearchHighlights.short",
-                       "descKey":  "tweak.SearchHighlights.desc",
-                       "warnKey":  "tweak.SearchHighlights.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "StartRecommendations",
-                       "category":  "win11",
-                       "level":  "safe",
-                       "requiresReboot":  false,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.StartRecommendations.name",
-                       "shortKey":  "tweak.StartRecommendations.short",
-                       "descKey":  "tweak.StartRecommendations.desc",
-                       "warnKey":  "tweak.StartRecommendations.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "TaskbarAlign",
-                       "category":  "win11",
-                       "level":  "safe",
-                       "requiresReboot":  true,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.TaskbarAlign.name",
-                       "shortKey":  "tweak.TaskbarAlign.short",
-                       "descKey":  "tweak.TaskbarAlign.desc",
-                       "warnKey":  "tweak.TaskbarAlign.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "SearchBox",
-                       "category":  "win11",
-                       "level":  "safe",
-                       "requiresReboot":  true,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.SearchBox.name",
-                       "shortKey":  "tweak.SearchBox.short",
-                       "descKey":  "tweak.SearchBox.desc",
-                       "warnKey":  "tweak.SearchBox.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "ChatIcon",
-                       "category":  "win11",
-                       "level":  "safe",
-                       "requiresReboot":  true,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.ChatIcon.name",
-                       "shortKey":  "tweak.ChatIcon.short",
-                       "descKey":  "tweak.ChatIcon.desc",
-                       "warnKey":  "tweak.ChatIcon.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "TaskView",
-                       "category":  "win11",
-                       "level":  "safe",
-                       "requiresReboot":  true,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.TaskView.name",
-                       "shortKey":  "tweak.TaskView.short",
-                       "descKey":  "tweak.TaskView.desc",
-                       "warnKey":  "tweak.TaskView.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "EndTask",
-                       "category":  "win11",
-                       "level":  "safe",
-                       "requiresReboot":  true,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.EndTask.name",
-                       "shortKey":  "tweak.EndTask.short",
-                       "descKey":  "tweak.EndTask.desc",
-                       "warnKey":  "tweak.EndTask.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "NetworkThrottle",
-                       "category":  "network",
-                       "level":  "safe",
-                       "requiresReboot":  false,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.NetworkThrottle.name",
-                       "shortKey":  "tweak.NetworkThrottle.short",
-                       "descKey":  "tweak.NetworkThrottle.desc",
-                       "warnKey":  "tweak.NetworkThrottle.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "TcpAutotuning",
-                       "category":  "network",
-                       "level":  "caution",
-                       "requiresReboot":  true,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.TcpAutotuning.name",
-                       "shortKey":  "tweak.TcpAutotuning.short",
-                       "descKey":  "tweak.TcpAutotuning.desc",
-                       "warnKey":  "tweak.TcpAutotuning.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "Nagle",
-                       "category":  "network",
-                       "level":  "caution",
-                       "requiresReboot":  true,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.Nagle.name",
-                       "shortKey":  "tweak.Nagle.short",
-                       "descKey":  "tweak.Nagle.desc",
-                       "warnKey":  "tweak.Nagle.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "QosReserved",
-                       "category":  "network",
-                       "level":  "safe",
-                       "requiresReboot":  false,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.QosReserved.name",
-                       "shortKey":  "tweak.QosReserved.short",
-                       "descKey":  "tweak.QosReserved.desc",
-                       "warnKey":  "tweak.QosReserved.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "NetBIOS",
-                       "category":  "network",
-                       "level":  "caution",
-                       "requiresReboot":  true,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.NetBIOS.name",
-                       "shortKey":  "tweak.NetBIOS.short",
-                       "descKey":  "tweak.NetBIOS.desc",
-                       "warnKey":  "tweak.NetBIOS.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "IPv6",
-                       "category":  "network",
-                       "level":  "danger",
-                       "requiresReboot":  true,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.IPv6.name",
-                       "shortKey":  "tweak.IPv6.short",
-                       "descKey":  "tweak.IPv6.desc",
-                       "warnKey":  "tweak.IPv6.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "WindowsUpdateP2P",
-                       "category":  "network",
-                       "level":  "safe",
-                       "requiresReboot":  false,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.WindowsUpdateP2P.name",
-                       "shortKey":  "tweak.WindowsUpdateP2P.short",
-                       "descKey":  "tweak.WindowsUpdateP2P.desc",
-                       "warnKey":  "tweak.WindowsUpdateP2P.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "StorageSense",
-                       "category":  "maint",
-                       "level":  "safe",
-                       "requiresReboot":  false,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.StorageSense.name",
-                       "shortKey":  "tweak.StorageSense.short",
-                       "descKey":  "tweak.StorageSense.desc",
-                       "warnKey":  "tweak.StorageSense.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "Tips",
-                       "category":  "maint",
-                       "level":  "safe",
-                       "requiresReboot":  false,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.Tips.name",
-                       "shortKey":  "tweak.Tips.short",
-                       "descKey":  "tweak.Tips.desc",
-                       "warnKey":  "tweak.Tips.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "ConsumerFeatures",
-                       "category":  "maint",
-                       "level":  "safe",
-                       "requiresReboot":  false,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.ConsumerFeatures.name",
-                       "shortKey":  "tweak.ConsumerFeatures.short",
-                       "descKey":  "tweak.ConsumerFeatures.desc",
-                       "warnKey":  "tweak.ConsumerFeatures.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "ScheduledDefrag",
-                       "category":  "maint",
-                       "level":  "caution",
-                       "requiresReboot":  false,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.ScheduledDefrag.name",
-                       "shortKey":  "tweak.ScheduledDefrag.short",
-                       "descKey":  "tweak.ScheduledDefrag.desc",
-                       "warnKey":  "tweak.ScheduledDefrag.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "DeliveryOptimization",
-                       "category":  "maint",
-                       "level":  "safe",
-                       "requiresReboot":  false,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.DeliveryOptimization.name",
-                       "shortKey":  "tweak.DeliveryOptimization.short",
-                       "descKey":  "tweak.DeliveryOptimization.desc",
-                       "warnKey":  "tweak.DeliveryOptimization.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "OneDriveAutoStart",
-                       "category":  "maint",
-                       "level":  "safe",
-                       "requiresReboot":  false,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.OneDriveAutoStart.name",
-                       "shortKey":  "tweak.OneDriveAutoStart.short",
-                       "descKey":  "tweak.OneDriveAutoStart.desc",
-                       "warnKey":  "tweak.OneDriveAutoStart.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "EdgePreload",
-                       "category":  "maint",
-                       "level":  "safe",
-                       "requiresReboot":  false,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.EdgePreload.name",
-                       "shortKey":  "tweak.EdgePreload.short",
-                       "descKey":  "tweak.EdgePreload.desc",
-                       "warnKey":  "tweak.EdgePreload.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "WindowsUpdatePause",
-                       "category":  "maint",
-                       "level":  "caution",
-                       "requiresReboot":  false,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.WindowsUpdatePause.name",
-                       "shortKey":  "tweak.WindowsUpdatePause.short",
-                       "descKey":  "tweak.WindowsUpdatePause.desc",
-                       "warnKey":  "tweak.WindowsUpdatePause.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "GameMode",
-                       "category":  "games",
-                       "level":  "safe",
-                       "requiresReboot":  false,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.GameMode.name",
-                       "shortKey":  "tweak.GameMode.short",
-                       "descKey":  "tweak.GameMode.desc",
-                       "warnKey":  "tweak.GameMode.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "HAGS",
-                       "category":  "games",
-                       "level":  "caution",
-                       "requiresReboot":  true,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.HAGS.name",
-                       "shortKey":  "tweak.HAGS.short",
-                       "descKey":  "tweak.HAGS.desc",
-                       "warnKey":  "tweak.HAGS.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "PowerPlan",
-                       "category":  "games",
-                       "level":  "caution",
-                       "requiresReboot":  true,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.PowerPlan.name",
-                       "shortKey":  "tweak.PowerPlan.short",
-                       "descKey":  "tweak.PowerPlan.desc",
-                       "warnKey":  "tweak.PowerPlan.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "FullscreenOpts",
-                       "category":  "games",
-                       "level":  "caution",
-                       "requiresReboot":  false,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.FullscreenOpts.name",
-                       "shortKey":  "tweak.FullscreenOpts.short",
-                       "descKey":  "tweak.FullscreenOpts.desc",
-                       "warnKey":  "tweak.FullscreenOpts.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "MPO",
-                       "category":  "games",
-                       "level":  "caution",
-                       "requiresReboot":  true,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.MPO.name",
-                       "shortKey":  "tweak.MPO.short",
-                       "descKey":  "tweak.MPO.desc",
-                       "warnKey":  "tweak.MPO.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   },
-                   {
-                       "key":  "GamePowerThrottling",
-                       "category":  "games",
-                       "level":  "caution",
-                       "requiresReboot":  true,
-                       "conflictsWith":  [
-
-                                         ],
-                       "nameKey":  "tweak.GamePowerThrottling.name",
-                       "shortKey":  "tweak.GamePowerThrottling.short",
-                       "descKey":  "tweak.GamePowerThrottling.desc",
-                       "warnKey":  "tweak.GamePowerThrottling.warn",
-                       "apply":  [
-
-                                 ],
-                       "unapply":  [
-
-                                   ],
-                       "state":  [
-
-                                 ]
-                   }
-               ]
+{
+  "schemaVersion": 1,
+  "tweaks": [
+    {
+      "key": "VisualFx",
+      "category": "perf",
+      "level": "safe",
+      "requiresReboot": false,
+      "conflictsWith": [],
+      "nameKey": "tweak.VisualFx.name",
+      "shortKey": "tweak.VisualFx.short",
+      "descKey": "tweak.VisualFx.desc",
+      "warnKey": "tweak.VisualFx.warn",
+      "apply": [
+        {
+          "type": "regSet",
+          "hive": "HKCU",
+          "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VisualEffects",
+          "name": "VisualFXSetting",
+          "kind": "DWord",
+          "value": 2,
+          "createKeyIfMissing": true
+        },
+        {
+          "type": "regSet",
+          "hive": "HKCU",
+          "key": "Control Panel\\Desktop",
+          "name": "UserPreferencesMask",
+          "kind": "Binary",
+          "value": "9012038010000000"
+        }
+      ],
+      "unapply": [
+        {
+          "type": "regSet",
+          "hive": "HKCU",
+          "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VisualEffects",
+          "name": "VisualFXSetting",
+          "kind": "DWord",
+          "value": 0,
+          "createKeyIfMissing": true
+        },
+        {
+          "type": "regRemove",
+          "hive": "HKCU",
+          "key": "Control Panel\\Desktop",
+          "name": "UserPreferencesMask"
+        }
+      ],
+      "state": [
+        {
+          "type": "regGet",
+          "hive": "HKCU",
+          "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VisualEffects",
+          "name": "VisualFXSetting",
+          "kind": "DWord",
+          "expected": 2
+        }
+      ]
+    },
+    {
+      "key": "Transparency",
+      "category": "perf",
+      "level": "safe",
+      "requiresReboot": false,
+      "conflictsWith": [],
+      "nameKey": "tweak.Transparency.name",
+      "shortKey": "tweak.Transparency.short",
+      "descKey": "tweak.Transparency.desc",
+      "warnKey": "tweak.Transparency.warn",
+      "apply": [
+        {
+          "type": "regSet",
+          "hive": "HKCU",
+          "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+          "name": "EnableTransparency",
+          "kind": "DWord",
+          "value": 0,
+          "createKeyIfMissing": true
+        }
+      ],
+      "unapply": [
+        {
+          "type": "regSet",
+          "hive": "HKCU",
+          "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+          "name": "EnableTransparency",
+          "kind": "DWord",
+          "value": 1,
+          "createKeyIfMissing": true
+        }
+      ],
+      "state": [
+        {
+          "type": "regGet",
+          "hive": "HKCU",
+          "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+          "name": "EnableTransparency",
+          "kind": "DWord",
+          "expected": 0
+        }
+      ]
+    },
+    {
+      "key": "StartupDelay",
+      "category": "perf",
+      "level": "safe",
+      "requiresReboot": false,
+      "conflictsWith": [],
+      "nameKey": "tweak.StartupDelay.name",
+      "shortKey": "tweak.StartupDelay.short",
+      "descKey": "tweak.StartupDelay.desc",
+      "warnKey": "tweak.StartupDelay.warn",
+      "apply": [
+        {
+          "type": "regSet",
+          "hive": "HKCU",
+          "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Serialize",
+          "name": "StartupDelayInMSec",
+          "kind": "DWord",
+          "value": 0,
+          "createKeyIfMissing": true
+        },
+        {
+          "type": "regSet",
+          "hive": "HKCU",
+          "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Serialize",
+          "name": "WaitForIdleState",
+          "kind": "DWord",
+          "value": 0,
+          "createKeyIfMissing": true
+        }
+      ],
+      "unapply": [
+        {
+          "type": "regRemove",
+          "hive": "HKCU",
+          "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Serialize",
+          "name": "StartupDelayInMSec"
+        },
+        {
+          "type": "regRemove",
+          "hive": "HKCU",
+          "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Serialize",
+          "name": "WaitForIdleState"
+        }
+      ],
+      "state": [
+        {
+          "type": "regGet",
+          "hive": "HKCU",
+          "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Serialize",
+          "name": "StartupDelayInMSec",
+          "kind": "DWord",
+          "expected": 0
+        }
+      ]
+    },
+    {
+      "key": "MenuDelay",
+      "category": "perf",
+      "level": "safe",
+      "requiresReboot": false,
+      "conflictsWith": [],
+      "nameKey": "tweak.MenuDelay.name",
+      "shortKey": "tweak.MenuDelay.short",
+      "descKey": "tweak.MenuDelay.desc",
+      "warnKey": "tweak.MenuDelay.warn",
+      "apply": [
+        {
+          "type": "regSet",
+          "hive": "HKCU",
+          "key": "Control Panel\\Desktop",
+          "name": "MenuShowDelay",
+          "kind": "String",
+          "value": "0",
+          "createKeyIfMissing": true
+        }
+      ],
+      "unapply": [
+        {
+          "type": "regSet",
+          "hive": "HKCU",
+          "key": "Control Panel\\Desktop",
+          "name": "MenuShowDelay",
+          "kind": "String",
+          "value": "400",
+          "createKeyIfMissing": true
+        }
+      ],
+      "state": [
+        {
+          "type": "regGet",
+          "hive": "HKCU",
+          "key": "Control Panel\\Desktop",
+          "name": "MenuShowDelay",
+          "kind": "String",
+          "lessOrEqualInt": 50
+        }
+      ]
+    },
+    {
+      "key": "BackgroundApps",
+      "category": "perf",
+      "level": "safe",
+      "requiresReboot": false,
+      "conflictsWith": [],
+      "nameKey": "tweak.BackgroundApps.name",
+      "shortKey": "tweak.BackgroundApps.short",
+      "descKey": "tweak.BackgroundApps.desc",
+      "warnKey": "tweak.BackgroundApps.warn",
+      "apply": [
+        {
+          "type": "regSet",
+          "hive": "HKCU",
+          "key": "Software\\Microsoft\\Windows\\CurrentVersion\\BackgroundAccessApplications",
+          "name": "GlobalUserDisabled",
+          "kind": "DWord",
+          "value": 1,
+          "createKeyIfMissing": true
+        },
+        {
+          "type": "regSet",
+          "hive": "HKLM",
+          "key": "Software\\Policies\\Microsoft\\Windows\\AppPrivacy",
+          "name": "LetAppsRunInBackground",
+          "kind": "DWord",
+          "value": 2,
+          "createKeyIfMissing": true
+        }
+      ],
+      "unapply": [
+        {
+          "type": "regRemove",
+          "hive": "HKCU",
+          "key": "Software\\Microsoft\\Windows\\CurrentVersion\\BackgroundAccessApplications",
+          "name": "GlobalUserDisabled"
+        },
+        {
+          "type": "regRemove",
+          "hive": "HKLM",
+          "key": "Software\\Policies\\Microsoft\\Windows\\AppPrivacy",
+          "name": "LetAppsRunInBackground"
+        }
+      ],
+      "state": [
+        {
+          "type": "regGet",
+          "hive": "HKCU",
+          "key": "Software\\Microsoft\\Windows\\CurrentVersion\\BackgroundAccessApplications",
+          "name": "GlobalUserDisabled",
+          "kind": "DWord",
+          "expected": 1
+        }
+      ]
+    },
+    {
+      "key": "SysMain",
+      "category": "perf",
+      "level": "caution",
+      "requiresReboot": true,
+      "conflictsWith": [],
+      "nameKey": "tweak.SysMain.name",
+      "shortKey": "tweak.SysMain.short",
+      "descKey": "tweak.SysMain.desc",
+      "warnKey": "tweak.SysMain.warn",
+      "apply": [
+        {
+          "type": "serviceSet",
+          "serviceName": "SysMain",
+          "startupType": "Disabled",
+          "stopFirst": true
+        }
+      ],
+      "unapply": [
+        {
+          "type": "serviceSet",
+          "serviceName": "SysMain",
+          "startupType": "Automatic"
+        }
+      ],
+      "state": [
+        {
+          "type": "serviceGet",
+          "serviceName": "SysMain",
+          "expectedStartupType": "Disabled"
+        }
+      ]
+    },
+    {
+      "key": "Prefetch",
+      "category": "perf",
+      "level": "caution",
+      "requiresReboot": true,
+      "conflictsWith": [],
+      "nameKey": "tweak.Prefetch.name",
+      "shortKey": "tweak.Prefetch.short",
+      "descKey": "tweak.Prefetch.desc",
+      "warnKey": "tweak.Prefetch.warn",
+      "apply": [
+        {
+          "type": "regSet",
+          "hive": "HKLM",
+          "key": "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management\\PrefetchParameters",
+          "name": "EnablePrefetcher",
+          "kind": "DWord",
+          "value": 0
+        },
+        {
+          "type": "regSet",
+          "hive": "HKLM",
+          "key": "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management\\PrefetchParameters",
+          "name": "EnableSuperfetch",
+          "kind": "DWord",
+          "value": 0
+        }
+      ],
+      "unapply": [
+        {
+          "type": "regSet",
+          "hive": "HKLM",
+          "key": "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management\\PrefetchParameters",
+          "name": "EnablePrefetcher",
+          "kind": "DWord",
+          "value": 3
+        },
+        {
+          "type": "regSet",
+          "hive": "HKLM",
+          "key": "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management\\PrefetchParameters",
+          "name": "EnableSuperfetch",
+          "kind": "DWord",
+          "value": 3
+        }
+      ],
+      "state": [
+        {
+          "type": "regGet",
+          "hive": "HKLM",
+          "key": "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management\\PrefetchParameters",
+          "name": "EnablePrefetcher",
+          "kind": "DWord",
+          "expected": 0
+        }
+      ]
+    },
+    {
+      "key": "AutoMaintenance",
+      "category": "perf",
+      "level": "safe",
+      "requiresReboot": false,
+      "conflictsWith": [],
+      "nameKey": "tweak.AutoMaintenance.name",
+      "shortKey": "tweak.AutoMaintenance.short",
+      "descKey": "tweak.AutoMaintenance.desc",
+      "warnKey": "tweak.AutoMaintenance.warn",
+      "apply": [
+        {
+          "type": "regSet",
+          "hive": "HKLM",
+          "key": "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Schedule\\Maintenance",
+          "name": "MaintenanceDisabled",
+          "kind": "DWord",
+          "value": 1,
+          "createKeyIfMissing": true
+        }
+      ],
+      "unapply": [
+        {
+          "type": "regRemove",
+          "hive": "HKLM",
+          "key": "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Schedule\\Maintenance",
+          "name": "MaintenanceDisabled"
+        }
+      ],
+      "state": [
+        {
+          "type": "regGet",
+          "hive": "HKLM",
+          "key": "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Schedule\\Maintenance",
+          "name": "MaintenanceDisabled",
+          "kind": "DWord",
+          "expected": 1
+        }
+      ]
+    },
+    {
+      "key": "DefenderScanLimit",
+      "category": "perf",
+      "level": "safe",
+      "requiresReboot": false,
+      "conflictsWith": [],
+      "nameKey": "tweak.DefenderScanLimit.name",
+      "shortKey": "tweak.DefenderScanLimit.short",
+      "descKey": "tweak.DefenderScanLimit.desc",
+      "warnKey": "tweak.DefenderScanLimit.warn",
+      "apply": [
+        {
+          "type": "regSet",
+          "hive": "HKLM",
+          "key": "SOFTWARE\\Microsoft\\Windows Defender\\Scan",
+          "name": "ScanAvgCPULoadFactor",
+          "kind": "DWord",
+          "value": 20,
+          "createKeyIfMissing": true
+        }
+      ],
+      "unapply": [
+        {
+          "type": "regSet",
+          "hive": "HKLM",
+          "key": "SOFTWARE\\Microsoft\\Windows Defender\\Scan",
+          "name": "ScanAvgCPULoadFactor",
+          "kind": "DWord",
+          "value": 50,
+          "createKeyIfMissing": true
+        }
+      ],
+      "state": [
+        {
+          "type": "regGet",
+          "hive": "HKLM",
+          "key": "SOFTWARE\\Microsoft\\Windows Defender\\Scan",
+          "name": "ScanAvgCPULoadFactor",
+          "kind": "DWord",
+          "lessOrEqualInt": 20
+        }
+      ]
+    },
+    {
+      "key": "WerSvc",
+      "category": "perf",
+      "level": "safe",
+      "requiresReboot": false,
+      "conflictsWith": [],
+      "nameKey": "tweak.WerSvc.name",
+      "shortKey": "tweak.WerSvc.short",
+      "descKey": "tweak.WerSvc.desc",
+      "warnKey": "tweak.WerSvc.warn",
+      "apply": [
+        {
+          "type": "serviceSet",
+          "serviceName": "WerSvc",
+          "startupType": "Disabled",
+          "stopFirst": true
+        }
+      ],
+      "unapply": [
+        {
+          "type": "serviceSet",
+          "serviceName": "WerSvc",
+          "startupType": "Manual"
+        }
+      ],
+      "state": [
+        {
+          "type": "serviceGet",
+          "serviceName": "WerSvc",
+          "expectedStartupType": "Disabled"
+        }
+      ]
+    },
+    {
+      "key": "FastStartup",
+      "category": "perf",
+      "level": "caution",
+      "requiresReboot": true,
+      "conflictsWith": [],
+      "nameKey": "tweak.FastStartup.name",
+      "shortKey": "tweak.FastStartup.short",
+      "descKey": "tweak.FastStartup.desc",
+      "warnKey": "tweak.FastStartup.warn",
+      "apply": [
+        {
+          "type": "regSet",
+          "hive": "HKLM",
+          "key": "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power",
+          "name": "HiberbootEnabled",
+          "kind": "DWord",
+          "value": 0
+        }
+      ],
+      "unapply": [
+        {
+          "type": "regSet",
+          "hive": "HKLM",
+          "key": "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power",
+          "name": "HiberbootEnabled",
+          "kind": "DWord",
+          "value": 1
+        }
+      ],
+      "state": [
+        {
+          "type": "regGet",
+          "hive": "HKLM",
+          "key": "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power",
+          "name": "HiberbootEnabled",
+          "kind": "DWord",
+          "expected": 0
+        }
+      ]
+    },
+    {
+      "key": "ReservedStorage",
+      "category": "perf",
+      "level": "caution",
+      "requiresReboot": true,
+      "conflictsWith": [],
+      "nameKey": "tweak.ReservedStorage.name",
+      "shortKey": "tweak.ReservedStorage.short",
+      "descKey": "tweak.ReservedStorage.desc",
+      "warnKey": "tweak.ReservedStorage.warn",
+      "apply": [
+        {
+          "type": "commandRun",
+          "fileName": "DISM.exe",
+          "arguments": "/Online /Set-ReservedStorageState /State:Disabled"
+        }
+      ],
+      "unapply": [
+        {
+          "type": "commandRun",
+          "fileName": "DISM.exe",
+          "arguments": "/Online /Set-ReservedStorageState /State:Enabled"
+        }
+      ],
+      "state": [
+        {
+          "type": "commandGet",
+          "fileName": "DISM.exe",
+          "arguments": "/Online /Get-ReservedStorageState",
+          "outputContains": "Disabled"
+        }
+      ]
+    },
+    {
+      "key": "EventLogSize",
+      "category": "perf",
+      "level": "safe",
+      "requiresReboot": false,
+      "conflictsWith": [],
+      "nameKey": "tweak.EventLogSize.name",
+      "shortKey": "tweak.EventLogSize.short",
+      "descKey": "tweak.EventLogSize.desc",
+      "warnKey": "tweak.EventLogSize.warn",
+      "apply": [
+        {
+          "type": "commandRun",
+          "fileName": "wevtutil.exe",
+          "arguments": "sl Application /ms:10240"
+        },
+        {
+          "type": "commandRun",
+          "fileName": "wevtutil.exe",
+          "arguments": "sl System /ms:10240"
+        }
+      ],
+      "unapply": [
+        {
+          "type": "commandRun",
+          "fileName": "wevtutil.exe",
+          "arguments": "sl Application /ms:20480"
+        },
+        {
+          "type": "commandRun",
+          "fileName": "wevtutil.exe",
+          "arguments": "sl System /ms:20480"
+        }
+      ],
+      "state": [
+        {
+          "type": "commandGet",
+          "fileName": "wevtutil.exe",
+          "arguments": "gl Application /f:xml",
+          "outputContains": "\u003CmaxSize\u003E10240\u003C/maxSize\u003E"
+        }
+      ]
+    },
+    {
+      "key": "SearchIndexing",
+      "category": "perf",
+      "level": "caution",
+      "requiresReboot": true,
+      "conflictsWith": [],
+      "nameKey": "tweak.SearchIndexing.name",
+      "shortKey": "tweak.SearchIndexing.short",
+      "descKey": "tweak.SearchIndexing.desc",
+      "warnKey": "tweak.SearchIndexing.warn",
+      "apply": [
+        {
+          "type": "serviceSet",
+          "serviceName": "WSearch",
+          "startupType": "Disabled",
+          "stopFirst": true
+        }
+      ],
+      "unapply": [
+        {
+          "type": "serviceSet",
+          "serviceName": "WSearch",
+          "startupType": "Automatic"
+        }
+      ],
+      "state": [
+        {
+          "type": "serviceGet",
+          "serviceName": "WSearch",
+          "expectedStartupType": "Disabled"
+        }
+      ]
+    },
+    {
+      "key": "PowerThrottling",
+      "category": "perf",
+      "level": "caution",
+      "requiresReboot": true,
+      "conflictsWith": [],
+      "nameKey": "tweak.PowerThrottling.name",
+      "shortKey": "tweak.PowerThrottling.short",
+      "descKey": "tweak.PowerThrottling.desc",
+      "warnKey": "tweak.PowerThrottling.warn",
+      "apply": [
+        {
+          "type": "regSet",
+          "hive": "HKLM",
+          "key": "SYSTEM\\CurrentControlSet\\Control\\Power\\PowerThrottling",
+          "name": "PowerThrottlingOff",
+          "kind": "DWord",
+          "value": 1,
+          "createKeyIfMissing": true
+        }
+      ],
+      "unapply": [
+        {
+          "type": "regRemove",
+          "hive": "HKLM",
+          "key": "SYSTEM\\CurrentControlSet\\Control\\Power\\PowerThrottling",
+          "name": "PowerThrottlingOff"
+        }
+      ],
+      "state": [
+        {
+          "type": "regGet",
+          "hive": "HKLM",
+          "key": "SYSTEM\\CurrentControlSet\\Control\\Power\\PowerThrottling",
+          "name": "PowerThrottlingOff",
+          "kind": "DWord",
+          "expected": 1
+        }
+      ]
+    },
+    {
+      "key": "Telemetry",
+      "category": "privacy",
+      "level": "safe",
+      "requiresReboot": false,
+      "conflictsWith": [],
+      "nameKey": "tweak.Telemetry.name",
+      "shortKey": "tweak.Telemetry.short",
+      "descKey": "tweak.Telemetry.desc",
+      "warnKey": "tweak.Telemetry.warn",
+      "apply": [],
+      "unapply": [],
+      "state": []
+    },
+    {
+      "key": "AdvertisingId",
+      "category": "privacy",
+      "level": "safe",
+      "requiresReboot": false,
+      "conflictsWith": [],
+      "nameKey": "tweak.AdvertisingId.name",
+      "shortKey": "tweak.AdvertisingId.short",
+      "descKey": "tweak.AdvertisingId.desc",
+      "warnKey": "tweak.AdvertisingId.warn",
+      "apply": [],
+      "unapply": [],
+      "state": []
+    },
+    {
+      "key": "ActivityHistory",
+      "category": "privacy",
+      "level": "safe",
+      "requiresReboot": false,
+      "conflictsWith": [],
+      "nameKey": "tweak.ActivityHistory.name",
+      "shortKey": "tweak.ActivityHistory.short",
+      "descKey": "tweak.ActivityHistory.desc",
+      "warnKey": "tweak.ActivityHistory.warn",
+      "apply": [],
+      "unapply": [],
+      "state": []
+    },
+    {
+      "key": "Cortana",
+      "category": "privacy",
+      "level": "safe",
+      "requiresReboot": false,
+      "conflictsWith": [],
+      "nameKey": "tweak.Cortana.name",
+      "shortKey": "tweak.Cortana.short",
+      "descKey": "tweak.Cortana.desc",
+      "warnKey": "tweak.Cortana.warn",
+      "apply": [
+        {
+          "type": "regSet",
+          "hive": "HKLM",
+          "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+          "name": "AllowCortana",
+          "kind": "DWord",
+          "value": 0,
+          "createKeyIfMissing": true
+        }
+      ],
+      "unapply": [
+        {
+          "type": "regSet",
+          "hive": "HKLM",
+          "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+          "name": "AllowCortana",
+          "kind": "DWord",
+          "value": 1,
+          "createKeyIfMissing": true
+        }
+      ],
+      "state": [
+        {
+          "type": "regGet",
+          "hive": "HKLM",
+          "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search",
+          "name": "AllowCortana",
+          "kind": "DWord",
+          "expected": 0
+        }
+      ]
+    },
+    {
+      "key": "XboxGameBar",
+      "category": "privacy",
+      "level": "safe",
+      "requiresReboot": false,
+      "conflictsWith": [],
+      "nameKey": "tweak.XboxGameBar.name",
+      "shortKey": "tweak.XboxGameBar.short",
+      "descKey": "tweak.XboxGameBar.desc",
+      "warnKey": "tweak.XboxGameBar.warn",
+      "apply": [],
+      "unapply": [],
+      "state": []
+    },
+    {
+      "key": "BingSearch",
+      "category": "privacy",
+      "level": "safe",
+      "requiresReboot": false,
+      "conflictsWith": [],
+      "nameKey": "tweak.BingSearch.name",
+      "shortKey": "tweak.BingSearch.short",
+      "descKey": "tweak.BingSearch.desc",
+      "warnKey": "tweak.BingSearch.warn",
+      "apply": [],
+      "unapply": [],
+      "state": []
+    },
+    {
+      "key": "LockScreenAds",
+      "category": "privacy",
+      "level": "safe",
+      "requiresReboot": false,
+      "conflictsWith": [],
+      "nameKey": "tweak.LockScreenAds.name",
+      "shortKey": "tweak.LockScreenAds.short",
+      "descKey": "tweak.LockScreenAds.desc",
+      "warnKey": "tweak.LockScreenAds.warn",
+      "apply": [],
+      "unapply": [],
+      "state": []
+    },
+    {
+      "key": "Copilot",
+      "category": "privacy",
+      "level": "safe",
+      "requiresReboot": false,
+      "conflictsWith": [],
+      "nameKey": "tweak.Copilot.name",
+      "shortKey": "tweak.Copilot.short",
+      "descKey": "tweak.Copilot.desc",
+      "warnKey": "tweak.Copilot.warn",
+      "apply": [],
+      "unapply": [],
+      "state": []
+    },
+    {
+      "key": "Recall",
+      "category": "privacy",
+      "level": "safe",
+      "requiresReboot": false,
+      "conflictsWith": [],
+      "nameKey": "tweak.Recall.name",
+      "shortKey": "tweak.Recall.short",
+      "descKey": "tweak.Recall.desc",
+      "warnKey": "tweak.Recall.warn",
+      "apply": [],
+      "unapply": [],
+      "state": []
+    },
+    {
+      "key": "Feedback",
+      "category": "privacy",
+      "level": "safe",
+      "requiresReboot": false,
+      "conflictsWith": [],
+      "nameKey": "tweak.Feedback.name",
+      "shortKey": "tweak.Feedback.short",
+      "descKey": "tweak.Feedback.desc",
+      "warnKey": "tweak.Feedback.warn",
+      "apply": [],
+      "unapply": [],
+      "state": []
+    },
+    {
+      "key": "Location",
+      "category": "privacy",
+      "level": "safe",
+      "requiresReboot": false,
+      "conflictsWith": [],
+      "nameKey": "tweak.Location.name",
+      "shortKey": "tweak.Location.short",
+      "descKey": "tweak.Location.desc",
+      "warnKey": "tweak.Location.warn",
+      "apply": [],
+      "unapply": [],
+      "state": []
+    },
+    {
+      "key": "Camera",
+      "category": "privacy",
+      "level": "caution",
+      "requiresReboot": false,
+      "conflictsWith": [],
+      "nameKey": "tweak.Camera.name",
+      "shortKey": "tweak.Camera.short",
+      "descKey": "tweak.Camera.desc",
+      "warnKey": "tweak.Camera.warn",
+      "apply": [],
+      "unapply": [],
+      "state": []
+    },
+    {
+      "key": "Microphone",
+      "category": "privacy",
+      "level": "caution",
+      "requiresReboot": false,
+      "conflictsWith": [],
+      "nameKey": "tweak.Microphone.name",
+      "shortKey": "tweak.Microphone.short",
+      "descKey": "tweak.Microphone.desc",
+      "warnKey": "tweak.Microphone.warn",
+      "apply": [],
+      "unapply": [],
+      "state": []
+    },
+    {
+      "key": "DiagnosticData",
+      "category": "privacy",
+      "level": "safe",
+      "requiresReboot": false,
+      "conflictsWith": [],
+      "nameKey": "tweak.DiagnosticData.name",
+      "shortKey": "tweak.DiagnosticData.short",
+      "descKey": "tweak.DiagnosticData.desc",
+      "warnKey": "tweak.DiagnosticData.warn",
+      "apply": [],
+      "unapply": [],
+      "state": []
+    },
+    {
+      "key": "InkingTyping",
+      "category": "privacy",
+      "level": "safe",
+      "requiresReboot": false,
+      "conflictsWith": [],
+      "nameKey": "tweak.InkingTyping.name",
+      "shortKey": "tweak.InkingTyping.short",
+      "descKey": "tweak.InkingTyping.desc",
+      "warnKey": "tweak.InkingTyping.warn",
+      "apply": [],
+      "unapply": [],
+      "state": []
+    },
+    {
+      "key": "SpeechRecognition",
+      "category": "privacy",
+      "level": "safe",
+      "requiresReboot": false,
+      "conflictsWith": [],
+      "nameKey": "tweak.SpeechRecognition.name",
+      "shortKey": "tweak.SpeechRecognition.short",
+      "descKey": "tweak.SpeechRecognition.desc",
+      "warnKey": "tweak.SpeechRecognition.warn",
+      "apply": [],
+      "unapply": [],
+      "state": []
+    },
+    {
+      "key": "UpdateP2P",
+      "category": "privacy",
+      "level": "safe",
+      "requiresReboot": false,
+      "conflictsWith": [],
+      "nameKey": "tweak.UpdateP2P.name",
+      "shortKey": "tweak.UpdateP2P.short",
+      "descKey": "tweak.UpdateP2P.desc",
+      "warnKey": "tweak.UpdateP2P.warn",
+      "apply": [],
+      "unapply": [],
+      "state": []
+    },
+    {
+      "key": "ClassicContext",
+      "category": "win11",
+      "level": "safe",
+      "requiresReboot": true,
+      "conflictsWith": [],
+      "nameKey": "tweak.ClassicContext.name",
+      "shortKey": "tweak.ClassicContext.short",
+      "descKey": "tweak.ClassicContext.desc",
+      "warnKey": "tweak.ClassicContext.warn",
+      "apply": [],
+      "unapply": [],
+      "state": []
+    },
+    {
+      "key": "Widgets",
+      "category": "win11",
+      "level": "safe",
+      "requiresReboot": true,
+      "conflictsWith": [],
+      "nameKey": "tweak.Widgets.name",
+      "shortKey": "tweak.Widgets.short",
+      "descKey": "tweak.Widgets.desc",
+      "warnKey": "tweak.Widgets.warn",
+      "apply": [],
+      "unapply": [],
+      "state": []
+    },
+    {
+      "key": "SearchHighlights",
+      "category": "win11",
+      "level": "safe",
+      "requiresReboot": false,
+      "conflictsWith": [],
+      "nameKey": "tweak.SearchHighlights.name",
+      "shortKey": "tweak.SearchHighlights.short",
+      "descKey": "tweak.SearchHighlights.desc",
+      "warnKey": "tweak.SearchHighlights.warn",
+      "apply": [],
+      "unapply": [],
+      "state": []
+    },
+    {
+      "key": "StartRecommendations",
+      "category": "win11",
+      "level": "safe",
+      "requiresReboot": false,
+      "conflictsWith": [],
+      "nameKey": "tweak.StartRecommendations.name",
+      "shortKey": "tweak.StartRecommendations.short",
+      "descKey": "tweak.StartRecommendations.desc",
+      "warnKey": "tweak.StartRecommendations.warn",
+      "apply": [],
+      "unapply": [],
+      "state": []
+    },
+    {
+      "key": "TaskbarAlign",
+      "category": "win11",
+      "level": "safe",
+      "requiresReboot": true,
+      "conflictsWith": [],
+      "nameKey": "tweak.TaskbarAlign.name",
+      "shortKey": "tweak.TaskbarAlign.short",
+      "descKey": "tweak.TaskbarAlign.desc",
+      "warnKey": "tweak.TaskbarAlign.warn",
+      "apply": [],
+      "unapply": [],
+      "state": []
+    },
+    {
+      "key": "SearchBox",
+      "category": "win11",
+      "level": "safe",
+      "requiresReboot": true,
+      "conflictsWith": [],
+      "nameKey": "tweak.SearchBox.name",
+      "shortKey": "tweak.SearchBox.short",
+      "descKey": "tweak.SearchBox.desc",
+      "warnKey": "tweak.SearchBox.warn",
+      "apply": [],
+      "unapply": [],
+      "state": []
+    },
+    {
+      "key": "ChatIcon",
+      "category": "win11",
+      "level": "safe",
+      "requiresReboot": true,
+      "conflictsWith": [],
+      "nameKey": "tweak.ChatIcon.name",
+      "shortKey": "tweak.ChatIcon.short",
+      "descKey": "tweak.ChatIcon.desc",
+      "warnKey": "tweak.ChatIcon.warn",
+      "apply": [],
+      "unapply": [],
+      "state": []
+    },
+    {
+      "key": "TaskView",
+      "category": "win11",
+      "level": "safe",
+      "requiresReboot": true,
+      "conflictsWith": [],
+      "nameKey": "tweak.TaskView.name",
+      "shortKey": "tweak.TaskView.short",
+      "descKey": "tweak.TaskView.desc",
+      "warnKey": "tweak.TaskView.warn",
+      "apply": [],
+      "unapply": [],
+      "state": []
+    },
+    {
+      "key": "EndTask",
+      "category": "win11",
+      "level": "safe",
+      "requiresReboot": true,
+      "conflictsWith": [],
+      "nameKey": "tweak.EndTask.name",
+      "shortKey": "tweak.EndTask.short",
+      "descKey": "tweak.EndTask.desc",
+      "warnKey": "tweak.EndTask.warn",
+      "apply": [],
+      "unapply": [],
+      "state": []
+    },
+    {
+      "key": "NetworkThrottle",
+      "category": "network",
+      "level": "safe",
+      "requiresReboot": false,
+      "conflictsWith": [],
+      "nameKey": "tweak.NetworkThrottle.name",
+      "shortKey": "tweak.NetworkThrottle.short",
+      "descKey": "tweak.NetworkThrottle.desc",
+      "warnKey": "tweak.NetworkThrottle.warn",
+      "apply": [],
+      "unapply": [],
+      "state": []
+    },
+    {
+      "key": "TcpAutotuning",
+      "category": "network",
+      "level": "caution",
+      "requiresReboot": true,
+      "conflictsWith": [],
+      "nameKey": "tweak.TcpAutotuning.name",
+      "shortKey": "tweak.TcpAutotuning.short",
+      "descKey": "tweak.TcpAutotuning.desc",
+      "warnKey": "tweak.TcpAutotuning.warn",
+      "apply": [],
+      "unapply": [],
+      "state": []
+    },
+    {
+      "key": "Nagle",
+      "category": "network",
+      "level": "caution",
+      "requiresReboot": true,
+      "conflictsWith": [],
+      "nameKey": "tweak.Nagle.name",
+      "shortKey": "tweak.Nagle.short",
+      "descKey": "tweak.Nagle.desc",
+      "warnKey": "tweak.Nagle.warn",
+      "apply": [],
+      "unapply": [],
+      "state": []
+    },
+    {
+      "key": "QosReserved",
+      "category": "network",
+      "level": "safe",
+      "requiresReboot": false,
+      "conflictsWith": [],
+      "nameKey": "tweak.QosReserved.name",
+      "shortKey": "tweak.QosReserved.short",
+      "descKey": "tweak.QosReserved.desc",
+      "warnKey": "tweak.QosReserved.warn",
+      "apply": [],
+      "unapply": [],
+      "state": []
+    },
+    {
+      "key": "NetBIOS",
+      "category": "network",
+      "level": "caution",
+      "requiresReboot": true,
+      "conflictsWith": [],
+      "nameKey": "tweak.NetBIOS.name",
+      "shortKey": "tweak.NetBIOS.short",
+      "descKey": "tweak.NetBIOS.desc",
+      "warnKey": "tweak.NetBIOS.warn",
+      "apply": [],
+      "unapply": [],
+      "state": []
+    },
+    {
+      "key": "IPv6",
+      "category": "network",
+      "level": "danger",
+      "requiresReboot": true,
+      "conflictsWith": [],
+      "nameKey": "tweak.IPv6.name",
+      "shortKey": "tweak.IPv6.short",
+      "descKey": "tweak.IPv6.desc",
+      "warnKey": "tweak.IPv6.warn",
+      "apply": [],
+      "unapply": [],
+      "state": []
+    },
+    {
+      "key": "WindowsUpdateP2P",
+      "category": "network",
+      "level": "safe",
+      "requiresReboot": false,
+      "conflictsWith": [],
+      "nameKey": "tweak.WindowsUpdateP2P.name",
+      "shortKey": "tweak.WindowsUpdateP2P.short",
+      "descKey": "tweak.WindowsUpdateP2P.desc",
+      "warnKey": "tweak.WindowsUpdateP2P.warn",
+      "apply": [],
+      "unapply": [],
+      "state": []
+    },
+    {
+      "key": "StorageSense",
+      "category": "maint",
+      "level": "safe",
+      "requiresReboot": false,
+      "conflictsWith": [],
+      "nameKey": "tweak.StorageSense.name",
+      "shortKey": "tweak.StorageSense.short",
+      "descKey": "tweak.StorageSense.desc",
+      "warnKey": "tweak.StorageSense.warn",
+      "apply": [],
+      "unapply": [],
+      "state": []
+    },
+    {
+      "key": "Tips",
+      "category": "maint",
+      "level": "safe",
+      "requiresReboot": false,
+      "conflictsWith": [],
+      "nameKey": "tweak.Tips.name",
+      "shortKey": "tweak.Tips.short",
+      "descKey": "tweak.Tips.desc",
+      "warnKey": "tweak.Tips.warn",
+      "apply": [],
+      "unapply": [],
+      "state": []
+    },
+    {
+      "key": "ConsumerFeatures",
+      "category": "maint",
+      "level": "safe",
+      "requiresReboot": false,
+      "conflictsWith": [],
+      "nameKey": "tweak.ConsumerFeatures.name",
+      "shortKey": "tweak.ConsumerFeatures.short",
+      "descKey": "tweak.ConsumerFeatures.desc",
+      "warnKey": "tweak.ConsumerFeatures.warn",
+      "apply": [],
+      "unapply": [],
+      "state": []
+    },
+    {
+      "key": "ScheduledDefrag",
+      "category": "maint",
+      "level": "caution",
+      "requiresReboot": false,
+      "conflictsWith": [],
+      "nameKey": "tweak.ScheduledDefrag.name",
+      "shortKey": "tweak.ScheduledDefrag.short",
+      "descKey": "tweak.ScheduledDefrag.desc",
+      "warnKey": "tweak.ScheduledDefrag.warn",
+      "apply": [],
+      "unapply": [],
+      "state": []
+    },
+    {
+      "key": "DeliveryOptimization",
+      "category": "maint",
+      "level": "safe",
+      "requiresReboot": false,
+      "conflictsWith": [],
+      "nameKey": "tweak.DeliveryOptimization.name",
+      "shortKey": "tweak.DeliveryOptimization.short",
+      "descKey": "tweak.DeliveryOptimization.desc",
+      "warnKey": "tweak.DeliveryOptimization.warn",
+      "apply": [],
+      "unapply": [],
+      "state": []
+    },
+    {
+      "key": "OneDriveAutoStart",
+      "category": "maint",
+      "level": "safe",
+      "requiresReboot": false,
+      "conflictsWith": [],
+      "nameKey": "tweak.OneDriveAutoStart.name",
+      "shortKey": "tweak.OneDriveAutoStart.short",
+      "descKey": "tweak.OneDriveAutoStart.desc",
+      "warnKey": "tweak.OneDriveAutoStart.warn",
+      "apply": [],
+      "unapply": [],
+      "state": []
+    },
+    {
+      "key": "EdgePreload",
+      "category": "maint",
+      "level": "safe",
+      "requiresReboot": false,
+      "conflictsWith": [],
+      "nameKey": "tweak.EdgePreload.name",
+      "shortKey": "tweak.EdgePreload.short",
+      "descKey": "tweak.EdgePreload.desc",
+      "warnKey": "tweak.EdgePreload.warn",
+      "apply": [],
+      "unapply": [],
+      "state": []
+    },
+    {
+      "key": "WindowsUpdatePause",
+      "category": "maint",
+      "level": "caution",
+      "requiresReboot": false,
+      "conflictsWith": [],
+      "nameKey": "tweak.WindowsUpdatePause.name",
+      "shortKey": "tweak.WindowsUpdatePause.short",
+      "descKey": "tweak.WindowsUpdatePause.desc",
+      "warnKey": "tweak.WindowsUpdatePause.warn",
+      "apply": [],
+      "unapply": [],
+      "state": []
+    },
+    {
+      "key": "GameMode",
+      "category": "games",
+      "level": "safe",
+      "requiresReboot": false,
+      "conflictsWith": [],
+      "nameKey": "tweak.GameMode.name",
+      "shortKey": "tweak.GameMode.short",
+      "descKey": "tweak.GameMode.desc",
+      "warnKey": "tweak.GameMode.warn",
+      "apply": [],
+      "unapply": [],
+      "state": []
+    },
+    {
+      "key": "HAGS",
+      "category": "games",
+      "level": "caution",
+      "requiresReboot": true,
+      "conflictsWith": [],
+      "nameKey": "tweak.HAGS.name",
+      "shortKey": "tweak.HAGS.short",
+      "descKey": "tweak.HAGS.desc",
+      "warnKey": "tweak.HAGS.warn",
+      "apply": [],
+      "unapply": [],
+      "state": []
+    },
+    {
+      "key": "PowerPlan",
+      "category": "games",
+      "level": "caution",
+      "requiresReboot": true,
+      "conflictsWith": [],
+      "nameKey": "tweak.PowerPlan.name",
+      "shortKey": "tweak.PowerPlan.short",
+      "descKey": "tweak.PowerPlan.desc",
+      "warnKey": "tweak.PowerPlan.warn",
+      "apply": [],
+      "unapply": [],
+      "state": []
+    },
+    {
+      "key": "FullscreenOpts",
+      "category": "games",
+      "level": "caution",
+      "requiresReboot": false,
+      "conflictsWith": [],
+      "nameKey": "tweak.FullscreenOpts.name",
+      "shortKey": "tweak.FullscreenOpts.short",
+      "descKey": "tweak.FullscreenOpts.desc",
+      "warnKey": "tweak.FullscreenOpts.warn",
+      "apply": [],
+      "unapply": [],
+      "state": []
+    },
+    {
+      "key": "MPO",
+      "category": "games",
+      "level": "caution",
+      "requiresReboot": true,
+      "conflictsWith": [],
+      "nameKey": "tweak.MPO.name",
+      "shortKey": "tweak.MPO.short",
+      "descKey": "tweak.MPO.desc",
+      "warnKey": "tweak.MPO.warn",
+      "apply": [],
+      "unapply": [],
+      "state": []
+    },
+    {
+      "key": "GamePowerThrottling",
+      "category": "games",
+      "level": "caution",
+      "requiresReboot": true,
+      "conflictsWith": [],
+      "nameKey": "tweak.GamePowerThrottling.name",
+      "shortKey": "tweak.GamePowerThrottling.short",
+      "descKey": "tweak.GamePowerThrottling.desc",
+      "warnKey": "tweak.GamePowerThrottling.warn",
+      "apply": [],
+      "unapply": [],
+      "state": []
+    }
+  ]
 }
