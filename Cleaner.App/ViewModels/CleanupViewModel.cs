@@ -49,6 +49,11 @@ public partial class CleanupViewModel : ObservableObject
 
     public bool HasPresetNote => !string.IsNullOrWhiteSpace(PresetNoteText);
 
+    /// <summary>Текст кнопки «Запустить» с счётчиком (или без, если 0).</summary>
+    public string RunButtonText => CheckedCount <= 0
+        ? "Запустить"
+        : $"Запустить ({CheckedCount})";
+
     public CleanupViewModel(
         OperationsRepository ops,
         PresetsRepository presets,
@@ -240,6 +245,11 @@ public partial class CleanupViewModel : ObservableObject
     {
         RunCommand.NotifyCanExecuteChanged();
         CancelCommand.NotifyCanExecuteChanged();
+    }
+
+    partial void OnCheckedCountChanged(int value)
+    {
+        OnPropertyChanged(nameof(RunButtonText));
     }
 
     // ------------------------------------------------------------------

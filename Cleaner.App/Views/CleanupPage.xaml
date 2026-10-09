@@ -12,6 +12,35 @@
 
     <Page.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+
+        <!-- Чипы-пресеты -->
+        <Style x:Key="PresetChipStyle" TargetType="ListBoxItem">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="Bd"
+                                CornerRadius="10"
+                                Padding="18,10"
+                                Margin="0,0,10,0"
+                                Background="#2D2D2D"
+                                BorderBrush="#3D3D3D"
+                                BorderThickness="1"
+                                Cursor="Hand">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#3D3D3D"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#60CDFF"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#60CDFF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Page.Resources>
 
     <Grid>
@@ -52,7 +81,7 @@
                 </StackPanel>
             </StackPanel>
 
-            <!-- Пресеты -->
+            <!-- Пресеты-чипы + InfoBar -->
             <Grid Grid.Row="1" Margin="0,20,0,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -63,25 +92,40 @@
                     <TextBlock Text="Пресет"
                                Foreground="#C5C5C5"
                                FontSize="12"
-                               Margin="0,0,0,6"/>
-                    <ComboBox Width="320"
-                              Height="36"
-                              ItemsSource="{Binding Presets}"
-                              SelectedItem="{Binding SelectedPreset, Mode=TwoWay}"
-                              ToolTip="Мягкая — только temp. Стандартная — + отчёты и логи. Глубокая — + браузеры, приложения и DISM.">
-                        <ComboBox.ItemTemplate>
+                               Margin="0,0,0,8"/>
+                    <ListBox ItemsSource="{Binding Presets}"
+                             SelectedItem="{Binding SelectedPreset, Mode=TwoWay}"
+                             Background="Transparent"
+                             BorderThickness="0"
+                             Padding="0"
+                             HorizontalAlignment="Left"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ListBox.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ListBox.ItemsPanel>
+                        <ListBox.ItemContainerStyle>
+                            <StaticResource ResourceKey="PresetChipStyle"/>
+                        </ListBox.ItemContainerStyle>
+                        <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel>
-                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
-                                    <TextBlock Text="{Binding Short}" FontSize="11" Opacity="0.7"/>
+                                    <TextBlock Text="{Binding Name}"
+                                               FontWeight="SemiBold"
+                                               FontSize="13"/>
+                                    <TextBlock Text="{Binding Short}"
+                                               FontSize="10"
+                                               Opacity="0.75"
+                                               Margin="0,2,0,0"/>
                                 </StackPanel>
                             </DataTemplate>
-                        </ComboBox.ItemTemplate>
-                    </ComboBox>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
                 </StackPanel>
 
                 <ui:InfoBar Grid.Column="1"
-                            Margin="16,20,0,0"
+                            Margin="20,20,0,0"
                             VerticalAlignment="Bottom"
                             Severity="Informational"
                             Title="Подсказка"
@@ -197,14 +241,14 @@
                            FontSize="14"
                            Appearance="Primary"
                            Icon="{ui:SymbolIcon Play24}"
-                           Content="{Binding CheckedCount, StringFormat=Запустить ({0})}"
+                           Content="{Binding RunButtonText}"
                            Command="{Binding RunCommand}"
                            ToolTip="Запустить выбранные операции очистки"/>
 
                 <ui:Button Grid.Column="2"
                            Padding="24,12"
                            FontSize="14"
-                           Icon="{ui:SymbolIcon Stop24}"
+                           Icon="{ui:SymbolIcon Dismiss24}"
                            Content="Отмена"
                            Command="{Binding CancelCommand}"
                            ToolTip="Отменить текущую очистку"/>
