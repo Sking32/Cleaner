@@ -30,7 +30,6 @@ public sealed class TweakAction
     [JsonPropertyName("createKeyIfMissing")]
     public bool CreateKeyIfMissing { get; init; }
 
-    /// <summary>Для state-проверок: значение &lt;= указанному.</summary>
     [JsonPropertyName("lessOrEqualInt")]
     public int? LessOrEqualInt { get; init; }
 
@@ -54,7 +53,17 @@ public sealed class TweakAction
     [JsonPropertyName("arguments")]
     public string? Arguments { get; init; }
 
-    /// <summary>Для commandGet: подстрока, которая должна быть в выводе.</summary>
     [JsonPropertyName("outputContains")]
     public string? OutputContains { get; init; }
+
+    // --- Backup-aware действия ---
+    [JsonPropertyName("backupKey")]
+    public string? BackupKey { get; init; }
+
+    // --- Динамическая дата ---
+    [JsonPropertyName("daysFromNow")]
+    public int? DaysFromNow { get; init; }
+
+    [JsonPropertyName("format")]
+    public string? Format { get; init; }
 }

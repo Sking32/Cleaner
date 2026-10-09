@@ -112,12 +112,26 @@ public sealed class BackupService : IBackupService
             }
             else
             {
+                // Для Binary сериализуем в hex-строку — System.Text.Json не умеет byte[] без Base64
+                JsonElement? serialized;
+                var backupType = MapKind(kind.Value);
+
+                if (backupType == BackupType.Binary && oldValue is byte[] bytes)
+                {
+                    var hex = string.Concat(bytes.Select(b => b.ToString("x2")));
+                    serialized = JsonSerializer.SerializeToElement(hex);
+                }
+                else
+                {
+                    serialized = JsonSerializer.SerializeToElement(oldValue);
+                }
+
                 entry = new BackupEntry
                 {
                     Path = path,
                     Name = name,
-                    OldValue = JsonSerializer.SerializeToElement(oldValue),
-                    Type = MapKind(kind.Value).ToString(),
+                    OldValue = serialized,
+                    Type = backupType.ToString(),
                     Category = category,
                     When = DateTime.UtcNow.ToString("o")
                 };
@@ -263,12 +277,18 @@ public sealed class BackupService : IBackupService
             var kind = ParseBackupType(e.Type);
             object value = kind switch
             {
-                BackupType.DWord => e.OldValue.Value.GetInt32(),
-                BackupType.QWord => e.OldValue.Value.GetInt64(),
+                BackupType.DWord => e.OldValue.Value.ValueKind == JsonValueKind.Number
+                                            ? e.OldValue.Value.GetInt32()
+                                            : int.Parse(e.OldValue.Value.GetString() ?? "0"),
+                BackupType.QWord => e.OldValue.Value.ValueKind == JsonValueKind.Number
+                                            ? e.OldValue.Value.GetInt64()
+                                            : long.Parse(e.OldValue.Value.GetString() ?? "0"),
                 BackupType.String => e.OldValue.Value.GetString() ?? "",
                 BackupType.ExpandString => e.OldValue.Value.GetString() ?? "",
-                BackupType.MultiString => e.OldValue.Value.EnumerateArray().Select(x => x.GetString() ?? "").ToArray(),
-                BackupType.Binary => e.OldValue.Value.EnumerateArray().Select(x => x.GetByte()).ToArray(),
+                BackupType.MultiString => e.OldValue.Value.ValueKind == JsonValueKind.Array
+                                            ? e.OldValue.Value.EnumerateArray().Select(x => x.GetString() ?? "").ToArray()
+                                            : new[] { e.OldValue.Value.GetString() ?? "" },
+                BackupType.Binary => ParseBinary(e.OldValue.Value),
                 _ => throw new InvalidOperationException($"Unsupported backup type: {e.Type}")
             };
 
@@ -276,6 +296,25 @@ public sealed class BackupService : IBackupService
             return true;
         }
         catch { return false; }
+    }
+
+    /// <summary>Разбор Binary: поддерживает hex-строку, Base64-строку и массив чисел.</summary>
+    private static byte[] ParseBinary(JsonElement e)
+    {
+        if (e.ValueKind == JsonValueKind.String)
+        {
+            var s = e.GetString() ?? "";
+            // hex (чётная длина, только 0-9a-f)
+            if (s.Length > 0 && s.Length % 2 == 0 && s.All(c => Uri.IsHexDigit(c)))
+                return Convert.FromHexString(s);
+            // иначе — Base64
+            return Convert.FromBase64String(s);
+        }
+
+        if (e.ValueKind == JsonValueKind.Array)
+            return e.EnumerateArray().Select(x => x.GetByte()).ToArray();
+
+        throw new InvalidOperationException($"Unexpected binary JSON kind: {e.ValueKind}");
     }
 
     // ---------- Clear / Export ----------
@@ -392,7 +431,6 @@ public sealed class BackupService : IBackupService
     private static BackupType ParseBackupType(string s) =>
         Enum.TryParse<BackupType>(s, ignoreCase: true, out var t) ? t : BackupType.String;
 
-    /// <summary>Установить тип запуска службы через sc.exe (без Start-Service — чтобы не зависнуть).</summary>
     private static bool SetServiceStartType(string serviceName, string startType)
     {
         var scArg = startType?.ToLowerInvariant() switch
@@ -452,7 +490,7 @@ public sealed class BackupService : IBackupService
             BackupType.String => $"\"{EscapeRegString(e.OldValue.Value.GetString() ?? "")}\"",
             BackupType.ExpandString => $"hex(2):{string.Concat(Encoding.Unicode.GetBytes(e.OldValue.Value.GetString() + "\0").Select(b => b.ToString("x2")))}",
             BackupType.MultiString => $"hex(7):{string.Concat(Encoding.Unicode.GetBytes(string.Join("\0", e.OldValue.Value.EnumerateArray().Select(x => x.GetString())) + "\0\0").Select(b => b.ToString("x2")))}",
-            BackupType.Binary => $"hex:{string.Concat(e.OldValue.Value.EnumerateArray().Select(x => x.GetByte().ToString("x2")))}",
+            BackupType.Binary => $"hex:{string.Concat(ParseBinary(e.OldValue.Value).Select(b => b.ToString("x2")))}",
             _ => "\"\""
         };
     }
