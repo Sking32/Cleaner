@@ -1,0 +1,158 @@
+{
+  "schemaVersion": 1,
+  "cleanupPresets": {
+    "soft": {
+      "nameKey": "preset.soft.name",
+      "shortKey": "preset.soft.short",
+      "noteKey": "preset.soft.note",
+      "keys": [ "temp_user", "temp_sys", "dns", "recycle", "wer_user" ]
+    },
+    "std": {
+      "nameKey": "preset.std.name",
+      "shortKey": "preset.std.short",
+      "noteKey": "preset.std.note",
+      "keys": [
+        "temp_user",
+        "temp_sys",
+        "dns",
+        "recycle",
+        "wer_user",
+        "prefetch",
+        "wer_sys",
+        "wer_queue",
+        "crashdumps",
+        "livekernel",
+        "cbs",
+        "notifications",
+        "dodelivery",
+        "downloadedprog",
+        "recent",
+        "windows_store",
+        "onedrive",
+        "npm_cache",
+        "pip_cache",
+        "nuget_cache"
+      ]
+    },
+    "deep": {
+      "nameKey": "preset.deep.name",
+      "shortKey": "preset.deep.short",
+      "noteKey": "preset.deep.note",
+      "keys": [
+        "temp_user",
+        "temp_sys",
+        "dns",
+        "recycle",
+        "wer_user",
+        "prefetch",
+        "wer_sys",
+        "wer_queue",
+        "crashdumps",
+        "livekernel",
+        "cbs",
+        "notifications",
+        "dodelivery",
+        "downloadedprog",
+        "recent",
+        "windows_store",
+        "onedrive",
+        "npm_cache",
+        "pip_cache",
+        "nuget_cache",
+        "thumbs",
+        "minidump",
+        "fontcache",
+        "d3dscache",
+        "nvidia",
+        "amd",
+        "steam_shader",
+        "chrome",
+        "edge",
+        "opera",
+        "yandex",
+        "firefox",
+        "teams",
+        "discord",
+        "vscode",
+        "office",
+        "steam",
+        "epic",
+        "spotify",
+        "telegram",
+        "zoom",
+        "slack",
+        "notion",
+        "obs_logs",
+        "downloads_smart",
+        "wupdate",
+        "winsxs"
+      ]
+    }
+  },
+  "optimizePresets": {
+    "gamer": {
+      "nameKey": "optpreset.gamer",
+      "keys": [ "GameMode", "HAGS", "XboxGameBar", "BackgroundApps", "NetworkThrottle", "PowerPlan", "FullscreenOpts", "GamePowerThrottling" ]
+    },
+    "privacy": {
+      "nameKey": "optpreset.privacy",
+      "keys": [ "Telemetry", "AdvertisingId", "ActivityHistory", "Cortana", "XboxGameBar", "BingSearch", "LockScreenAds", "Copilot", "Recall", "Feedback", "Location", "DiagnosticData", "InkingTyping", "SpeechRecognition", "UpdateP2P" ]
+    },
+    "perf": {
+      "nameKey": "optpreset.perf",
+      "keys": [ "VisualFx", "Transparency", "StartupDelay", "MenuDelay", "BackgroundApps", "NetworkThrottle", "SysMain", "Prefetch", "AutoMaintenance", "DefenderScanLimit", "WerSvc", "SearchIndexing", "PowerThrottling" ]
+    },
+    "win11": {
+      "nameKey": "optpreset.win11",
+      "keys": [ "ClassicContext", "Widgets", "SearchHighlights", "StartRecommendations", "Tips", "ConsumerFeatures", "TaskbarAlign", "SearchBox", "ChatIcon", "TaskView", "EndTask" ]
+    },
+    "dev": {
+      "nameKey": "optpreset.dev",
+      "keys": [ "VisualFx", "StartupDelay", "MenuDelay", "BackgroundApps", "StorageSense", "Tips", "ConsumerFeatures", "EdgePreload" ]
+    },
+    "safe": {
+      "nameKey": "optpreset.safe",
+      "keys": []
+    }
+  },
+  "rebootTweaks": [
+    "HAGS",
+    "FastStartup",
+    "MPO",
+    "SearchIndexing",
+    "Prefetch",
+    "SysMain",
+    "IPv6",
+    "Nagle",
+    "NetBIOS",
+    "TcpAutotuning",
+    "PowerPlan",
+    "PowerThrottling",
+    "GamePowerThrottling",
+    "ReservedStorage",
+    "ClassicContext",
+    "Widgets",
+    "TaskbarAlign",
+    "SearchBox",
+    "ChatIcon",
+    "TaskView",
+    "EndTask"
+  ],
+  "conflicts": [
+    {
+      "a": "hibernate",
+      "b": "FastStartup",
+      "messageKey": "opt.conflict.hibernate"
+    },
+    {
+      "a": "UpdateP2P",
+      "b": "DeliveryOptimization",
+      "messageKey": "opt.conflict.p2p"
+    },
+    {
+      "a": "Telemetry",
+      "b": "DiagnosticData",
+      "messageKey": "opt.conflict.telemetry"
+    }
+  ]
+}

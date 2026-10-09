@@ -1,0 +1,24 @@
+{
+  "preset.soft.name": "Мягкая",
+  "preset.soft.short": "Только временные файлы — минимальный риск",
+  "preset.soft.note": "Ничего не может сломать.",
+
+  "preset.std.name": "Стандартная",
+  "preset.std.short": "Лёгкая очистка + отчёты и логи",
+  "preset.std.note": "Хороший баланс.",
+
+  "preset.deep.name": "Глубокая",
+  "preset.deep.short": "Полная очистка: браузеры, приложения, DISM",
+  "preset.deep.note": "Закрой браузеры. DISM может занять до часа.",
+
+  "optpreset.gamer": "🎮 Геймер",
+  "optpreset.privacy": "🔒 Приватность",
+  "optpreset.perf": "⚡ Производительность",
+  "optpreset.win11": "🪟 Windows 11",
+  "optpreset.dev": "💻 Разработчик",
+  "optpreset.safe": "✓ Всё безопасное",
+
+  "opt.conflict.hibernate": "«Hibernate» отключает гибернацию — «Fast Startup» перестанет работать автоматически.",
+  "opt.conflict.p2p": "«UpdateP2P» и «DeliveryOptimization» — дубликаты, оба отключают P2P-раздачу обновлений.",
+  "opt.conflict.telemetry": "«Telemetry» и «DiagnosticData» частично перекрываются — можно применить оба, эффект суммируется."
+}

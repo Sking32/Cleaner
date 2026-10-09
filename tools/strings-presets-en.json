@@ -1,0 +1,24 @@
+{
+  "preset.soft.name": "Light",
+  "preset.soft.short": "Only temporary files — minimum risk",
+  "preset.soft.note": "Cannot break anything.",
+
+  "preset.std.name": "Standard",
+  "preset.std.short": "Light cleanup + reports and logs",
+  "preset.std.note": "Good balance.",
+
+  "preset.deep.name": "Deep",
+  "preset.deep.short": "Full cleanup: browsers, apps, DISM",
+  "preset.deep.note": "Close browsers. DISM may take an hour.",
+
+  "optpreset.gamer": "🎮 Gamer",
+  "optpreset.privacy": "🔒 Privacy",
+  "optpreset.perf": "⚡ Performance",
+  "optpreset.win11": "🪟 Windows 11",
+  "optpreset.dev": "💻 Developer",
+  "optpreset.safe": "✓ All safe",
+
+  "opt.conflict.hibernate": "\"Hibernate\" disables hibernation — \"Fast Startup\" will not work anymore.",
+  "opt.conflict.p2p": "\"UpdateP2P\" and \"DeliveryOptimization\" are duplicates — both disable update P2P sharing.",
+  "opt.conflict.telemetry": "\"Telemetry\" and \"DiagnosticData\" partially overlap — both can be applied, effects add up."
+}

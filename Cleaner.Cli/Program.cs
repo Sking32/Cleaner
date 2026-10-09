@@ -79,7 +79,9 @@ void MergeStrings(string targetPath, string sourcePath)
     {
         if (target.ContainsKey(prop.Key))
         {
-            if (target[prop.Key]!.GetValue<string>() != prop.Value!.GetValue<string>())
+            var oldVal = target[prop.Key]?.GetValue<string>() ?? "";
+            var newVal = prop.Value?.GetValue<string>() ?? "";
+            if (oldVal != newVal)
             {
                 target[prop.Key] = prop.Value.DeepClone();
                 updated++;
