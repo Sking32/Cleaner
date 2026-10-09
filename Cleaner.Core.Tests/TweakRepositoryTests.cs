@@ -37,6 +37,31 @@ public class TweakRepositoryTests
     }
 
     [Fact]
+    public void Every_Tweak_Has_Actions()
+    {
+        var repo = new TweakRepository();
+        foreach (var t in repo.Tweaks)
+        {
+            Assert.True(t.Apply.Count > 0, $"{t.Key}: apply is empty");
+            Assert.True(t.Unapply.Count > 0, $"{t.Key}: unapply is empty");
+            Assert.True(t.State.Count > 0, $"{t.Key}: state is empty");
+        }
+    }
+
+    [Fact]
+    public void Every_Action_Has_Type()
+    {
+        var repo = new TweakRepository();
+        foreach (var t in repo.Tweaks)
+        {
+            foreach (var a in t.Apply.Concat(t.Unapply).Concat(t.State))
+            {
+                Assert.False(string.IsNullOrEmpty(a.Type), $"{t.Key}: action has empty type");
+            }
+        }
+    }
+
+    [Fact]
     public void All_Categories_Are_Represented()
     {
         var repo = new TweakRepository();

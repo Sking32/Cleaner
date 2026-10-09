@@ -1,0 +1,206 @@
+{
+  "GameMode": {
+    "apply": [
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\GameBar",
+        "name": "AutoGameModeEnabled",
+        "kind": "DWord",
+        "value": 1,
+        "createKeyIfMissing": true
+      }
+    ],
+    "unapply": [
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\GameBar",
+        "name": "AutoGameModeEnabled",
+        "kind": "DWord",
+        "value": 0,
+        "createKeyIfMissing": true
+      }
+    ],
+    "state": [
+      {
+        "type": "regGet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\GameBar",
+        "name": "AutoGameModeEnabled",
+        "kind": "DWord",
+        "expected": 1
+      }
+    ]
+  },
+  "HAGS": {
+    "apply": [
+      {
+        "type": "regSet",
+        "hive": "HKLM",
+        "key": "SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers",
+        "name": "HwSchMode",
+        "kind": "DWord",
+        "value": 2
+      }
+    ],
+    "unapply": [
+      {
+        "type": "regSet",
+        "hive": "HKLM",
+        "key": "SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers",
+        "name": "HwSchMode",
+        "kind": "DWord",
+        "value": 1
+      }
+    ],
+    "state": [
+      {
+        "type": "regGet",
+        "hive": "HKLM",
+        "key": "SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers",
+        "name": "HwSchMode",
+        "kind": "DWord",
+        "expected": 2
+      }
+    ]
+  },
+  "PowerPlan": {
+    "apply": [
+      {
+        "type": "commandRun",
+        "fileName": "powercfg.exe",
+        "arguments": "/setactive 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c"
+      }
+    ],
+    "unapply": [
+      {
+        "type": "commandRun",
+        "fileName": "powercfg.exe",
+        "arguments": "/setactive 381b4222-f694-41f0-9685-ff5bb260df2e"
+      }
+    ],
+    "state": [
+      {
+        "type": "commandGet",
+        "fileName": "powercfg.exe",
+        "arguments": "/getactivescheme",
+        "outputContains": "8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c"
+      }
+    ]
+  },
+  "FullscreenOpts": {
+    "apply": [
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "System\\GameConfigStore",
+        "name": "GameDVR_FSEBehaviorMode",
+        "kind": "DWord",
+        "value": 2,
+        "createKeyIfMissing": true
+      },
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "System\\GameConfigStore",
+        "name": "GameDVR_DisableFullscreenOptimizations",
+        "kind": "DWord",
+        "value": 1,
+        "createKeyIfMissing": true
+      }
+    ],
+    "unapply": [
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "System\\GameConfigStore",
+        "name": "GameDVR_FSEBehaviorMode",
+        "kind": "DWord",
+        "value": 0,
+        "createKeyIfMissing": true
+      },
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "System\\GameConfigStore",
+        "name": "GameDVR_DisableFullscreenOptimizations",
+        "kind": "DWord",
+        "value": 0,
+        "createKeyIfMissing": true
+      }
+    ],
+    "state": [
+      {
+        "type": "regGet",
+        "hive": "HKCU",
+        "key": "System\\GameConfigStore",
+        "name": "GameDVR_FSEBehaviorMode",
+        "kind": "DWord",
+        "expected": 2
+      }
+    ]
+  },
+  "MPO": {
+    "apply": [
+      {
+        "type": "regSet",
+        "hive": "HKLM",
+        "key": "SOFTWARE\\Microsoft\\Windows\\Dwm",
+        "name": "OverlayTestMode",
+        "kind": "DWord",
+        "value": 5,
+        "createKeyIfMissing": true
+      }
+    ],
+    "unapply": [
+      {
+        "type": "regRemove",
+        "hive": "HKLM",
+        "key": "SOFTWARE\\Microsoft\\Windows\\Dwm",
+        "name": "OverlayTestMode"
+      }
+    ],
+    "state": [
+      {
+        "type": "regGet",
+        "hive": "HKLM",
+        "key": "SOFTWARE\\Microsoft\\Windows\\Dwm",
+        "name": "OverlayTestMode",
+        "kind": "DWord",
+        "expected": 5
+      }
+    ]
+  },
+  "GamePowerThrottling": {
+    "apply": [
+      {
+        "type": "regSet",
+        "hive": "HKLM",
+        "key": "SYSTEM\\CurrentControlSet\\Control\\Power\\PowerThrottling",
+        "name": "PowerThrottlingOff",
+        "kind": "DWord",
+        "value": 1,
+        "createKeyIfMissing": true
+      }
+    ],
+    "unapply": [
+      {
+        "type": "regRemove",
+        "hive": "HKLM",
+        "key": "SYSTEM\\CurrentControlSet\\Control\\Power\\PowerThrottling",
+        "name": "PowerThrottlingOff"
+      }
+    ],
+    "state": [
+      {
+        "type": "regGet",
+        "hive": "HKLM",
+        "key": "SYSTEM\\CurrentControlSet\\Control\\Power\\PowerThrottling",
+        "name": "PowerThrottlingOff",
+        "kind": "DWord",
+        "expected": 1
+      }
+    ]
+  }
+}
