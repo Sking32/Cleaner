@@ -2277,9 +2277,35 @@
       "shortKey": "tweak.StorageSense.short",
       "descKey": "tweak.StorageSense.desc",
       "warnKey": "tweak.StorageSense.warn",
-      "apply": [],
-      "unapply": [],
-      "state": []
+      "apply": [
+        {
+          "type": "regSet",
+          "hive": "HKLM",
+          "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\StorageSense",
+          "name": "AllowStorageSenseGlobal",
+          "kind": "DWord",
+          "value": 0,
+          "createKeyIfMissing": true
+        }
+      ],
+      "unapply": [
+        {
+          "type": "regRemove",
+          "hive": "HKLM",
+          "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\StorageSense",
+          "name": "AllowStorageSenseGlobal"
+        }
+      ],
+      "state": [
+        {
+          "type": "regGet",
+          "hive": "HKLM",
+          "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\StorageSense",
+          "name": "AllowStorageSenseGlobal",
+          "kind": "DWord",
+          "expected": 0
+        }
+      ]
     },
     {
       "key": "Tips",
@@ -2291,9 +2317,74 @@
       "shortKey": "tweak.Tips.short",
       "descKey": "tweak.Tips.desc",
       "warnKey": "tweak.Tips.warn",
-      "apply": [],
-      "unapply": [],
-      "state": []
+      "apply": [
+        {
+          "type": "regSet",
+          "hive": "HKCU",
+          "key": "Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+          "name": "SoftLandingEnabled",
+          "kind": "DWord",
+          "value": 0,
+          "createKeyIfMissing": true
+        },
+        {
+          "type": "regSet",
+          "hive": "HKCU",
+          "key": "Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+          "name": "SubscribedContent-338388Enabled",
+          "kind": "DWord",
+          "value": 0,
+          "createKeyIfMissing": true
+        },
+        {
+          "type": "regSet",
+          "hive": "HKCU",
+          "key": "Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+          "name": "SubscribedContent-338389Enabled",
+          "kind": "DWord",
+          "value": 0,
+          "createKeyIfMissing": true
+        }
+      ],
+      "unapply": [
+        {
+          "type": "regSet",
+          "hive": "HKCU",
+          "key": "Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+          "name": "SoftLandingEnabled",
+          "kind": "DWord",
+          "value": 1,
+          "createKeyIfMissing": true
+        },
+        {
+          "type": "regSet",
+          "hive": "HKCU",
+          "key": "Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+          "name": "SubscribedContent-338388Enabled",
+          "kind": "DWord",
+          "value": 1,
+          "createKeyIfMissing": true
+        },
+        {
+          "type": "regSet",
+          "hive": "HKCU",
+          "key": "Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+          "name": "SubscribedContent-338389Enabled",
+          "kind": "DWord",
+          "value": 1,
+          "createKeyIfMissing": true
+        }
+      ],
+      "state": [
+        {
+          "type": "regGet",
+          "hive": "HKCU",
+          "key": "Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+          "name": "SoftLandingEnabled",
+          "kind": "DWord",
+          "expected": 0
+        }
+      ]
     },
     {
       "key": "ConsumerFeatures",
@@ -2305,9 +2396,35 @@
       "shortKey": "tweak.ConsumerFeatures.short",
       "descKey": "tweak.ConsumerFeatures.desc",
       "warnKey": "tweak.ConsumerFeatures.warn",
-      "apply": [],
-      "unapply": [],
-      "state": []
+      "apply": [
+        {
+          "type": "regSet",
+          "hive": "HKLM",
+          "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\CloudContent",
+          "name": "DisableWindowsConsumerFeatures",
+          "kind": "DWord",
+          "value": 1,
+          "createKeyIfMissing": true
+        }
+      ],
+      "unapply": [
+        {
+          "type": "regRemove",
+          "hive": "HKLM",
+          "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\CloudContent",
+          "name": "DisableWindowsConsumerFeatures"
+        }
+      ],
+      "state": [
+        {
+          "type": "regGet",
+          "hive": "HKLM",
+          "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\CloudContent",
+          "name": "DisableWindowsConsumerFeatures",
+          "kind": "DWord",
+          "expected": 1
+        }
+      ]
     },
     {
       "key": "ScheduledDefrag",
@@ -2319,9 +2436,28 @@
       "shortKey": "tweak.ScheduledDefrag.short",
       "descKey": "tweak.ScheduledDefrag.desc",
       "warnKey": "tweak.ScheduledDefrag.warn",
-      "apply": [],
-      "unapply": [],
-      "state": []
+      "apply": [
+        {
+          "type": "commandRun",
+          "fileName": "schtasks.exe",
+          "arguments": "/Change /TN \u0022\\Microsoft\\Windows\\Defrag\\ScheduledDefrag\u0022 /Disable"
+        }
+      ],
+      "unapply": [
+        {
+          "type": "commandRun",
+          "fileName": "schtasks.exe",
+          "arguments": "/Change /TN \u0022\\Microsoft\\Windows\\Defrag\\ScheduledDefrag\u0022 /Enable"
+        }
+      ],
+      "state": [
+        {
+          "type": "commandGet",
+          "fileName": "schtasks.exe",
+          "arguments": "/Query /TN \u0022\\Microsoft\\Windows\\Defrag\\ScheduledDefrag\u0022 /FO LIST",
+          "outputContains": "Disabled"
+        }
+      ]
     },
     {
       "key": "DeliveryOptimization",
@@ -2333,9 +2469,28 @@
       "shortKey": "tweak.DeliveryOptimization.short",
       "descKey": "tweak.DeliveryOptimization.desc",
       "warnKey": "tweak.DeliveryOptimization.warn",
-      "apply": [],
-      "unapply": [],
-      "state": []
+      "apply": [
+        {
+          "type": "serviceSet",
+          "serviceName": "DoSvc",
+          "startupType": "Disabled",
+          "stopFirst": true
+        }
+      ],
+      "unapply": [
+        {
+          "type": "serviceSet",
+          "serviceName": "DoSvc",
+          "startupType": "Automatic"
+        }
+      ],
+      "state": [
+        {
+          "type": "serviceGet",
+          "serviceName": "DoSvc",
+          "expectedStartupType": "Disabled"
+        }
+      ]
     },
     {
       "key": "OneDriveAutoStart",
@@ -2347,9 +2502,28 @@
       "shortKey": "tweak.OneDriveAutoStart.short",
       "descKey": "tweak.OneDriveAutoStart.desc",
       "warnKey": "tweak.OneDriveAutoStart.warn",
-      "apply": [],
-      "unapply": [],
-      "state": []
+      "apply": [
+        {
+          "type": "regRemoveWithBackup",
+          "hive": "HKCU",
+          "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Run",
+          "name": "OneDrive"
+        }
+      ],
+      "unapply": [
+        {
+          "type": "regRestoreFromBackup",
+          "backupKey": "onedrive_autostart"
+        }
+      ],
+      "state": [
+        {
+          "type": "regNotExists",
+          "hive": "HKCU",
+          "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Run",
+          "name": "OneDrive"
+        }
+      ]
     },
     {
       "key": "EdgePreload",
@@ -2361,9 +2535,50 @@
       "shortKey": "tweak.EdgePreload.short",
       "descKey": "tweak.EdgePreload.desc",
       "warnKey": "tweak.EdgePreload.warn",
-      "apply": [],
-      "unapply": [],
-      "state": []
+      "apply": [
+        {
+          "type": "regSet",
+          "hive": "HKLM",
+          "key": "SOFTWARE\\Policies\\Microsoft\\MicrosoftEdge\\Main",
+          "name": "AllowPrelaunch",
+          "kind": "DWord",
+          "value": 0,
+          "createKeyIfMissing": true
+        },
+        {
+          "type": "regSet",
+          "hive": "HKLM",
+          "key": "SOFTWARE\\Policies\\Microsoft\\MicrosoftEdge\\Main",
+          "name": "AllowTabPreloading",
+          "kind": "DWord",
+          "value": 0,
+          "createKeyIfMissing": true
+        }
+      ],
+      "unapply": [
+        {
+          "type": "regRemove",
+          "hive": "HKLM",
+          "key": "SOFTWARE\\Policies\\Microsoft\\MicrosoftEdge\\Main",
+          "name": "AllowPrelaunch"
+        },
+        {
+          "type": "regRemove",
+          "hive": "HKLM",
+          "key": "SOFTWARE\\Policies\\Microsoft\\MicrosoftEdge\\Main",
+          "name": "AllowTabPreloading"
+        }
+      ],
+      "state": [
+        {
+          "type": "regGet",
+          "hive": "HKLM",
+          "key": "SOFTWARE\\Policies\\Microsoft\\MicrosoftEdge\\Main",
+          "name": "AllowPrelaunch",
+          "kind": "DWord",
+          "expected": 0
+        }
+      ]
     },
     {
       "key": "WindowsUpdatePause",
@@ -2375,9 +2590,33 @@
       "shortKey": "tweak.WindowsUpdatePause.short",
       "descKey": "tweak.WindowsUpdatePause.desc",
       "warnKey": "tweak.WindowsUpdatePause.warn",
-      "apply": [],
-      "unapply": [],
-      "state": []
+      "apply": [
+        {
+          "type": "regSetDynamicDate",
+          "hive": "HKLM",
+          "key": "SOFTWARE\\Microsoft\\WindowsUpdate\\UX\\Settings",
+          "name": "PauseUpdatesExpiryTime",
+          "daysFromNow": 35,
+          "format": "yyyy-MM-ddTHH:mm:ssZ",
+          "createKeyIfMissing": true
+        }
+      ],
+      "unapply": [
+        {
+          "type": "regRemove",
+          "hive": "HKLM",
+          "key": "SOFTWARE\\Microsoft\\WindowsUpdate\\UX\\Settings",
+          "name": "PauseUpdatesExpiryTime"
+        }
+      ],
+      "state": [
+        {
+          "type": "regGetDateInFuture",
+          "hive": "HKLM",
+          "key": "SOFTWARE\\Microsoft\\WindowsUpdate\\UX\\Settings",
+          "name": "PauseUpdatesExpiryTime"
+        }
+      ]
     },
     {
       "key": "GameMode",
