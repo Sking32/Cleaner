@@ -7,7 +7,7 @@
                  MinHeight="560" MinWidth="900"
                  WindowStartupLocation="CenterScreen"
                  ExtendsContentIntoTitleBar="True"
-                 WindowBackdropType="Mica"
+                 WindowBackdropType="Acrylic"
                  WindowCornerPreference="Round"
                  Foreground="#FFFFFF">
 

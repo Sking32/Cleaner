@@ -25,10 +25,14 @@ public partial class App : Application
         _services = collection.BuildServiceProvider();
         AppServices.Provider = _services;
 
+        // Тёмная тема + Acrylic-подложка (более выразительно, чем Mica)
         ApplicationThemeManager.Apply(
             ApplicationTheme.Dark,
-            WindowBackdropType.Mica,
+            WindowBackdropType.Acrylic,
             updateAccent: true);
+
+        // Красивый акцентный цвет системы
+        ApplicationAccentColorManager.ApplySystemAccent();
 
         var mainWindow = _services.GetRequiredService<MainWindow>();
         mainWindow.Show();

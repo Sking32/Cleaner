@@ -7,178 +7,217 @@
       xmlns:vm="clr-namespace:Cleaner.App.ViewModels"
       mc:Ignorable="d"
       d:DataContext="{d:DesignInstance Type=vm:CleanupViewModel}"
-      Title="Очистка">
+      Title="Очистка"
+      Foreground="#FFFFFF">
 
     <Page.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
     </Page.Resources>
 
-    <Grid Margin="24">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+    <Grid>
+        <!-- Градиентная шапка -->
+        <Border Height="200" VerticalAlignment="Top">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#3060CDFF" Offset="0" />
+                    <GradientStop Color="#108B5CF6" Offset="1" />
+                </LinearGradientBrush>
+            </Border.Background>
+        </Border>
 
-        <!-- Заголовок -->
-        <StackPanel Grid.Row="0">
-            <TextBlock Text="Очистка" FontSize="24" FontWeight="SemiBold"/>
-            <TextBlock Text="Выберите пресет или отметьте операции вручную."
-                       Margin="0,8,0,0" Opacity="0.75"/>
-        </StackPanel>
+        <Grid Margin="24">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-        <!-- Пресеты -->
-        <Grid Grid.Row="1" Margin="0,16,0,0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
+            <!-- Заголовок -->
+            <StackPanel Grid.Row="0" Orientation="Horizontal">
+                <ui:SymbolIcon Symbol="Broom24"
+                               FontSize="36"
+                               Foreground="#60CDFF"
+                               VerticalAlignment="Center"
+                               Margin="0,0,16,0"/>
+                <StackPanel>
+                    <TextBlock Text="Очистка"
+                               FontSize="28"
+                               FontWeight="SemiBold"
+                               Foreground="#FFFFFF"/>
+                    <TextBlock Text="Выберите пресет или отметьте операции вручную."
+                               FontSize="13"
+                               Foreground="#C5C5C5"
+                               Margin="0,4,0,0"/>
+                </StackPanel>
+            </StackPanel>
 
-            <StackPanel Grid.Column="0">
-                <TextBlock Text="Пресет" Opacity="0.75" Margin="0,0,0,4"/>
-                <ComboBox Width="320"
-                          ItemsSource="{Binding Presets}"
-                          SelectedItem="{Binding SelectedPreset, Mode=TwoWay}"
-                          ToolTip="Мягкая — только temp. Стандартная — + отчёты и логи. Глубокая — + браузеры, приложения и DISM.">
-                    <ComboBox.ItemTemplate>
+            <!-- Пресеты -->
+            <Grid Grid.Row="1" Margin="0,20,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="Пресет"
+                               Foreground="#C5C5C5"
+                               FontSize="12"
+                               Margin="0,0,0,6"/>
+                    <ComboBox Width="320"
+                              Height="36"
+                              ItemsSource="{Binding Presets}"
+                              SelectedItem="{Binding SelectedPreset, Mode=TwoWay}"
+                              ToolTip="Мягкая — только temp. Стандартная — + отчёты и логи. Глубокая — + браузеры, приложения и DISM.">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                                    <TextBlock Text="{Binding Short}" FontSize="11" Opacity="0.7"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </StackPanel>
+
+                <ui:InfoBar Grid.Column="1"
+                            Margin="16,20,0,0"
+                            VerticalAlignment="Bottom"
+                            Severity="Informational"
+                            Title="Подсказка"
+                            Message="{Binding PresetNoteText}"
+                            IsClosable="False"
+                            IsOpen="{Binding HasPresetNote, Mode=OneWay}"
+                            Visibility="{Binding HasPresetNote, Converter={StaticResource BoolToVis}}"/>
+            </Grid>
+
+            <!-- Список операций -->
+            <ScrollViewer Grid.Row="2" Margin="0,16,0,0" VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding Categories}">
+                    <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <StackPanel>
-                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
-                                <TextBlock Text="{Binding Short}" FontSize="11" Opacity="0.7"/>
-                            </StackPanel>
+                            <ui:CardExpander Margin="0,0,0,10"
+                                             IsExpanded="True"
+                                             Header="{Binding Name}">
+                                <ui:CardExpander.Icon>
+                                    <ui:SymbolIcon Symbol="{Binding IconSymbol}"/>
+                                </ui:CardExpander.Icon>
+
+                                <ItemsControl ItemsSource="{Binding Operations}" Margin="4,4,0,4">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <CheckBox IsChecked="{Binding IsChecked, Mode=TwoWay}"
+                                                      Margin="0,6"
+                                                      ToolTip="{Binding Description}">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <Border Grid.Column="0"
+                                                            Width="22" Height="22"
+                                                            CornerRadius="11"
+                                                            VerticalAlignment="Top"
+                                                            Margin="0,2,10,0"
+                                                            ToolTip="{Binding LevelLabel}">
+                                                        <Border.Style>
+                                                            <Style TargetType="Border">
+                                                                <Setter Property="Background" Value="#404040"/>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding Level}" Value="safe">
+                                                                        <Setter Property="Background" Value="#1B5E20"/>
+                                                                    </DataTrigger>
+                                                                    <DataTrigger Binding="{Binding Level}" Value="medium">
+                                                                        <Setter Property="Background" Value="#8D6E00"/>
+                                                                    </DataTrigger>
+                                                                    <DataTrigger Binding="{Binding Level}" Value="danger">
+                                                                        <Setter Property="Background" Value="#8B1A1A"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Border.Style>
+                                                        <TextBlock Text="{Binding LevelShort}"
+                                                                   Foreground="White"
+                                                                   FontSize="11"
+                                                                   FontWeight="Bold"
+                                                                   HorizontalAlignment="Center"
+                                                                   VerticalAlignment="Center"/>
+                                                    </Border>
+
+                                                    <StackPanel Grid.Column="1">
+                                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                                                        <TextBlock Text="{Binding Description}"
+                                                                   FontSize="11"
+                                                                   Opacity="0.7"
+                                                                   TextWrapping="Wrap"
+                                                                   MaxWidth="680"/>
+                                                        <TextBlock Text="{Binding Hint}"
+                                                                   FontSize="11"
+                                                                   Foreground="#E5A000"
+                                                                   Margin="0,2,0,0"
+                                                                   TextWrapping="Wrap"
+                                                                   MaxWidth="680"
+                                                                   Visibility="{Binding Hint, Converter={StaticResource BoolToVis}}"/>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </CheckBox>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ui:CardExpander>
                         </DataTemplate>
-                    </ComboBox.ItemTemplate>
-                </ComboBox>
-            </StackPanel>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
 
-            <ui:InfoBar Grid.Column="1"
-                        Margin="16,0,0,0"
-                        VerticalAlignment="Bottom"
-                        Severity="Informational"
-                        Title="Подсказка"
-                        Message="{Binding PresetNoteText}"
-                        IsClosable="False"
-                        IsOpen="{Binding HasPresetNote, Mode=OneWay}"
-                        Visibility="{Binding HasPresetNote, Converter={StaticResource BoolToVis}}"/>
+            <!-- Footer -->
+            <Grid Grid.Row="3" Margin="0,16,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding StatusText}"
+                               Foreground="#FFFFFF"
+                               TextWrapping="Wrap"
+                               MaxWidth="640"/>
+                    <TextBlock Text="{Binding BytesFreedText}"
+                               Foreground="#60CDFF"
+                               FontSize="12"
+                               FontWeight="SemiBold"
+                               Margin="0,2,0,0"/>
+                </StackPanel>
+
+                <ui:Button Grid.Column="1"
+                           Margin="8,0"
+                           Padding="24,12"
+                           FontSize="14"
+                           Appearance="Primary"
+                           Icon="{ui:SymbolIcon Play24}"
+                           Content="{Binding CheckedCount, StringFormat=Запустить ({0})}"
+                           Command="{Binding RunCommand}"
+                           ToolTip="Запустить выбранные операции очистки"/>
+
+                <ui:Button Grid.Column="2"
+                           Padding="24,12"
+                           FontSize="14"
+                           Icon="{ui:SymbolIcon Stop24}"
+                           Content="Отмена"
+                           Command="{Binding CancelCommand}"
+                           ToolTip="Отменить текущую очистку"/>
+            </Grid>
+
+            <ui:ProgressRing Grid.Row="2"
+                             Width="32" Height="32"
+                             HorizontalAlignment="Right"
+                             VerticalAlignment="Top"
+                             Margin="0,4,4,0"
+                             IsIndeterminate="True"
+                             Foreground="#60CDFF"
+                             Visibility="{Binding IsRunning, Converter={StaticResource BoolToVis}}"/>
         </Grid>
-
-        <!-- Список операций -->
-        <ScrollViewer Grid.Row="2" Margin="0,16,0,0" VerticalScrollBarVisibility="Auto">
-            <ItemsControl ItemsSource="{Binding Categories}">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <ui:CardExpander Margin="0,0,0,8"
-                                         IsExpanded="True"
-                                         Header="{Binding Name}">
-                            <ui:CardExpander.Icon>
-                                <ui:SymbolIcon Symbol="{Binding IconSymbol}"/>
-                            </ui:CardExpander.Icon>
-
-                            <ItemsControl ItemsSource="{Binding Operations}" Margin="4,4,0,4">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <CheckBox IsChecked="{Binding IsChecked, Mode=TwoWay}"
-                                                  Margin="0,4"
-                                                  ToolTip="{Binding Description}">
-                                            <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                    <ColumnDefinition Width="*"/>
-                                                </Grid.ColumnDefinitions>
-
-                                                <Border Grid.Column="0"
-                                                        Width="20" Height="20"
-                                                        CornerRadius="10"
-                                                        VerticalAlignment="Top"
-                                                        Margin="0,2,8,0"
-                                                        ToolTip="{Binding LevelLabel}">
-                                                    <Border.Style>
-                                                        <Style TargetType="Border">
-                                                            <Setter Property="Background" Value="#404040"/>
-                                                            <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding Level}" Value="safe">
-                                                                    <Setter Property="Background" Value="#1B5E20"/>
-                                                                </DataTrigger>
-                                                                <DataTrigger Binding="{Binding Level}" Value="medium">
-                                                                    <Setter Property="Background" Value="#8D6E00"/>
-                                                                </DataTrigger>
-                                                                <DataTrigger Binding="{Binding Level}" Value="danger">
-                                                                    <Setter Property="Background" Value="#8B1A1A"/>
-                                                                </DataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </Border.Style>
-                                                    <TextBlock Text="{Binding LevelShort}"
-                                                               Foreground="White"
-                                                               FontSize="11"
-                                                               FontWeight="Bold"
-                                                               HorizontalAlignment="Center"
-                                                               VerticalAlignment="Center"/>
-                                                </Border>
-
-                                                <StackPanel Grid.Column="1">
-                                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
-                                                    <TextBlock Text="{Binding Description}"
-                                                               FontSize="11"
-                                                               Opacity="0.7"
-                                                               TextWrapping="Wrap"
-                                                               MaxWidth="640"/>
-                                                    <TextBlock Text="{Binding Hint}"
-                                                               FontSize="11"
-                                                               Foreground="#E5A000"
-                                                               Margin="0,2,0,0"
-                                                               TextWrapping="Wrap"
-                                                               MaxWidth="640"
-                                                               Visibility="{Binding Hint, Converter={StaticResource BoolToVis}}"/>
-                                                </StackPanel>
-                                            </Grid>
-                                        </CheckBox>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </ui:CardExpander>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </ScrollViewer>
-
-        <!-- Footer -->
-        <Grid Grid.Row="3" Margin="0,16,0,0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-
-            <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                <TextBlock Text="{Binding StatusText}" TextWrapping="Wrap" MaxWidth="620"/>
-                <TextBlock Text="{Binding BytesFreedText}" Opacity="0.75" FontSize="11"/>
-            </StackPanel>
-
-            <ui:Button Grid.Column="1"
-                       Margin="8,0"
-                       Padding="20,10"
-                       Appearance="Primary"
-                       Icon="{ui:SymbolIcon Play24}"
-                       Content="{Binding CheckedCount, StringFormat=Запустить ({0})}"
-                       Command="{Binding RunCommand}"
-                       ToolTip="Запустить выбранные операции очистки"/>
-
-            <ui:Button Grid.Column="2"
-                       Padding="20,10"
-                       Icon="{ui:SymbolIcon Stop24}"
-                       Content="Отмена"
-                       Command="{Binding CancelCommand}"
-                       ToolTip="Отменить текущую очистку"/>
-        </Grid>
-
-        <ui:ProgressRing Grid.Row="2"
-                         Width="28" Height="28"
-                         HorizontalAlignment="Right"
-                         VerticalAlignment="Top"
-                         Margin="0,4,4,0"
-                         IsIndeterminate="True"
-                         Visibility="{Binding IsRunning, Converter={StaticResource BoolToVis}}"/>
     </Grid>
 </Page>

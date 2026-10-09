@@ -9,13 +9,22 @@
                 <ui:ControlsDictionary />
             </ResourceDictionary.MergedDictionaries>
 
-            <!-- Глобальные стили с прямыми hex-цветами (Windows 11 dark palette). -->
-
+            <!-- Цвета (Windows 11 dark palette) -->
             <SolidColorBrush x:Key="TextPrimaryBrush"   Color="#FFFFFF" />
             <SolidColorBrush x:Key="TextSecondaryBrush" Color="#C5C5C5" />
             <SolidColorBrush x:Key="TextMutedBrush"     Color="#9A9A9A" />
             <SolidColorBrush x:Key="AccentBrush"        Color="#60CDFF" />
+            <SolidColorBrush x:Key="AccentGlowBrush"    Color="#8060CDFF" />
+            <SolidColorBrush x:Key="CardBgBrush"        Color="#1F1F1F" />
+            <SolidColorBrush x:Key="CardBorderBrush"    Color="#2D2D2D" />
 
+            <!-- Градиент для заголовков -->
+            <LinearGradientBrush x:Key="AccentGradientBrush" StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#60CDFF" Offset="0" />
+                <GradientStop Color="#8B5CF6" Offset="1" />
+            </LinearGradientBrush>
+
+            <!-- Тексты -->
             <Style TargetType="TextBlock">
                 <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
                 <Setter Property="TextOptions.TextFormattingMode" Value="Display" />
