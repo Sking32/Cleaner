@@ -1,0 +1,691 @@
+{
+  "Telemetry": {
+    "apply": [
+      {
+        "type": "regSet",
+        "hive": "HKLM",
+        "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection",
+        "name": "AllowTelemetry",
+        "kind": "DWord",
+        "value": 0,
+        "createKeyIfMissing": true
+      },
+      {
+        "type": "serviceSet",
+        "serviceName": "DiagTrack",
+        "startupType": "Disabled",
+        "stopFirst": true
+      },
+      {
+        "type": "serviceSet",
+        "serviceName": "dmwappushservice",
+        "startupType": "Disabled",
+        "stopFirst": true
+      }
+    ],
+    "unapply": [
+      {
+        "type": "regRemove",
+        "hive": "HKLM",
+        "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection",
+        "name": "AllowTelemetry"
+      },
+      {
+        "type": "serviceSet",
+        "serviceName": "DiagTrack",
+        "startupType": "Automatic"
+      },
+      {
+        "type": "serviceSet",
+        "serviceName": "dmwappushservice",
+        "startupType": "Automatic"
+      }
+    ],
+    "state": [
+      {
+        "type": "regGet",
+        "hive": "HKLM",
+        "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection",
+        "name": "AllowTelemetry",
+        "kind": "DWord",
+        "expected": 0
+      }
+    ]
+  },
+  "AdvertisingId": {
+    "apply": [
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Windows\\CurrentVersion\\AdvertisingInfo",
+        "name": "Enabled",
+        "kind": "DWord",
+        "value": 0,
+        "createKeyIfMissing": true
+      }
+    ],
+    "unapply": [
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Windows\\CurrentVersion\\AdvertisingInfo",
+        "name": "Enabled",
+        "kind": "DWord",
+        "value": 1,
+        "createKeyIfMissing": true
+      }
+    ],
+    "state": [
+      {
+        "type": "regGet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Windows\\CurrentVersion\\AdvertisingInfo",
+        "name": "Enabled",
+        "kind": "DWord",
+        "expected": 0
+      }
+    ]
+  },
+  "ActivityHistory": {
+    "apply": [
+      {
+        "type": "regSet",
+        "hive": "HKLM",
+        "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\System",
+        "name": "EnableActivityFeed",
+        "kind": "DWord",
+        "value": 0,
+        "createKeyIfMissing": true
+      },
+      {
+        "type": "regSet",
+        "hive": "HKLM",
+        "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\System",
+        "name": "PublishUserActivities",
+        "kind": "DWord",
+        "value": 0,
+        "createKeyIfMissing": true
+      }
+    ],
+    "unapply": [
+      {
+        "type": "regRemove",
+        "hive": "HKLM",
+        "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\System",
+        "name": "EnableActivityFeed"
+      },
+      {
+        "type": "regRemove",
+        "hive": "HKLM",
+        "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\System",
+        "name": "PublishUserActivities"
+      }
+    ],
+    "state": [
+      {
+        "type": "regGet",
+        "hive": "HKLM",
+        "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\System",
+        "name": "EnableActivityFeed",
+        "kind": "DWord",
+        "expected": 0
+      }
+    ]
+  },
+  "XboxGameBar": {
+    "apply": [
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Windows\\CurrentVersion\\GameDVR",
+        "name": "AppCaptureEnabled",
+        "kind": "DWord",
+        "value": 0,
+        "createKeyIfMissing": true
+      },
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "System\\GameConfigStore",
+        "name": "GameDVR_Enabled",
+        "kind": "DWord",
+        "value": 0,
+        "createKeyIfMissing": true
+      }
+    ],
+    "unapply": [
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Windows\\CurrentVersion\\GameDVR",
+        "name": "AppCaptureEnabled",
+        "kind": "DWord",
+        "value": 1,
+        "createKeyIfMissing": true
+      },
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "System\\GameConfigStore",
+        "name": "GameDVR_Enabled",
+        "kind": "DWord",
+        "value": 1,
+        "createKeyIfMissing": true
+      }
+    ],
+    "state": [
+      {
+        "type": "regGet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Windows\\CurrentVersion\\GameDVR",
+        "name": "AppCaptureEnabled",
+        "kind": "DWord",
+        "expected": 0
+      }
+    ]
+  },
+  "BingSearch": {
+    "apply": [
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Search",
+        "name": "BingSearchEnabled",
+        "kind": "DWord",
+        "value": 0,
+        "createKeyIfMissing": true
+      },
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "Software\\Policies\\Microsoft\\Windows\\Explorer",
+        "name": "DisableSearchBoxSuggestions",
+        "kind": "DWord",
+        "value": 1,
+        "createKeyIfMissing": true
+      }
+    ],
+    "unapply": [
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Search",
+        "name": "BingSearchEnabled",
+        "kind": "DWord",
+        "value": 1,
+        "createKeyIfMissing": true
+      },
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "Software\\Policies\\Microsoft\\Windows\\Explorer",
+        "name": "DisableSearchBoxSuggestions",
+        "kind": "DWord",
+        "value": 0,
+        "createKeyIfMissing": true
+      }
+    ],
+    "state": [
+      {
+        "type": "regGet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Search",
+        "name": "BingSearchEnabled",
+        "kind": "DWord",
+        "expected": 0
+      }
+    ]
+  },
+  "LockScreenAds": {
+    "apply": [
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+        "name": "RotatingLockScreenOverlayEnabled",
+        "kind": "DWord",
+        "value": 0,
+        "createKeyIfMissing": true
+      },
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+        "name": "SubscribedContent-338387Enabled",
+        "kind": "DWord",
+        "value": 0,
+        "createKeyIfMissing": true
+      }
+    ],
+    "unapply": [
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+        "name": "RotatingLockScreenOverlayEnabled",
+        "kind": "DWord",
+        "value": 1,
+        "createKeyIfMissing": true
+      },
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+        "name": "SubscribedContent-338387Enabled",
+        "kind": "DWord",
+        "value": 1,
+        "createKeyIfMissing": true
+      }
+    ],
+    "state": [
+      {
+        "type": "regGet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+        "name": "RotatingLockScreenOverlayEnabled",
+        "kind": "DWord",
+        "expected": 0
+      }
+    ]
+  },
+  "Copilot": {
+    "apply": [
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "Software\\Policies\\Microsoft\\Windows\\WindowsCopilot",
+        "name": "TurnOffWindowsCopilot",
+        "kind": "DWord",
+        "value": 1,
+        "createKeyIfMissing": true
+      }
+    ],
+    "unapply": [
+      {
+        "type": "regRemove",
+        "hive": "HKCU",
+        "key": "Software\\Policies\\Microsoft\\Windows\\WindowsCopilot",
+        "name": "TurnOffWindowsCopilot"
+      }
+    ],
+    "state": [
+      {
+        "type": "regGet",
+        "hive": "HKCU",
+        "key": "Software\\Policies\\Microsoft\\Windows\\WindowsCopilot",
+        "name": "TurnOffWindowsCopilot",
+        "kind": "DWord",
+        "expected": 1
+      }
+    ]
+  },
+  "Recall": {
+    "apply": [
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "Software\\Policies\\Microsoft\\Windows\\WindowsAI",
+        "name": "DisableAIDataAnalysis",
+        "kind": "DWord",
+        "value": 1,
+        "createKeyIfMissing": true
+      }
+    ],
+    "unapply": [
+      {
+        "type": "regRemove",
+        "hive": "HKCU",
+        "key": "Software\\Policies\\Microsoft\\Windows\\WindowsAI",
+        "name": "DisableAIDataAnalysis"
+      }
+    ],
+    "state": [
+      {
+        "type": "regGet",
+        "hive": "HKCU",
+        "key": "Software\\Policies\\Microsoft\\Windows\\WindowsAI",
+        "name": "DisableAIDataAnalysis",
+        "kind": "DWord",
+        "expected": 1
+      }
+    ]
+  },
+  "Feedback": {
+    "apply": [
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Siuf\\Rules",
+        "name": "DoNotShowFeedbackNotifications",
+        "kind": "DWord",
+        "value": 1,
+        "createKeyIfMissing": true
+      },
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Siuf\\Rules",
+        "name": "NumberOfSIUFInPeriod",
+        "kind": "DWord",
+        "value": 0,
+        "createKeyIfMissing": true
+      }
+    ],
+    "unapply": [
+      {
+        "type": "regRemove",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Siuf\\Rules",
+        "name": "DoNotShowFeedbackNotifications"
+      },
+      {
+        "type": "regRemove",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Siuf\\Rules",
+        "name": "NumberOfSIUFInPeriod"
+      }
+    ],
+    "state": [
+      {
+        "type": "regGet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Siuf\\Rules",
+        "name": "DoNotShowFeedbackNotifications",
+        "kind": "DWord",
+        "expected": 1
+      }
+    ]
+  },
+  "Location": {
+    "apply": [
+      {
+        "type": "regSet",
+        "hive": "HKLM",
+        "key": "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\CapabilityAccessManager\\ConsentStore\\location",
+        "name": "Value",
+        "kind": "String",
+        "value": "Deny",
+        "createKeyIfMissing": true
+      },
+      {
+        "type": "regSet",
+        "hive": "HKLM",
+        "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\LocationAndSensors",
+        "name": "DisableLocation",
+        "kind": "DWord",
+        "value": 1,
+        "createKeyIfMissing": true
+      }
+    ],
+    "unapply": [
+      {
+        "type": "regSet",
+        "hive": "HKLM",
+        "key": "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\CapabilityAccessManager\\ConsentStore\\location",
+        "name": "Value",
+        "kind": "String",
+        "value": "Allow",
+        "createKeyIfMissing": true
+      },
+      {
+        "type": "regRemove",
+        "hive": "HKLM",
+        "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\LocationAndSensors",
+        "name": "DisableLocation"
+      }
+    ],
+    "state": [
+      {
+        "type": "regGet",
+        "hive": "HKLM",
+        "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\LocationAndSensors",
+        "name": "DisableLocation",
+        "kind": "DWord",
+        "expected": 1
+      }
+    ]
+  },
+  "Camera": {
+    "apply": [
+      {
+        "type": "regSet",
+        "hive": "HKLM",
+        "key": "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\CapabilityAccessManager\\ConsentStore\\webcam",
+        "name": "Value",
+        "kind": "String",
+        "value": "Deny",
+        "createKeyIfMissing": true
+      }
+    ],
+    "unapply": [
+      {
+        "type": "regSet",
+        "hive": "HKLM",
+        "key": "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\CapabilityAccessManager\\ConsentStore\\webcam",
+        "name": "Value",
+        "kind": "String",
+        "value": "Allow",
+        "createKeyIfMissing": true
+      }
+    ],
+    "state": [
+      {
+        "type": "regGet",
+        "hive": "HKLM",
+        "key": "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\CapabilityAccessManager\\ConsentStore\\webcam",
+        "name": "Value",
+        "kind": "String",
+        "expected": "Deny"
+      }
+    ]
+  },
+  "Microphone": {
+    "apply": [
+      {
+        "type": "regSet",
+        "hive": "HKLM",
+        "key": "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\CapabilityAccessManager\\ConsentStore\\microphone",
+        "name": "Value",
+        "kind": "String",
+        "value": "Deny",
+        "createKeyIfMissing": true
+      }
+    ],
+    "unapply": [
+      {
+        "type": "regSet",
+        "hive": "HKLM",
+        "key": "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\CapabilityAccessManager\\ConsentStore\\microphone",
+        "name": "Value",
+        "kind": "String",
+        "value": "Allow",
+        "createKeyIfMissing": true
+      }
+    ],
+    "state": [
+      {
+        "type": "regGet",
+        "hive": "HKLM",
+        "key": "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\CapabilityAccessManager\\ConsentStore\\microphone",
+        "name": "Value",
+        "kind": "String",
+        "expected": "Deny"
+      }
+    ]
+  },
+  "DiagnosticData": {
+    "apply": [
+      {
+        "type": "regSet",
+        "hive": "HKLM",
+        "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection",
+        "name": "AllowDeviceNameInDiagnosticData",
+        "kind": "DWord",
+        "value": 0,
+        "createKeyIfMissing": true
+      },
+      {
+        "type": "regSet",
+        "hive": "HKLM",
+        "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection",
+        "name": "AllowSuggestedAppsInWindowsInkWorkspace",
+        "kind": "DWord",
+        "value": 0,
+        "createKeyIfMissing": true
+      }
+    ],
+    "unapply": [
+      {
+        "type": "regRemove",
+        "hive": "HKLM",
+        "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection",
+        "name": "AllowDeviceNameInDiagnosticData"
+      },
+      {
+        "type": "regRemove",
+        "hive": "HKLM",
+        "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection",
+        "name": "AllowSuggestedAppsInWindowsInkWorkspace"
+      }
+    ],
+    "state": [
+      {
+        "type": "regGet",
+        "hive": "HKLM",
+        "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection",
+        "name": "AllowDeviceNameInDiagnosticData",
+        "kind": "DWord",
+        "expected": 0
+      }
+    ]
+  },
+  "InkingTyping": {
+    "apply": [
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\InputPersonalization",
+        "name": "RestrictImplicitInkCollection",
+        "kind": "DWord",
+        "value": 1,
+        "createKeyIfMissing": true
+      },
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\InputPersonalization",
+        "name": "RestrictImplicitTextCollection",
+        "kind": "DWord",
+        "value": 1,
+        "createKeyIfMissing": true
+      }
+    ],
+    "unapply": [
+      {
+        "type": "regRemove",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\InputPersonalization",
+        "name": "RestrictImplicitInkCollection"
+      },
+      {
+        "type": "regRemove",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\InputPersonalization",
+        "name": "RestrictImplicitTextCollection"
+      }
+    ],
+    "state": [
+      {
+        "type": "regGet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\InputPersonalization",
+        "name": "RestrictImplicitInkCollection",
+        "kind": "DWord",
+        "expected": 1
+      }
+    ]
+  },
+  "SpeechRecognition": {
+    "apply": [
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Speech_OneCore\\Settings\\OnlineSpeechPrivacy",
+        "name": "HasAccepted",
+        "kind": "DWord",
+        "value": 0,
+        "createKeyIfMissing": true
+      },
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\InputPersonalization",
+        "name": "AllowInputPersonalization",
+        "kind": "DWord",
+        "value": 0,
+        "createKeyIfMissing": true
+      }
+    ],
+    "unapply": [
+      {
+        "type": "regSet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Speech_OneCore\\Settings\\OnlineSpeechPrivacy",
+        "name": "HasAccepted",
+        "kind": "DWord",
+        "value": 1,
+        "createKeyIfMissing": true
+      },
+      {
+        "type": "regRemove",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\InputPersonalization",
+        "name": "AllowInputPersonalization"
+      }
+    ],
+    "state": [
+      {
+        "type": "regGet",
+        "hive": "HKCU",
+        "key": "Software\\Microsoft\\Speech_OneCore\\Settings\\OnlineSpeechPrivacy",
+        "name": "HasAccepted",
+        "kind": "DWord",
+        "expected": 0
+      }
+    ]
+  },
+  "UpdateP2P": {
+    "apply": [
+      {
+        "type": "regSet",
+        "hive": "HKLM",
+        "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\DeliveryOptimization",
+        "name": "DODownloadMode",
+        "kind": "DWord",
+        "value": 0,
+        "createKeyIfMissing": true
+      }
+    ],
+    "unapply": [
+      {
+        "type": "regSet",
+        "hive": "HKLM",
+        "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\DeliveryOptimization",
+        "name": "DODownloadMode",
+        "kind": "DWord",
+        "value": 1,
+        "createKeyIfMissing": true
+      }
+    ],
+    "state": [
+      {
+        "type": "regGet",
+        "hive": "HKLM",
+        "key": "SOFTWARE\\Policies\\Microsoft\\Windows\\DeliveryOptimization",
+        "name": "DODownloadMode",
+        "kind": "DWord",
+        "expected": 0
+      }
+    ]
+  }
+}
