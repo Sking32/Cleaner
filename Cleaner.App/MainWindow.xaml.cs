@@ -1,7 +1,8 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Cleaner.App.Views;
+using Wpf.Ui;
 using Wpf.Ui.Controls;
 
 namespace Cleaner.App;
@@ -19,7 +20,8 @@ public partial class MainWindow : FluentWindow
         OptimizePage optimizePage,
         SystemPage systemPage,
         PrivacyPage privacyPage,
-        DiskPage diskPage)
+        DiskPage diskPage,
+        ISnackbarService snackbarService)
     {
         _cleanupPage = cleanupPage;
         _optimizePage = optimizePage;
@@ -28,6 +30,9 @@ public partial class MainWindow : FluentWindow
         _diskPage = diskPage;
 
         InitializeComponent();
+
+        // Подключаем presenter к сервису — теперь IAppNotifications куда угодно.
+        snackbarService.SetSnackbarPresenter(RootSnackbar);
 
         // Канал 1: стандартное событие SelectionChanged.
         RootNavigation.SelectionChanged += OnNavigationSelectionChanged;
@@ -51,23 +56,15 @@ public partial class MainWindow : FluentWindow
     private void OnNavigationSelectionChanged(object sender, RoutedEventArgs e)
     {
         var selected = RootNavigation.SelectedItem;
-        System.Diagnostics.Debug.WriteLine(
-            $"[MainWindow] SelectionChanged: {selected?.GetType().FullName ?? "null"}");
 
         if (selected is NavigationViewItem nvi)
-        {
-            System.Diagnostics.Debug.WriteLine($"[MainWindow]   tag = {nvi.Tag}");
             NavigateByTag(nvi.Tag as string);
-        }
     }
 
     private void OnNavigationItemClick(object sender, MouseButtonEventArgs e)
     {
         if (sender is NavigationViewItem nvi)
-        {
-            System.Diagnostics.Debug.WriteLine($"[MainWindow] ItemClick: tag = {nvi.Tag}");
             NavigateByTag(nvi.Tag as string);
-        }
     }
 
     private void NavigateByTag(string? tag)
@@ -81,9 +78,6 @@ public partial class MainWindow : FluentWindow
             "disk" => _diskPage,
             _ => null
         };
-
-        System.Diagnostics.Debug.WriteLine(
-            $"[MainWindow] Navigate: tag={tag}, page={page?.GetType().Name ?? "null"}");
 
         if (page is null) return;
         if (ReferenceEquals(RootFrame.Content, page)) return;

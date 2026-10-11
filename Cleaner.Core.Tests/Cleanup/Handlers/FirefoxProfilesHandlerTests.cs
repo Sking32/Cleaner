@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using Cleaner.Core.Data;
 using Cleaner.Core.Services;

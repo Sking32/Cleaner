@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.ServiceProcess;
 
@@ -71,22 +71,7 @@ public static class ServiceHelper
 
     private static bool RunSc(string arguments)
     {
-        try
-        {
-            var psi = new ProcessStartInfo
-            {
-                FileName = "sc.exe",
-                Arguments = arguments,
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true
-            };
-            using var p = Process.Start(psi);
-            if (p == null) return false;
-            p.WaitForExit(15000);
-            return p.ExitCode == 0;
-        }
-        catch { return false; }
+        // CommandRunner читает stdout/stderr и убивает процесс по таймауту.
+        return CommandRunner.Run("sc.exe", arguments, timeoutMs: 15000).Success;
     }
 }
