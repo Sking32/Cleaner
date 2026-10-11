@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Cleaner.Core.Data;
 
 namespace Cleaner.Core.Services.Cleanup.Handlers;

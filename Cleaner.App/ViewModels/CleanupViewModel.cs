@@ -1,10 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Cleaner.App.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Cleaner.Core.Data;
@@ -173,11 +174,11 @@ public partial class CleanupViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(CanRun))]
     private async Task RunAsync()
     {
-        var selected = Categories
+        var selectedOps = Categories
             .SelectMany(c => c.Operations)
             .Where(o => o.IsChecked)
-            .Select(o => o.Key)
             .ToList();
+        var selected = selectedOps.Select(o => o.Key).ToList();
 
         if (selected.Count == 0)
         {
@@ -187,24 +188,75 @@ public partial class CleanupViewModel : ObservableObject
 
         IsRunning = true;
         BytesFreedText = "";
-        StatusText = "Выполняется...";
+        StatusText = "Анализ: проверяем, что будет очищено...";
         _cts = new CancellationTokenSource();
 
         try
         {
+            var token = _cts.Token;
+
             var progress = new Progress<CleanupProgress>(p =>
             {
                 if (p.CurrentPath != null)
                     StatusText = $"[{p.OperationKey}] {p.CurrentPath}";
             });
 
+            // Шаг 1. Пробный прогон: ничего не удаляем, только считаем.
+            var scanCtx = new CleanupContext(
+                _safety, _whitelist, _quarantine,
+                progress: progress,
+                cancellationToken: token,
+                dryRun: true);
+
+            var scan = await Task.Run(() => _runner.Run(selected, scanCtx, token), token);
+
+            if (scan.Canceled)
+            {
+                StatusText = "Отменено: ничего не удалено";
+                return;
+            }
+
+            var hasNonFileOps = selectedOps.Any(o =>
+                o.Handler is not ("PathCleanup" or "PathCleanupRecursive" or "MultiPathCleanup"));
+
+            if (scan.BytesFreed <= 0 && !hasNonFileOps)
+            {
+                StatusText = "Нечего очищать: выбранные места уже чистые";
+                return;
+            }
+
+            var dangerNames = selectedOps
+                .Where(o => o.Level == "danger")
+                .Select(o => o.Name)
+                .ToList();
+
+            // Шаг 2. Подтверждение пользователя.
+            if (!ConfirmRun(selected.Count, scan.BytesFreed, dangerNames, hasNonFileOps))
+            {
+                StatusText = "Отменено: ничего не удалено";
+                return;
+            }
+
+            // Шаг 3. Настоящая очистка.
+            StatusText = "Выполняется очистка...";
+            AppLog.Info($"Очистка: операций {selected.Count} ({string.Join(", ", selected)})");
+
             var ctx = new CleanupContext(
                 _safety, _whitelist, _quarantine,
                 progress: progress,
-                cancellationToken: _cts.Token);
+                cancellationToken: token,
+                dryRun: false);
 
-            var token = _cts.Token;
             var result = await Task.Run(() => _runner.Run(selected, ctx, token), token);
+
+            foreach (var outcome in result.Outcomes)
+            {
+                foreach (var err in outcome.Errors)
+                    AppLog.Warn($"Операция {outcome.Key}: {err}");
+            }
+
+            AppLog.Info($"Очистка завершена: удалено {result.FilesDeleted}, пропущено {result.FilesSkipped}, " +
+                        $"ошибок {result.OperationsFailed}, освобождено {FormatBytes(result.BytesFreed)}");
 
             StatusText = result.Canceled
                 ? $"Отменено. Обработано операций: {result.OperationsRun}"
@@ -219,6 +271,7 @@ public partial class CleanupViewModel : ObservableObject
         }
         catch (Exception ex)
         {
+            AppLog.Error("Ошибка очистки", ex);
             StatusText = "Ошибка: " + ex.Message;
         }
         finally
@@ -228,6 +281,44 @@ public partial class CleanupViewModel : ObservableObject
             _cts = null;
             RunCommand.NotifyCanExecuteChanged();
         }
+    }
+
+    /// <summary>Окно подтверждения перед настоящей очисткой.</summary>
+    private static bool ConfirmRun(int operationsCount, long bytes, IReadOnlyList<string> dangerNames, bool hasNonFileOps)
+    {
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine($"Выбрано операций: {operationsCount}.");
+        sb.AppendLine($"Ориентировочно будет освобождено: {FormatBytes(bytes)}.");
+        sb.AppendLine();
+
+        if (dangerNames.Count > 0)
+        {
+            sb.AppendLine("Среди выбранного есть операции повышенного риска:");
+            foreach (var name in dangerNames)
+                sb.AppendLine("  • " + name);
+            sb.AppendLine();
+        }
+
+        sb.AppendLine("Удаляемые файлы сначала попадают в карантин — их можно вернуть на странице «Приватность».");
+
+        if (hasNonFileOps)
+        {
+            sb.AppendLine();
+            sb.AppendLine("Часть операций (реестр, системные команды, Windows.old) может не иметь отката.");
+        }
+
+        sb.AppendLine();
+        sb.Append("Продолжить?");
+
+        var result = System.Windows.MessageBox.Show(
+            sb.ToString(),
+            "Подтверждение очистки",
+            System.Windows.MessageBoxButton.YesNo,
+            dangerNames.Count > 0
+                ? System.Windows.MessageBoxImage.Warning
+                : System.Windows.MessageBoxImage.Question);
+
+        return result == System.Windows.MessageBoxResult.Yes;
     }
 
     private bool CanRun() => !IsRunning;

@@ -1,12 +1,366 @@
-﻿<Page x:Class="Cleaner.App.Views.DiskPage"
+<Page x:Class="Cleaner.App.Views.DiskPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      Title="Диск">
-    <Grid Margin="24">
-        <StackPanel>
-            <TextBlock Text="Диск" FontSize="24" FontWeight="SemiBold" />
-            <TextBlock Text="Анализ места, крупные файлы, теневые копии."
-                       Margin="0,8,0,0" Opacity="0.75" />
-        </StackPanel>
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+      xmlns:vm="clr-namespace:Cleaner.App.ViewModels"
+      mc:Ignorable="d"
+      d:DataContext="{d:DesignInstance Type=vm:DiskViewModel}"
+      Title="Диск"
+      Foreground="#FFFFFF"
+      Background="#0E0E10">
+
+    <Page.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </Page.Resources>
+
+    <Grid>
+        <Border Height="220" VerticalAlignment="Top" Background="{StaticResource PageHeaderBrush}"/>
+
+        <Grid Margin="28,24,28,20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Шапка -->
+            <StackPanel Grid.Row="0" Orientation="Horizontal">
+                <Border Width="52" Height="52"
+                        CornerRadius="14"
+                        Background="{StaticResource AccentGradientBrush}"
+                        Margin="0,0,18,0"
+                        VerticalAlignment="Center">
+                    <ui:SymbolIcon Symbol="HardDrive24"
+                                   FontSize="26"
+                                   Foreground="White"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"/>
+                </Border>
+
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="Диск"
+                               FontSize="30"
+                               FontWeight="SemiBold"
+                               Foreground="#FFFFFF"/>
+                    <TextBlock Text="Анализ занятого места, крупные папки и файлы, теневые копии"
+                               FontSize="13"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               Margin="0,4,0,0"/>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Управление -->
+            <Border Grid.Row="1"
+                    Margin="0,20,0,0"
+                    Style="{StaticResource CategoryCardStyle}"
+                    Padding="18">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <ComboBox Grid.Column="0"
+                                  ItemsSource="{Binding Drives}"
+                                  SelectedItem="{Binding SelectedDrive, Mode=TwoWay}"
+                                  DisplayMemberPath="Display"
+                                  VerticalAlignment="Center"
+                                  IsEnabled="{Binding IsScanning, Converter={StaticResource BoolToVis}, ConverterParameter=Inverse}"
+                                  MinHeight="34"/>
+
+                        <ui:Button Grid.Column="1"
+                                   Margin="10,0,0,0"
+                                   Padding="20,10"
+                                   Appearance="Primary"
+                                   Icon="{ui:SymbolIcon Play24}"
+                                   Content="Анализ"
+                                   ToolTip="Просканировать выбранный диск"
+                                   Command="{Binding ScanCommand}"/>
+
+                        <ui:Button Grid.Column="2"
+                                   Margin="8,0,0,0"
+                                   Padding="20,10"
+                                   Icon="{ui:SymbolIcon Dismiss24}"
+                                   Content="Отмена"
+                                   Command="{Binding CancelCommand}"/>
+                    </Grid>
+
+                    <!-- Прогресс / сводка -->
+                    <StackPanel Grid.Row="1" Margin="0,12,0,0">
+                        <TextBlock FontSize="12"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   TextTrimming="CharacterEllipsis"
+                                   Text="{Binding ProgressText}"/>
+                        <TextBlock FontSize="12"
+                                   Foreground="{StaticResource AccentBrush}"
+                                   FontWeight="SemiBold"
+                                   Margin="0,2,0,0"
+                                   Text="{Binding SummaryText}"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Результаты -->
+            <Grid Grid.Row="2" Margin="0,14,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="16"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Папки -->
+                <Border Grid.Column="0"
+                        Style="{StaticResource CategoryCardStyle}"
+                        Padding="18">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+                            <ui:SymbolIcon Symbol="Folder24"
+                                           FontSize="20"
+                                           Foreground="{StaticResource AccentBrush}"
+                                           VerticalAlignment="Center"
+                                           Margin="0,0,10,0"/>
+                            <TextBlock Text="Топ папок"
+                                       FontSize="16"
+                                       FontWeight="SemiBold"
+                                       VerticalAlignment="Center"/>
+                        </StackPanel>
+
+                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" MinHeight="200">
+                            <StackPanel>
+                                <TextBlock Text="Нажмите «Анализ» — появится список самых тяжёлых папок."
+                                           FontSize="12"
+                                           Foreground="{StaticResource TextMutedBrush}"
+                                           TextWrapping="Wrap">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding HasNoResults}" Value="True">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+
+                                <ItemsControl ItemsSource="{Binding TopFolders}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Style="{StaticResource RowBorderStyle}">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding Name}"
+                                                                   FontSize="13"
+                                                                   FontWeight="SemiBold"
+                                                                   Foreground="#FFFFFF"
+                                                                   TextTrimming="CharacterEllipsis"/>
+                                                        <TextBlock Text="{Binding Path}"
+                                                                   FontSize="10"
+                                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                                   TextTrimming="CharacterEllipsis"
+                                                                   ToolTip="{Binding Path}"/>
+                                                    </StackPanel>
+
+                                                    <TextBlock Grid.Column="1"
+                                                               Text="{Binding SizeText}"
+                                                               FontSize="12"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{StaticResource AccentBrush}"
+                                                               VerticalAlignment="Center"
+                                                               Margin="10,0"/>
+
+                                                    <ui:Button Grid.Column="2"
+                                                               Padding="6,2"
+                                                               Icon="{ui:SymbolIcon Folder24}"
+                                                               ToolTip="Открыть в Проводнике"
+                                                               Command="{Binding DataContext.OpenFolderCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                               CommandParameter="{Binding}"/>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Grid>
+                </Border>
+
+                <!-- Крупные файлы -->
+                <Border Grid.Column="2"
+                        Style="{StaticResource CategoryCardStyle}"
+                        Padding="18">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+                            <ui:SymbolIcon Symbol="DocumentText24"
+                                           FontSize="20"
+                                           Foreground="{StaticResource AccentBrush}"
+                                           VerticalAlignment="Center"
+                                           Margin="0,0,10,0"/>
+                            <TextBlock Text="Крупные файлы"
+                                       FontSize="16"
+                                       FontWeight="SemiBold"
+                                       VerticalAlignment="Center"/>
+                        </StackPanel>
+
+                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" MinHeight="200">
+                            <StackPanel>
+                                <TextBlock Text="Топ файлов появится после анализа диска."
+                                           FontSize="12"
+                                           Foreground="{StaticResource TextMutedBrush}"
+                                           TextWrapping="Wrap">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding HasNoResults}" Value="True">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+
+                                <ItemsControl ItemsSource="{Binding LargeFiles}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Style="{StaticResource RowBorderStyle}">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <TextBlock Grid.Column="0"
+                                                               Text="{Binding Path}"
+                                                               FontSize="11"
+                                                               Foreground="#FFFFFF"
+                                                               TextTrimming="CharacterEllipsis"
+                                                               ToolTip="{Binding Path}"
+                                                               VerticalAlignment="Center"/>
+
+                                                    <TextBlock Grid.Column="1"
+                                                               Text="{Binding SizeText}"
+                                                               FontSize="12"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{StaticResource AccentBrush}"
+                                                               VerticalAlignment="Center"
+                                                               Margin="10,0"/>
+
+                                                    <ui:Button Grid.Column="2"
+                                                               Padding="6,2"
+                                                               Icon="{ui:SymbolIcon Folder24}"
+                                                               ToolTip="Показать в Проводнике"
+                                                               Command="{Binding DataContext.OpenFileLocationCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                               CommandParameter="{Binding}"/>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- Футер -->
+            <Border Grid.Row="3"
+                    Margin="0,16,0,0"
+                    Padding="16,12"
+                    CornerRadius="12"
+                    Background="{StaticResource CardBgBrush}"
+                    BorderBrush="{StaticResource CardBorderBrush}"
+                    BorderThickness="1">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0"
+                               Text="{Binding StatusText}"
+                               Foreground="#FFFFFF"
+                               TextWrapping="Wrap"
+                               FontSize="13"
+                               VerticalAlignment="Center"/>
+
+                    <ui:Button Grid.Column="1"
+                               Margin="8,0"
+                               Padding="16,10"
+                               FontSize="13"
+                               Icon="{ui:SymbolIcon DocumentText24}"
+                               Content="Теневые копии"
+                               ToolTip="Показать список теневых копий"
+                               Command="{Binding ListShadowsCommand}"/>
+
+                    <ui:Button Grid.Column="2"
+                               Padding="16,10"
+                               FontSize="13"
+                               Icon="{ui:SymbolIcon Delete24}"
+                               Content="Удалить старые"
+                               ToolTip="Удалить старые теневые копии (нужны права администратора)"
+                               Command="{Binding DeleteOldShadowsCommand}"/>
+                </Grid>
+            </Border>
+
+            <ui:ProgressRing Grid.Row="2"
+                             Width="32" Height="32"
+                             HorizontalAlignment="Right"
+                             VerticalAlignment="Top"
+                             Margin="0,4,12,0"
+                             IsIndeterminate="True"
+                             Foreground="{StaticResource AccentBrush}"
+                             Visibility="{Binding IsScanning, Converter={StaticResource BoolToVis}}"/>
+        </Grid>
+
+        <!-- Окно с текстом теневых копий: показываем как подсказку в статус-баре -->
+        <Border x:Name="ShadowPanel"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Bottom"
+                Margin="0,0,28,100"
+                MaxWidth="600"
+                MaxHeight="300"
+                Padding="16,12"
+                CornerRadius="12"
+                Background="#1F1F1F"
+                BorderBrush="#2D2D2D"
+                BorderThickness="1"
+                Visibility="{Binding ShadowText, Converter={StaticResource BoolToVis}}">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <TextBlock Text="{Binding ShadowText}"
+                           FontFamily="Consolas"
+                           FontSize="11"
+                           TextWrapping="Wrap"
+                           Foreground="#C5C5C5"/>
+            </ScrollViewer>
+        </Border>
     </Grid>
 </Page>

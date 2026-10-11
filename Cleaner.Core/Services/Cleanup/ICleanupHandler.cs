@@ -1,4 +1,4 @@
-﻿using Cleaner.Core.Data;
+using Cleaner.Core.Data;
 
 namespace Cleaner.Core.Services.Cleanup;
 

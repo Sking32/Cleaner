@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Cleaner.Core.Data;
@@ -122,18 +122,9 @@ public sealed class PathCleanupHandler : ICleanupHandler
             return (size, 1, 0);
         }
 
-        // Fallback: пробуем удалить напрямую (если карантин не смог — например, файл на другом томе).
-        try
-        {
-            File.SetAttributes(path, FileAttributes.Normal);
-            File.Delete(path);
-            return (size, 1, 0);
-        }
-        catch (Exception ex)
-        {
-            errors.Add($"{path}: {ex.Message}");
-            return (0, 0, 1);
-        }
+        // Карантин не смог принять файл (занят, нет доступа, нет места).
+        // Безопасный выбор — пропустить его, а не удалять безвозвратно.
+        return (0, 0, 1);
     }
 
     internal static (long bytes, int deleted, int skipped) ProcessDirectory(

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,7 +10,9 @@ public enum SafetyVerdict
     Safe,
     Forbidden,
     ReparsePoint,
-    TooFresh
+    TooFresh,
+    /// <summary>Не удалось проверить файл (нет доступа, ошибка ввода-вывода) — трогать нельзя.</summary>
+    Unverifiable
 }
 
 public sealed record SafetyResult(SafetyVerdict Verdict, string? Reason = null)
@@ -82,43 +84,62 @@ public sealed class SafetyService : ISafetyService
                 return new SafetyResult(SafetyVerdict.Forbidden, $"forbidden path: {f}");
         }
 
-        if (IsReparsePoint(path))
-            return new SafetyResult(SafetyVerdict.ReparsePoint, "reparse point (symlink/junction)");
-
-        if (IsTooFresh(path))
-            return new SafetyResult(SafetyVerdict.TooFresh, $"created < {FreshMinutes} min ago");
-
-        return new SafetyResult(SafetyVerdict.Safe);
-    }
-
-    internal static string Normalize(string path)
-    {
-        if (string.IsNullOrWhiteSpace(path)) return "";
-        var p = path.Trim().TrimEnd('\\', '/');
-        return p.ToLowerInvariant();
-    }
-
-    private static bool IsReparsePoint(string path)
-    {
         try
         {
             var attrs = File.GetAttributes(path);
-            return (attrs & FileAttributes.ReparsePoint) != 0;
+            if ((attrs & FileAttributes.ReparsePoint) != 0)
+                return new SafetyResult(SafetyVerdict.ReparsePoint, "reparse point (symlink/junction)");
+
+            if (IsTooFresh(path))
+                return new SafetyResult(SafetyVerdict.TooFresh, $"created < {FreshMinutes} min ago");
+
+            return new SafetyResult(SafetyVerdict.Safe);
         }
-        catch { return false; }
+        catch (Exception ex) when (ex is FileNotFoundException or DirectoryNotFoundException)
+        {
+            // Объекта уже нет — удалять нечего, опасности нет.
+            return new SafetyResult(SafetyVerdict.Safe);
+        }
+        catch (Exception ex)
+        {
+            // Не смогли проверить — при сомнении не трогаем.
+            return new SafetyResult(SafetyVerdict.Unverifiable, $"cannot verify: {ex.GetType().Name}");
+        }
+    }
+
+    /// <summary>
+    /// Приводит путь к каноническому виду для сравнения: убирает префикс \\?\,
+    /// разворачивает "..", "." и "/" через Path.GetFullPath, срезает хвостовой слэш,
+    /// приводит к нижнему регистру.
+    /// </summary>
+    internal static string Normalize(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path)) return "";
+
+        var p = path.Trim();
+
+        if (p.StartsWith(@"\\?\", StringComparison.Ordinal))
+            p = p.Substring(4);
+
+        // "C:" без слэша — это текущая папка на диске, а не корень; не разворачиваем.
+        var isBareDrive = p.Length == 2 && p[1] == ':';
+        if (!isBareDrive)
+        {
+            try { p = Path.GetFullPath(p); }
+            catch { /* оставляем как есть */ }
+        }
+
+        p = p.TrimEnd('\\', '/');
+        return p.ToLowerInvariant();
     }
 
     private bool IsTooFresh(string path)
     {
-        try
-        {
-            DateTime created = Directory.Exists(path)
-                ? Directory.GetCreationTimeUtc(path)
-                : File.GetCreationTimeUtc(path);
+        DateTime created = Directory.Exists(path)
+            ? Directory.GetCreationTimeUtc(path)
+            : File.GetCreationTimeUtc(path);
 
-            if (created == DateTime.MinValue) return false;
-            return (DateTime.UtcNow - created).TotalMinutes < FreshMinutes;
-        }
-        catch { return false; }
+        if (created == DateTime.MinValue) return false;
+        return (DateTime.UtcNow - created).TotalMinutes < FreshMinutes;
     }
 }
