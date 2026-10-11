@@ -57,7 +57,7 @@ public partial class DiskViewModel : ObservableObject
                 });
             }
         }
-        catch { }
+        catch (Exception logEx) { CoreLog.Warn("Диск: ошибка", logEx); }
 
         SelectedDrive = Drives.FirstOrDefault();
     }
@@ -189,7 +189,7 @@ public partial class DiskViewModel : ObservableObject
                 UseShellExecute = true
             });
         }
-        catch { }
+        catch (Exception logEx) { CoreLog.Warn("Диск: ошибка", logEx); }
     }
 
     [RelayCommand]
@@ -205,7 +205,7 @@ public partial class DiskViewModel : ObservableObject
                 UseShellExecute = true
             });
         }
-        catch { }
+        catch (Exception logEx) { CoreLog.Warn("Диск: ошибка", logEx); }
     }
 
     private static string RunProcess(string fileName, string arguments, int timeoutMs)

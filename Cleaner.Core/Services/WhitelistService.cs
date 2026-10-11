@@ -269,7 +269,7 @@ public sealed class WhitelistService : IWhitelistService
                 }
             }
         }
-        catch { }
+        catch (Exception logEx) { CoreLog.Warn("Белый список: ошибка записи/чтения", logEx); }
     }
 
     private void Save()
@@ -288,6 +288,6 @@ public sealed class WhitelistService : IWhitelistService
             File.Copy(tmp, FilePath, overwrite: true);
             File.Delete(tmp);
         }
-        catch { }
+        catch (Exception logEx) { CoreLog.Warn("Белый список: ошибка записи/чтения", logEx); }
     }
 }

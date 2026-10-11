@@ -201,7 +201,7 @@ public sealed class QuarantineService : IQuarantineService
                     TotalSizeBytes = manifest.Entries.Sum(e => e.SizeBytes)
                 });
             }
-            catch { /* повреждённый манифест — пропускаем */ }
+            catch (Exception logEx) { CoreLog.Warn("Карантин: повреждённый манифест пропущен", logEx); }
         }
 
         return list.OrderByDescending(s => s.CreatedUtc).ToList();
@@ -256,7 +256,7 @@ public sealed class QuarantineService : IQuarantineService
             {
                 File.WriteAllText(manifestPath, JsonSerializer.Serialize(manifest, WriteOpts));
             }
-            catch { }
+            catch (Exception logEx) { CoreLog.Warn("Карантин: ошибка при очистке сессии", logEx); }
         }
 
         return new QuarantineRestoreResult(restored, failed, errors);
@@ -302,7 +302,7 @@ public sealed class QuarantineService : IQuarantineService
                     Directory.Delete(sessionDir, recursive: true);
                     cleared++;
                 }
-                catch { }
+                catch (Exception logEx) { CoreLog.Warn("Карантин: ошибка при обработке записи", logEx); }
             }
         }
 
@@ -416,7 +416,7 @@ public sealed class QuarantineService : IQuarantineService
                 if (Directory.Exists(SessionDirectory))
                     Directory.Delete(SessionDirectory, recursive: true);
             }
-            catch { }
+            catch (Exception logEx) { CoreLog.Warn("Карантин: ошибка при очистке", logEx); }
             _manifest.Entries.Clear();
             return count;
         }
@@ -436,7 +436,7 @@ public sealed class QuarantineService : IQuarantineService
             File.Copy(tmp, _manifestPath, overwrite: true);
             File.Delete(tmp);
         }
-        catch { }
+        catch (Exception logEx) { CoreLog.Warn("Карантин: ошибка при чтении", logEx); }
     }
 
     private static string? RestoreOne(string sessionDirectory, QuarantineEntry entry)

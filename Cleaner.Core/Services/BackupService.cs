@@ -388,7 +388,7 @@ public sealed class BackupService : IBackupService
                 foreach (var (k, v) in doc) _entries[k] = v;
             }
         }
-        catch { }
+        catch (Exception logEx) { CoreLog.Warn("Бэкап: ошибка при выполнении операции", logEx); }
     }
 
     private void Save()
@@ -401,7 +401,7 @@ public sealed class BackupService : IBackupService
             File.Copy(tmp, BackupFilePath, overwrite: true);
             File.Delete(tmp);
         }
-        catch { }
+        catch (Exception logEx) { CoreLog.Warn("Бэкап: ошибка при выполнении операции", logEx); }
     }
 
     // ---------- Helpers ----------
