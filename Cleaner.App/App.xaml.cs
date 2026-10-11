@@ -24,6 +24,13 @@ public partial class App : Application
         AppLog.PruneOld();
         RegisterGlobalExceptionHandlers();
 
+        CoreLog.Sink = (level, message, ex) =>
+        {
+            if (level == "ERROR") AppLog.Error(message, ex);
+            else if (level == "WARN") AppLog.Warn(ex == null ? message : message + Environment.NewLine + ex);
+            else AppLog.Info(message);
+        };
+
         var elevated = AdminHelper.IsElevated();
         AppLog.Info($"Запуск программы. Права администратора: {elevated}");
 

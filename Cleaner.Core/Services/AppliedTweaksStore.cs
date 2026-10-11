@@ -142,7 +142,7 @@ public sealed class AppliedTweaksStore
                 foreach (var (k, v) in doc) _applied[k] = v;
             }
         }
-        catch { }
+        catch (Exception logEx) { CoreLog.Warn("Хранилище твиков: ошибка записи/чтения", logEx); }
     }
 
     private void Save()
@@ -155,6 +155,6 @@ public sealed class AppliedTweaksStore
             File.Copy(tmp, FilePath, overwrite: true);
             File.Delete(tmp);
         }
-        catch { }
+        catch (Exception logEx) { CoreLog.Warn("Хранилище твиков: ошибка записи/чтения", logEx); }
     }
 }

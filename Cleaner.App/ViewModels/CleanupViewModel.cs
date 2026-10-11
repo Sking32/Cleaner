@@ -238,6 +238,12 @@ public partial class CleanupViewModel : ObservableObject
             }
 
             // Шаг 3. Настоящая очистка.
+            if (dangerNames.Count > 0)
+            {
+                StatusText = "Создаём точку восстановления Windows...";
+                await SessionRestorePoint.EnsureAsync("перед очисткой");
+            }
+
             StatusText = "Выполняется очистка...";
             AppLog.Info($"Очистка: операций {selected.Count} ({string.Join(", ", selected)})");
 
@@ -296,6 +302,8 @@ public partial class CleanupViewModel : ObservableObject
             sb.AppendLine("Среди выбранного есть операции повышенного риска:");
             foreach (var name in dangerNames)
                 sb.AppendLine("  • " + name);
+            sb.AppendLine();
+            sb.AppendLine("Перед очисткой будет создана точка восстановления Windows (если включена защита системы).");
             sb.AppendLine();
         }
 

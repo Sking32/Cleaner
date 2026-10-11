@@ -18,10 +18,10 @@ public static class ExplorerRestarter
                 try { p.Kill(); } catch { }
             }
         }
-        catch { }
+        catch (Exception logEx) { CoreLog.Warn("Перезапуск проводника: ошибка при остановке", logEx); }
 
         try { Thread.Sleep(waitMsAfterKill); } catch { }
 
-        try { Process.Start("explorer.exe"); } catch { }
+        try { Process.Start("explorer.exe"); } catch (Exception logEx) { CoreLog.Warn("Перезапуск проводника: не удалось запустить explorer.exe", logEx); }
     }
 }

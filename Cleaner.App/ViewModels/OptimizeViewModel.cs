@@ -161,7 +161,20 @@ public partial class OptimizeViewModel : ObservableObject
         IsBusy = true;
         try
         {
-            var result = apply ? _optimize.Apply(tweak.Key) : _optimize.Unapply(tweak.Key);
+            if (apply && !string.Equals(tweak.Level, "safe", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!ConfirmTweak(tweak))
+                {
+                    tweak.SetAppliedSilently(false, false);
+                    StatusText = $"Отменено: {tweak.Name}";
+                    return;
+                }
+
+                StatusText = "Создаём точку восстановления Windows...";
+                await SessionRestorePoint.EnsureAsync($"перед применением «{tweak.Name}»");
+            }
+
+            var result = await Task.Run(() => apply ? _optimize.Apply(tweak.Key) : _optimize.Unapply(tweak.Key));
 
             if (result.Success)
             {
@@ -247,6 +260,65 @@ public partial class OptimizeViewModel : ObservableObject
     //  Команды
     // ------------------------------------------------------------------
 
+    private static bool ConfirmTweak(OptimizeTweakViewModel tweak)
+    {
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine($"«{tweak.Name}»");
+        sb.AppendLine($"Уровень риска: {tweak.LevelLabel}.");
+
+        if (tweak.HasWarn)
+        {
+            sb.AppendLine();
+            sb.AppendLine(tweak.Warn);
+        }
+
+        if (tweak.RequiresReboot)
+        {
+            sb.AppendLine();
+            sb.AppendLine("Для применения потребуется перезагрузка.");
+        }
+
+        sb.AppendLine();
+        sb.AppendLine("Перед изменением будет создана точка восстановления Windows (если включена защита системы). " +
+                      "Изменение можно отключить этим же переключателем.");
+        sb.AppendLine();
+        sb.Append("Применить?");
+
+        return System.Windows.MessageBox.Show(
+            sb.ToString(),
+            "Подтверждение изменения",
+            System.Windows.MessageBoxButton.YesNo,
+            string.Equals(tweak.Level, "danger", StringComparison.OrdinalIgnoreCase)
+                ? System.Windows.MessageBoxImage.Warning
+                : System.Windows.MessageBoxImage.Question) == System.Windows.MessageBoxResult.Yes;
+    }
+
+    private static bool ConfirmPreset(string presetName, int total, int risky)
+    {
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine($"Пресет «{presetName}»: будет применено твиков — {total}.");
+
+        if (risky > 0)
+        {
+            sb.AppendLine($"Из них с повышенным риском: {risky}.");
+            sb.AppendLine();
+            sb.AppendLine("Перед применением будет создана точка восстановления Windows (если включена защита системы).");
+        }
+
+        sb.AppendLine();
+        sb.AppendLine("Любой твик потом можно отключить отдельно, а кнопка отката вернёт исходные значения.");
+        sb.AppendLine();
+        sb.Append("Применить пресет?");
+
+        return System.Windows.MessageBox.Show(
+            sb.ToString(),
+            "Подтверждение пресета",
+            System.Windows.MessageBoxButton.YesNo,
+            risky > 0
+                ? System.Windows.MessageBoxImage.Warning
+                : System.Windows.MessageBoxImage.Question) == System.Windows.MessageBoxResult.Yes;
+    }
+
     [RelayCommand(CanExecute = nameof(CanRun))]
     private async Task ApplyPresetAsync()
     {
@@ -259,10 +331,28 @@ public partial class OptimizeViewModel : ObservableObject
             return;
         }
 
+        var riskyCount = keys.Count(k =>
+        {
+            var d = _tweaks.GetByKey(k);
+            return d != null && !string.Equals(d.Level, "safe", StringComparison.OrdinalIgnoreCase);
+        });
+
+        if (!ConfirmPreset(SelectedPreset.Name, keys.Count, riskyCount))
+        {
+            StatusText = "Отменено: ничего не изменено";
+            return;
+        }
+
         IsBusy = true;
         int ok = 0, failed = 0;
         try
         {
+            if (riskyCount > 0)
+            {
+                StatusText = "Создаём точку восстановления Windows...";
+                await SessionRestorePoint.EnsureAsync($"перед применением пресета «{SelectedPreset.Name}»");
+            }
+
             foreach (var key in keys)
             {
                 var tw = FindTweak(key);
@@ -271,7 +361,7 @@ public partial class OptimizeViewModel : ObservableObject
                 tw.IsBusy = true;
                 try
                 {
-                    var result = _optimize.Apply(key);
+                    var result = await Task.Run(() => _optimize.Apply(key));
                     if (result.Success)
                     {
                         tw.SetAppliedSilently(true, _optimize.IsPendingReboot(key));

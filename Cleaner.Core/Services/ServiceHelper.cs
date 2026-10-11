@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.ServiceProcess;
 
@@ -11,6 +12,21 @@ namespace Cleaner.Core.Services;
 /// </summary>
 public static class ServiceHelper
 {
+    /// <summary>
+    /// Службы, остановка или отключение которых может сломать Windows
+    /// (сбой входа в систему, отказ сети, зависание оболочки, синий экран).
+    /// </summary>
+    private static readonly HashSet<string> ProtectedServices = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "RpcSs", "RpcEptMapper", "DcomLaunch", "LSM", "SamSs", "Winmgmt", "EventLog",
+        "PlugPlay", "Power", "ProfSvc", "gpsvc", "BrokerInfrastructure", "CoreMessaging",
+        "SystemEventsBroker", "Schedule", "UserManager", "StateRepository", "nsi", "BFE",
+        "mpssvc", "Themes", "TimeBrokerSvc", "KeyIso", "CryptSvc", "Wcmsvc", "DispBrokerDesktopSvc"
+    };
+
+    public static bool IsProtected(string serviceName)
+        => !string.IsNullOrWhiteSpace(serviceName) && ProtectedServices.Contains(serviceName.Trim());
+
     public static bool Exists(string serviceName)
     {
         try
@@ -54,6 +70,13 @@ public static class ServiceHelper
 
     public static bool SetStartType(string serviceName, string startType)
     {
+        if (IsProtected(serviceName) &&
+            string.Equals(startType, "Disabled", StringComparison.OrdinalIgnoreCase))
+        {
+            CoreLog.Warn($"Отключение защищённой службы запрещено: {serviceName}");
+            return false;
+        }
+
         var scArg = startType?.ToLowerInvariant() switch
         {
             "automatic" or "auto" => "auto",
@@ -65,7 +88,15 @@ public static class ServiceHelper
     }
 
     public static bool Start(string serviceName) => RunSc($"start \"{serviceName}\"");
-    public static bool Stop(string serviceName) => RunSc($"stop \"{serviceName}\"");
+    public static bool Stop(string serviceName)
+    {
+        if (IsProtected(serviceName))
+        {
+            CoreLog.Warn($"Остановка защищённой службы запрещена: {serviceName}");
+            return false;
+        }
+        return RunSc($"stop \"{serviceName}\"");
+    }
 
     // ---------- internals ----------
 

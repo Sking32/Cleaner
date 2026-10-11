@@ -150,6 +150,7 @@ public partial class SystemViewModel : ObservableObject
     private async Task StopServiceAsync(ServiceItem? item)
     {
         if (item is null) return;
+        if (!ConfirmServiceAction(item, "остановить")) return;
         IsBusy = true;
         try
         {
@@ -167,6 +168,7 @@ public partial class SystemViewModel : ObservableObject
     private async Task RestartServiceAsync(ServiceItem? item)
     {
         if (item is null) return;
+        if (!ConfirmServiceAction(item, "перезапустить")) return;
         IsBusy = true;
         try
         {
@@ -182,9 +184,40 @@ public partial class SystemViewModel : ObservableObject
         finally { IsBusy = false; }
     }
 
+    private bool ConfirmServiceAction(ServiceItem item, string verb)
+    {
+        if (ServiceHelper.IsProtected(item.Name))
+        {
+            StatusText = $"Служба «{item.DisplayName}» защищена: её остановка может нарушить работу Windows";
+            System.Windows.MessageBox.Show(
+                $"Служба «{item.DisplayName}» относится к ключевым службам Windows.\n\n" +
+                "Её остановка или перезапуск могут привести к сбоям системы, поэтому программа этого не позволяет.",
+                "Cleaner",
+                System.Windows.MessageBoxButton.OK,
+                System.Windows.MessageBoxImage.Warning);
+            return false;
+        }
+
+        var answer = System.Windows.MessageBox.Show(
+            $"Вы уверены, что хотите {verb} службу «{item.DisplayName}»?\n\n" +
+            "Программы и функции Windows, которые от неё зависят, могут перестать работать.",
+            "Подтверждение",
+            System.Windows.MessageBoxButton.YesNo,
+            System.Windows.MessageBoxImage.Question);
+
+        return answer == System.Windows.MessageBoxResult.Yes;
+    }
+
     [RelayCommand]
     private void RebootNow()
     {
+        var answer = System.Windows.MessageBox.Show(
+            "Компьютер будет перезагружен через 30 секунд.\n\nСохраните открытые документы. Продолжить?",
+            "Перезагрузка",
+            System.Windows.MessageBoxButton.YesNo,
+            System.Windows.MessageBoxImage.Question);
+        if (answer != System.Windows.MessageBoxResult.Yes) return;
+
         try
         {
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
@@ -254,7 +287,7 @@ public partial class SystemViewModel : ObservableObject
             var status = new MEMORYSTATUSEX();
             if (GlobalMemoryStatusEx(status)) return status.ullTotalPhys;
         }
-        catch { }
+        catch (Exception logEx) { CoreLog.Warn("Система: не удалось определить параметры системы", logEx); }
         return 0;
     }
 

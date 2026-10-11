@@ -76,11 +76,32 @@ public sealed class OptimizeService : IOptimizeService
         var tweak = Tweaks.GetByKey(tweakKey);
         if (tweak == null) return new ApplyResult(false, $"tweak not found: {tweakKey}");
 
+        var wasApplied = _appliedStore.IsApplied(tweak.Key);
+
         foreach (var action in tweak.Apply)
         {
             var r = _interpreter.Execute(action, tweak.Key, tweak.Category);
             if (!r.Success)
-                return new ApplyResult(false, $"[{action.Type}] {r.Error}");
+            {
+                var error = $"[{action.Type}] {r.Error}";
+                CoreLog.Warn($"Твик {tweak.Key}: ошибка применения: {error}");
+
+                // Не оставляем систему в «полуприменённом» состоянии.
+                if (!wasApplied)
+                {
+                    try
+                    {
+                        var rb = Rollback(tweak.Key);
+                        if (rb.Success) error += " (изменения отменены)";
+                    }
+                    catch (Exception rbEx)
+                    {
+                        CoreLog.Warn($"Твик {tweak.Key}: откат после ошибки не удался", rbEx);
+                    }
+                }
+
+                return new ApplyResult(false, error);
+            }
         }
 
         var requiresReboot = tweak.RequiresReboot || _presets.IsRebootTweak(tweak.Key);
