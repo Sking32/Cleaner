@@ -1,3 +1,4 @@
+using Cleaner.App.Localization;
 using System;
 using System.Threading.Tasks;
 using Cleaner.Core.Services;
@@ -6,24 +7,27 @@ namespace Cleaner.App.Services;
 
 /// <summary>
 /// Создаёт точку восстановления Windows не чаще одного раза за запуск программы.
-/// Если нет прав администратора — молча пропускает (с записью в журнал).
+/// При отсутствии подтверждённой точки восстановления останавливает опасную операцию.
 /// </summary>
 public static class SessionRestorePoint
 {
-    private static bool _requested;
+    private static bool _created;
+    private static readonly System.Threading.SemaphoreSlim Gate = new(1, 1);
 
-    public static async Task EnsureAsync(string reason)
+    public static async Task<bool> EnsureAsync(string reason)
     {
-        if (_requested) return;
-
-        if (!AdminHelper.IsElevated())
+        await Gate.WaitAsync();
+        try
         {
-            AppLog.Info("Точка восстановления пропущена: нет прав администратора");
-            return;
+            if (_created) return true;
+            var result = AdminHelper.IsElevated()
+                ? await Task.Run(() => RestorePointService.TryCreate("Cleaner: " + reason))
+                : new RestorePointResult(false, Loc.T("restore.admin"));
+            AppLog.Info($"Точка восстановления ({reason}): {result.Message}");
+            if (result.Success) { _created = true; return true; }
+            await Dialogs.InfoAsync("Cleaner", Loc.T("restore.failed") + "\n" + result.Message);
+            return false;
         }
-
-        _requested = true;
-        var result = await Task.Run(() => RestorePointService.TryCreate("Cleaner: " + reason));
-        AppLog.Info($"Точка восстановления ({reason}): {result.Message}");
+        finally { Gate.Release(); }
     }
 }

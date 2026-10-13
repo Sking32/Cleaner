@@ -8,11 +8,12 @@ namespace Cleaner.App.Views;
 
 public partial class CleanupPage : Page
 {
+    public CleanupPage() => InitializeComponent();
+
     public CleanupPage(CleanupViewModel vm)
     {
         InitializeComponent();
         DataContext = vm;
-        Loaded += (_, _) => AnimateIn();
     }
 
     private void AnimateIn()

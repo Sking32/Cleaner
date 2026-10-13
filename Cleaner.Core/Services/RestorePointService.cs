@@ -16,19 +16,22 @@ public static class RestorePointService
         var safe = (description ?? "Cleaner").Replace("'", "").Replace("\"", "");
         if (safe.Length > 100) safe = safe.Substring(0, 100);
 
-        var command =
-            "Enable-ComputerRestore -Drive ($env:SystemDrive + '\\'); " +
-            "Checkpoint-Computer -Description '" + safe + "' -RestorePointType MODIFY_SETTINGS";
+        var command = "$ErrorActionPreference='Stop'; $WarningPreference='Stop'; " +
+            "$before=@(Get-ComputerRestorePoint | Select-Object -ExpandProperty SequenceNumber); " +
+            "Checkpoint-Computer -Description '" + safe + "' -RestorePointType MODIFY_SETTINGS; " +
+            "$new=@(Get-ComputerRestorePoint | Where-Object { $_.SequenceNumber -notin $before -and $_.Description -eq '" + safe + "' }); " +
+            "if($new.Count -eq 0){throw 'Windows did not create a new restore point'}";
 
-        var args = "-NoProfile -NonInteractive -ExecutionPolicy Bypass -Command \"" + command + "\"";
+        var args = "-NoProfile -NonInteractive -EncodedCommand " +
+            Convert.ToBase64String(System.Text.Encoding.Unicode.GetBytes(command));
 
         try
         {
             var r = CommandRunner.Run("powershell.exe", args, timeoutMs);
             if (r.Success)
             {
-                CoreLog.Info("Точка восстановления запрошена: " + safe);
-                return new RestorePointResult(true, "Точка восстановления запрошена");
+                CoreLog.Info("Точка восстановления создана: " + safe);
+                return new RestorePointResult(true, "Точка восстановления создана");
             }
 
             CoreLog.Warn("Не удалось создать точку восстановления: " + r.StdErr.Trim());

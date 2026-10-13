@@ -9,11 +9,21 @@ namespace Cleaner.Core.Services.Cleanup;
 /// </summary>
 public sealed class CleanupContext
 {
+    private readonly List<CleanupSkip> _skips = new();
+    public IReadOnlyList<CleanupSkip> SkipDetails => _skips.ToArray();
+    public int OmittedSkipDetails { get; private set; }
+    public void RecordSkip(string operationKey, string path, string reason)
+    {
+        if (_skips.Count < 250) _skips.Add(new(operationKey, path, reason));
+        else OmittedSkipDetails++;
+    }
     public ISafetyService Safety { get; }
     public IWhitelistService Whitelist { get; }
     public IQuarantineService Quarantine { get; }
     public IProgress<CleanupProgress>? Progress { get; }
     public CancellationToken CancellationToken { get; }
+    public ICommandExecutor Commands { get; }
+    public Cleaner.Core.Registry.IRegistryAccess Registry { get; }
 
     /// <summary>
     /// Если true — handler ничего не удаляет, только считает что было бы удалено.
@@ -27,7 +37,9 @@ public sealed class CleanupContext
         IQuarantineService quarantine,
         IProgress<CleanupProgress>? progress = null,
         CancellationToken cancellationToken = default,
-        bool dryRun = false)
+        bool dryRun = false,
+        ICommandExecutor? commands = null,
+        Cleaner.Core.Registry.IRegistryAccess? registry = null)
     {
         Safety = safety ?? throw new ArgumentNullException(nameof(safety));
         Whitelist = whitelist ?? throw new ArgumentNullException(nameof(whitelist));
@@ -35,6 +47,8 @@ public sealed class CleanupContext
         Progress = progress;
         CancellationToken = cancellationToken;
         DryRun = dryRun;
+        Commands = commands ?? new SystemCommandExecutor();
+        Registry = registry ?? new Cleaner.Core.Registry.WindowsRegistryAccess();
     }
 
     /// <summary>Удобный helper для отчёта прогресса из handler'а.</summary>

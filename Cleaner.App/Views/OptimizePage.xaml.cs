@@ -8,11 +8,12 @@ namespace Cleaner.App.Views;
 
 public partial class OptimizePage : Page
 {
+    public OptimizePage() => InitializeComponent();
+
     public OptimizePage(OptimizeViewModel vm)
     {
         InitializeComponent();
         DataContext = vm;
-        Loaded += (_, _) => AnimateIn();
     }
 
     private void AnimateIn()

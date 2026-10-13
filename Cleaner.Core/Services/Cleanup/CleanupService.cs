@@ -74,6 +74,7 @@ public sealed class CleanupService : ICleanupService
         {
             return handler.Run(op, ctx) ?? CleanupOperationResult.Fail($"{op.Key}: handler returned null");
         }
+        catch (OperationCanceledException) { throw; }
         catch (Exception ex)
         {
             return CleanupOperationResult.Fail($"{op.Key}: {ex.Message}");

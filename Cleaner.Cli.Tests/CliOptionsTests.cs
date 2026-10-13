@@ -7,6 +7,52 @@ namespace Cleaner.Cli.Tests;
 
 public class CliOptionsTests
 {
+    [Fact]
+    public void ExecutionRequiresExplicitApply()
+    {
+        Assert.True(CliOptions.Parse(new[] { "--preset", "soft" }).DryRun);
+        var apply = CliOptions.Parse(new[] { "--preset", "soft", "--apply" });
+        Assert.False(apply.DryRun);
+        Assert.Null(apply.Validate());
+        Assert.NotNull(CliOptions.Parse(new[] { "--preset", "soft", "--apply", "--dry-run" }).Validate());
+    }
+
+    [Theory]
+    [InlineData("--preset")]
+    [InlineData("--ops")]
+    [InlineData("--log")]
+    [InlineData("--webhook")]
+    [InlineData("--report")]
+    public void MissingOptionValueIsRejected(string flag)
+    {
+        Assert.NotNull(CliOptions.Parse(new[] { flag, "--help" }).Validate());
+    }
+
+    [Fact]
+    public void ReportPathRequiresCleanupAndCannotBeUsedWithMerge()
+    {
+        var valid = CliOptions.Parse(new[] { "--preset", "soft", "--report", "report.json" });
+        Assert.Equal("report.json", valid.ReportPath); Assert.Null(valid.Validate());
+        Assert.True(valid.DryRun);
+        Assert.NotNull(CliOptions.Parse(new[] { "--help", "--report", "report.json" }).Validate());
+        Assert.NotNull(CliOptions.Parse(new[] { "--merge-tweaks", "a", "b", "--report", "report.json" }).Validate());
+    }
+
+    [Fact]
+    public void UnknownPresetOrOperationFailsBeforeCreatingRuntimeState()
+    {
+        using var output = new OutputWriter(new StringWriter(), null, false);
+        var runner = new CliRunner(output);
+        Assert.Equal(64, runner.Run(CliOptions.Parse(new[] { "--preset", "unknown" })));
+        Assert.Equal(64, runner.Run(CliOptions.Parse(new[] { "--ops", "dns,unknown" })));
+    }
+
+    [Fact]
+    public void MergeToolsRejectConflictingModes()
+    {
+        Assert.NotNull(CliOptions.Parse(new[] { "--merge-tweaks", "--merge-strings", "a", "b" }).Validate());
+        Assert.NotNull(CliOptions.Parse(new[] { "--merge-tweaks", "--preset", "soft", "a", "b" }).Validate());
+    }
     // ---------- базовое ----------
 
     [Fact]
@@ -169,11 +215,12 @@ public class CliOptionsTests
     // ---------- ignored unknown ----------
 
     [Fact]
-    public void Unknown_Flags_Are_Ignored()
+    public void Unknown_Flags_Are_Rejected()
     {
         var opts = CliOptions.Parse(new[] { "--preset", "soft", "--gibberish" });
         Assert.Equal("soft", opts.Preset);
         Assert.Empty(opts.Positional);
+        Assert.NotNull(opts.Validate());
     }
 
     // ---------- OutputWriter ----------

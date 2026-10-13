@@ -1,3 +1,4 @@
+using Cleaner.App.Localization;
 using Cleaner.App.Services;
 using Cleaner.App.ViewModels;
 using Cleaner.App.Views;
@@ -16,6 +17,7 @@ namespace Cleaner.App;
 public partial class App : Application
 {
     private IServiceProvider? _services;
+    private CleanerStateLease? _stateLease;
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -37,9 +39,9 @@ public partial class App : Application
         if (!elevated && !System.Diagnostics.Debugger.IsAttached)
         {
             var answer = System.Windows.MessageBox.Show(
-                "Для полной очистки и оптимизации (службы, реестр, системные кэши) нужны права администратора.\n\n" +
-                "Перезапустить программу от имени администратора?\n\n" +
-                "Если выбрать «Нет», часть функций будет работать с ограничениями или не сработает.",
+                Loc.T("t.dlya_polnoy_ochistki_i_optimizacii_sluzhby") +
+                Loc.T("t.perezapustit_programmu_ot_imeni_administrato") +
+                Loc.T("t.esli_vybrat_net_chast_funkciy_budet"),
                 "Cleaner",
                 System.Windows.MessageBoxButton.YesNo,
                 System.Windows.MessageBoxImage.Question);
@@ -51,20 +53,45 @@ public partial class App : Application
             }
         }
 
-        var collection = new ServiceCollection();
-        ConfigureServices(collection);
-        _services = collection.BuildServiceProvider();
-        AppServices.Provider = _services;
+        try
+        {
+            _stateLease = new CleanerStateLease();
+            var pruned = QuarantineService.PruneEmptySessions();
+            if (pruned > 0) AppLog.Info($"Удалено пустых сессий карантина: {pruned}");
+        }
+        catch (Exception pruneEx)
+        {
+            AppLog.Warn("Не удалось удалить пустые сессии карантина: " + pruneEx.Message);
+            System.Windows.MessageBox.Show(pruneEx.Message, "Cleaner", System.Windows.MessageBoxButton.OK, MessageBoxImage.Error);
+            Shutdown(1);
+            return;
+        }
 
-        ApplicationThemeManager.Apply(
-            ApplicationTheme.Dark,
-            WindowBackdropType.Mica,
-            updateAccent: true);
+        try
+        {
+            var collection = new ServiceCollection();
+            ConfigureServices(collection);
+            _services = collection.BuildServiceProvider();
+            AppServices.Provider = _services;
 
-        ApplicationAccentColorManager.ApplySystemAccent();
+            ApplicationThemeManager.Apply(
+                ApplicationTheme.Dark,
+                WindowBackdropType.Mica,
+                updateAccent: true);
 
-        var mainWindow = _services.GetRequiredService<MainWindow>();
-        mainWindow.Show();
+            // Единый акцент приложения (а не системный цвет Windows).
+            Appearance.Apply();
+
+            var mainWindow = _services.GetRequiredService<MainWindow>();
+            mainWindow.Show();
+        }
+        catch (Exception ex)
+        {
+            AppLog.Error("Не удалось запустить Cleaner; данные восстановления сохранены", ex);
+            System.Windows.MessageBox.Show(Loc.T("startup.failed") + "\n\n" + ex.Message,
+                "Cleaner", System.Windows.MessageBoxButton.OK, MessageBoxImage.Error);
+            Shutdown(1);
+        }
     }
 
     private void RegisterGlobalExceptionHandlers()
@@ -73,9 +100,9 @@ public partial class App : Application
         {
             AppLog.Error("Необработанная ошибка интерфейса", args.Exception);
             System.Windows.MessageBox.Show(
-                "Произошла непредвиденная ошибка. Программа продолжит работу.\n\n" +
+                Loc.T("t.proizoshla_nepredvidennaya_oshibka_programma") +
                 args.Exception.Message + "\n\n" +
-                "Подробности записаны в журнал:\n" + AppLog.LogDirectory,
+                Loc.T("t.podrobnosti_zapisany_v_zhurnal") + AppLog.LogDirectory,
                 "Cleaner",
                 System.Windows.MessageBoxButton.OK,
                 System.Windows.MessageBoxImage.Error);
@@ -97,6 +124,7 @@ public partial class App : Application
     protected override void OnExit(ExitEventArgs e)
     {
         if (_services is IDisposable d) d.Dispose();
+        _stateLease?.Dispose();
         base.OnExit(e);
     }
 
@@ -110,7 +138,7 @@ public partial class App : Application
         services.AddSingleton<TweakRepository>();
         services.AddSingleton<OperationsRepository>();
         services.AddSingleton<PresetsRepository>();
-        services.AddSingleton<LocalizationRepository>(_ => new LocalizationRepository("ru"));
+        services.AddSingleton<LocalizationRepository>(_ => new LocalizationRepository(UserSettings.GetLanguage()));
 
         // --- Core-сервисы ---
         services.AddSingleton<ISafetyService>(_ => new SafetyService(freshMinutes: 5));
@@ -131,13 +159,18 @@ public partial class App : Application
         services.AddSingleton<PrivacyViewModel>();
         services.AddSingleton<SystemViewModel>();
         services.AddSingleton<DiskViewModel>();
+        services.AddSingleton<StatusBarViewModel>();
+        services.AddSingleton<StartupViewModel>();
+        services.AddSingleton<SettingsViewModel>();
 
         // --- Страницы и главное окно ---
         services.AddSingleton<MainWindow>();
         services.AddSingleton<CleanupPage>();
         services.AddSingleton<OptimizePage>();
+        services.AddSingleton<StartupPage>();
         services.AddSingleton<SystemPage>();
         services.AddSingleton<PrivacyPage>();
         services.AddSingleton<DiskPage>();
+        services.AddSingleton<SettingsPage>();
     }
 }

@@ -37,7 +37,7 @@ public class JumpListsHandlerTests : IDisposable
         var ctx = new CleanupContext(
             new SafetyService(freshMinutes: 5),
             new WhitelistService(Path.Combine(_root, "wl.json")),
-            new QuarantineService(q));
+            new QuarantineService(q), dryRun: true, commands: new FakeCommands());
 
         var handler = new JumpListsHandler();
         var op = new OperationEntry { Kind = "operation", Key = "jump_lists", Handler = "JumpLists" };

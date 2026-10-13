@@ -63,7 +63,7 @@ public class PathCleanupQuarantineFailureTests : IDisposable
         var result = new PathCleanupHandler().Run(op, ctx);
 
         Assert.True(File.Exists(file));
-        Assert.Equal(0, result.FilesDeleted);
+        Assert.Equal(0, result.FilesQuarantined);
         Assert.Equal(1, result.FilesSkipped);
     }
 }

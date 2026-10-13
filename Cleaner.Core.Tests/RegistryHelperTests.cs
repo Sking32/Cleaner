@@ -6,6 +6,7 @@ using Xunit;
 
 namespace Cleaner.Core.Tests;
 
+[Trait("Category", "WindowsIntegration")]
 public class RegistryHelperTests : IDisposable
 {
     private const string Hive = "HKCU";

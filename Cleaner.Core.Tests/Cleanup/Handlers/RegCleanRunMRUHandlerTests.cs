@@ -11,6 +11,7 @@ namespace Cleaner.Core.Tests.Cleanup.Handlers;
 
 public class RegCleanRunMRUHandlerTests : IDisposable
 {
+    private readonly MemoryRegistry _registry = new();
     private const string Hive = "HKCU";
     private const string SubKey = @"Software\Microsoft\Windows\CurrentVersion\Explorer\RunMRU";
     private readonly string _qDir;
@@ -25,34 +26,34 @@ public class RegCleanRunMRUHandlerTests : IDisposable
 
     public void Dispose()
     {
-        try { RegistryHelper.DeleteKey(Hive, SubKey, recursive: true); } catch { }
+        try { _registry.DeleteKey(Hive, SubKey, recursive: true); } catch { }
         try { if (System.IO.Directory.Exists(_qDir)) System.IO.Directory.Delete(_qDir, recursive: true); } catch { }
     }
 
     private CleanupContext Ctx()
         => new(new SafetyService(5),
                new WhitelistService(System.IO.Path.Combine(_qDir, "wl.json")),
-               new QuarantineService(_qDir));
+               new QuarantineService(_qDir), registry: _registry);
 
     [Fact]
     public void Clears_Values_In_RunMRU()
     {
-        RegistryHelper.SetValue(Hive, SubKey, "a", "cmd.exe\\1", RegistryValueKind.String, true);
-        RegistryHelper.SetValue(Hive, SubKey, "b", "notepad.exe\\1", RegistryValueKind.String, true);
+        _registry.SetValue(Hive, SubKey, "a", "cmd.exe\\1", RegistryValueKind.String, true);
+        _registry.SetValue(Hive, SubKey, "b", "notepad.exe\\1", RegistryValueKind.String, true);
 
         var handler = new RegCleanRunMRUHandler();
         var op = new OperationEntry { Kind = "operation", Key = "run_history", Handler = "RegCleanRunMRU" };
         var result = handler.Run(op, Ctx());
 
         Assert.True(result.Success, string.Join(";", result.Errors));
-        Assert.Null(RegistryHelper.GetValue(Hive, SubKey, "a"));
-        Assert.Null(RegistryHelper.GetValue(Hive, SubKey, "b"));
+        Assert.Null(_registry.GetValue(Hive, SubKey, "a"));
+        Assert.Null(_registry.GetValue(Hive, SubKey, "b"));
     }
 
     [Fact]
     public void Missing_Key_Returns_Ok()
     {
-        try { RegistryHelper.DeleteKey(Hive, SubKey, recursive: true); } catch { }
+        try { _registry.DeleteKey(Hive, SubKey, recursive: true); } catch { }
         var handler = new RegCleanRunMRUHandler();
         var op = new OperationEntry { Kind = "operation", Key = "run_history", Handler = "RegCleanRunMRU" };
         var r = handler.Run(op, Ctx());

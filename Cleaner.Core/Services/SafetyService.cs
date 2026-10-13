@@ -29,6 +29,7 @@ public interface ISafetyService
 
 public sealed class SafetyService : ISafetyService
 {
+    private readonly IReadOnlyList<string> _forbiddenTrees;
     public int FreshMinutes { get; }
     public IReadOnlyCollection<string> ForbiddenPaths { get; }
 
@@ -61,6 +62,10 @@ public sealed class SafetyService : ISafetyService
             localAppData,
             appData
         };
+        var windows = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
+        list.AddRange(new[] { Path.GetPathRoot(windows) ?? "", windows, Environment.SystemDirectory,
+            Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
+            Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86) });
 
         if (extraForbidden != null) list.AddRange(extraForbidden);
 
@@ -69,6 +74,10 @@ public sealed class SafetyService : ISafetyService
             .Select(Normalize)
             .Distinct()
             .ToArray();
+        _forbiddenTrees = new[] { Environment.SystemDirectory,
+            Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
+            Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86) }
+            .Concat(extraForbidden ?? Array.Empty<string>()).Where(p => !string.IsNullOrWhiteSpace(p)).Select(Normalize).ToArray();
     }
 
     public SafetyResult Check(string path)
@@ -77,6 +86,15 @@ public sealed class SafetyService : ISafetyService
             return new SafetyResult(SafetyVerdict.Forbidden, "empty path");
 
         var normalized = Normalize(path);
+        try
+        {
+            var root = Path.GetPathRoot(path);
+            if (!string.IsNullOrEmpty(root) && normalized == Normalize(root))
+                return new SafetyResult(SafetyVerdict.Forbidden, "drive or share root");
+        }
+        catch (Exception ex) { return new SafetyResult(SafetyVerdict.Unverifiable, ex.Message); }
+        if (_forbiddenTrees.Any(root => normalized == root || normalized.StartsWith(root + "\\", StringComparison.OrdinalIgnoreCase)))
+            return new SafetyResult(SafetyVerdict.Forbidden, "protected system or excluded tree");
 
         foreach (var f in ForbiddenPaths)
         {
@@ -86,6 +104,18 @@ public sealed class SafetyService : ISafetyService
 
         try
         {
+            var ancestor = Path.GetFullPath(path);
+            while (!string.IsNullOrEmpty(ancestor))
+            {
+                try
+                {
+                    if ((File.GetAttributes(ancestor) & FileAttributes.ReparsePoint) != 0)
+                        return new SafetyResult(SafetyVerdict.ReparsePoint, "reparse point in path");
+                }
+                catch (FileNotFoundException) { }
+                catch (DirectoryNotFoundException) { }
+                ancestor = Path.GetDirectoryName(ancestor);
+            }
             var attrs = File.GetAttributes(path);
             if ((attrs & FileAttributes.ReparsePoint) != 0)
                 return new SafetyResult(SafetyVerdict.ReparsePoint, "reparse point (symlink/junction)");

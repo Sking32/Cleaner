@@ -548,24 +548,24 @@
         {
           "type": "commandRun",
           "fileName": "wevtutil.exe",
-          "arguments": "sl Application /ms:10240"
+          "arguments": "sl Application /ms:10485760"
         },
         {
           "type": "commandRun",
           "fileName": "wevtutil.exe",
-          "arguments": "sl System /ms:10240"
+          "arguments": "sl System /ms:10485760"
         }
       ],
       "unapply": [
         {
           "type": "commandRun",
           "fileName": "wevtutil.exe",
-          "arguments": "sl Application /ms:20480"
+          "arguments": "sl Application /ms:20971520"
         },
         {
           "type": "commandRun",
           "fileName": "wevtutil.exe",
-          "arguments": "sl System /ms:20480"
+          "arguments": "sl System /ms:20971520"
         }
       ],
       "state": [
@@ -573,7 +573,7 @@
           "type": "commandGet",
           "fileName": "wevtutil.exe",
           "arguments": "gl Application /f:xml",
-          "outputContains": "\u003CmaxSize\u003E10240\u003C/maxSize\u003E"
+          "outputContains": "\u003CmaxSize\u003E10485760\u003C/maxSize\u003E"
         }
       ]
     },
@@ -1529,6 +1529,7 @@
     {
       "key": "ClassicContext",
       "category": "win11",
+      "compatibility": { "minWindowsBuild": 22000, "verifiedWindowsBuilds": [] },
       "level": "safe",
       "requiresReboot": true,
       "conflictsWith": [],
@@ -1571,6 +1572,7 @@
     {
       "key": "Widgets",
       "category": "win11",
+      "compatibility": { "minWindowsBuild": 22000, "verifiedWindowsBuilds": [] },
       "level": "safe",
       "requiresReboot": true,
       "conflictsWith": [],
@@ -1635,6 +1637,7 @@
     {
       "key": "SearchHighlights",
       "category": "win11",
+      "compatibility": { "minWindowsBuild": 22000, "verifiedWindowsBuilds": [] },
       "level": "safe",
       "requiresReboot": false,
       "conflictsWith": [],
@@ -1678,6 +1681,7 @@
     {
       "key": "StartRecommendations",
       "category": "win11",
+      "compatibility": { "minWindowsBuild": 22000, "verifiedWindowsBuilds": [] },
       "level": "safe",
       "requiresReboot": false,
       "conflictsWith": [],
@@ -1736,6 +1740,7 @@
     {
       "key": "TaskbarAlign",
       "category": "win11",
+      "compatibility": { "minWindowsBuild": 22000, "verifiedWindowsBuilds": [] },
       "level": "safe",
       "requiresReboot": true,
       "conflictsWith": [],
@@ -1785,6 +1790,7 @@
     {
       "key": "SearchBox",
       "category": "win11",
+      "compatibility": { "minWindowsBuild": 22000, "verifiedWindowsBuilds": [] },
       "level": "safe",
       "requiresReboot": true,
       "conflictsWith": [],
@@ -1834,6 +1840,7 @@
     {
       "key": "ChatIcon",
       "category": "win11",
+      "compatibility": { "minWindowsBuild": 22000, "verifiedWindowsBuilds": [] },
       "level": "safe",
       "requiresReboot": true,
       "conflictsWith": [],
@@ -1883,6 +1890,7 @@
     {
       "key": "TaskView",
       "category": "win11",
+      "compatibility": { "minWindowsBuild": 22000, "verifiedWindowsBuilds": [] },
       "level": "safe",
       "requiresReboot": true,
       "conflictsWith": [],
@@ -1932,6 +1940,7 @@
     {
       "key": "EndTask",
       "category": "win11",
+      "compatibility": { "minWindowsBuild": 22000, "verifiedWindowsBuilds": [] },
       "level": "safe",
       "requiresReboot": true,
       "conflictsWith": [],

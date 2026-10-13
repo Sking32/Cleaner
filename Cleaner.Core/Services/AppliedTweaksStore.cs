@@ -48,7 +48,7 @@ public sealed class AppliedTweaksStore
     public bool IsPendingReboot(string tweakKey)
     {
         lock (_lock)
-            return _applied.TryGetValue(tweakKey, out var e) && e.Applied && e.RequiresReboot;
+            return _applied.TryGetValue(tweakKey, out var e) && e.RequiresReboot;
     }
 
     public void MarkApplied(string tweakKey, bool requiresReboot)
@@ -61,20 +61,16 @@ public sealed class AppliedTweaksStore
                 Applied = true,
                 RequiresReboot = requiresReboot
             };
-            Save();
+            SaveOrReload();
         }
     }
 
-    public void MarkUnapplied(string tweakKey)
+    public void MarkUnapplied(string tweakKey, bool requiresReboot = false)
     {
         lock (_lock)
         {
-            if (_applied.TryGetValue(tweakKey, out var e))
-            {
-                e.Applied = false;
-                e.RequiresReboot = false;
-                Save();
-            }
+            _applied[tweakKey] = new AppliedEntry { Applied = false, RequiresReboot = requiresReboot, When = DateTime.UtcNow.ToString("o") };
+            SaveOrReload();
         }
     }
 
@@ -85,7 +81,7 @@ public sealed class AppliedTweaksStore
             if (_applied.TryGetValue(tweakKey, out var e))
             {
                 e.RequiresReboot = false;
-                Save();
+                SaveOrReload();
             }
         }
     }
@@ -95,7 +91,7 @@ public sealed class AppliedTweaksStore
         lock (_lock)
         {
             foreach (var e in _applied.Values) e.RequiresReboot = false;
-            Save();
+            SaveOrReload();
         }
     }
 
@@ -104,7 +100,7 @@ public sealed class AppliedTweaksStore
         lock (_lock)
         {
             _applied.Clear();
-            Save();
+            SaveOrReload();
         }
     }
 
@@ -119,7 +115,7 @@ public sealed class AppliedTweaksStore
         get
         {
             lock (_lock)
-                return _applied.Values.Count(e => e.Applied && e.RequiresReboot);
+                return _applied.Values.Count(e => e.RequiresReboot);
         }
     }
 
@@ -131,10 +127,11 @@ public sealed class AppliedTweaksStore
         {
             if (!File.Exists(FilePath)) return;
             var json = File.ReadAllText(FilePath);
-            if (string.IsNullOrWhiteSpace(json)) return;
+            if (string.IsNullOrWhiteSpace(json)) throw new InvalidDataException("Empty applied-tweak file.");
 
             var doc = JsonSerializer.Deserialize<Dictionary<string, AppliedEntry>>(json);
-            if (doc == null) return;
+            if (doc == null || doc.Any(kv => string.IsNullOrWhiteSpace(kv.Key) || kv.Value == null))
+                throw new InvalidDataException("Invalid applied-tweak entries.");
 
             lock (_lock)
             {
@@ -142,19 +139,21 @@ public sealed class AppliedTweaksStore
                 foreach (var (k, v) in doc) _applied[k] = v;
             }
         }
-        catch (Exception logEx) { CoreLog.Warn("Хранилище твиков: ошибка записи/чтения", logEx); }
+        catch (Exception logEx) { throw new IOException("Cannot read applied-tweak state.", logEx); }
     }
 
+    private void SaveOrReload()
+    {
+        try { Save(); }
+        catch
+        {
+            _applied.Clear();
+            Load();
+            throw;
+        }
+    }
     private void Save()
     {
-        try
-        {
-            var tmp = FilePath + ".tmp";
-            var json = JsonSerializer.Serialize(_applied, new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(tmp, json);
-            File.Copy(tmp, FilePath, overwrite: true);
-            File.Delete(tmp);
-        }
-        catch (Exception logEx) { CoreLog.Warn("Хранилище твиков: ошибка записи/чтения", logEx); }
+        AtomicFile.Write(FilePath, JsonSerializer.Serialize(_applied, new JsonSerializerOptions { WriteIndented = true }));
     }
 }

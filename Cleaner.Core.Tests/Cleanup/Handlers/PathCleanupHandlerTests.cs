@@ -86,7 +86,7 @@ public class PathCleanupHandlerTests : IDisposable
         Assert.True(result.Success, string.Join("; ", result.Errors));
         Assert.False(File.Exists(f1));
         Assert.False(File.Exists(f2));
-        Assert.Equal(2, result.FilesDeleted);
+        Assert.Equal(2, result.FilesQuarantined);
     }
 
     [Fact]
@@ -120,7 +120,7 @@ public class PathCleanupHandlerTests : IDisposable
         Assert.True(result.Success);
         Assert.False(File.Exists(nested));
         Assert.False(Directory.Exists(sub));
-        Assert.True(result.FilesDeleted >= 1);
+        Assert.True(result.FilesQuarantined >= 1);
     }
 
     [Fact]
@@ -135,7 +135,7 @@ public class PathCleanupHandlerTests : IDisposable
 
         Assert.True(File.Exists(keep));
         Assert.False(File.Exists(remove));
-        Assert.Equal(1, result.FilesDeleted);
+        Assert.Equal(1, result.FilesQuarantined);
         Assert.Equal(1, result.FilesSkipped);
     }
 
@@ -146,9 +146,9 @@ public class PathCleanupHandlerTests : IDisposable
         var result = _handler.Run(OpFor(_tempDir), Ctx(dryRun: true));
 
         Assert.True(File.Exists(f));
-        Assert.Equal(0, result.FilesDeleted);
+        Assert.Equal(0, result.FilesQuarantined);
         Assert.Equal(0, _quarantine.Count);
-        Assert.True(result.BytesFreed > 0);
+        Assert.True(result.PreviewBytes > 0);
     }
 
     [Fact]
@@ -157,7 +157,7 @@ public class PathCleanupHandlerTests : IDisposable
         var op = OpFor(Path.Combine(_root, "does-not-exist"));
         var result = _handler.Run(op, Ctx());
         Assert.True(result.Success);
-        Assert.Equal(0, result.FilesDeleted);
+        Assert.Equal(0, result.FilesQuarantined);
     }
 
     [Fact]
@@ -176,6 +176,6 @@ public class PathCleanupHandlerTests : IDisposable
 
         var result = _handler.Run(OpFor(_tempDir), Ctx());
 
-        Assert.Equal(15, result.BytesFreed);
+        Assert.Equal(15, result.BytesQuarantined);
     }
 }

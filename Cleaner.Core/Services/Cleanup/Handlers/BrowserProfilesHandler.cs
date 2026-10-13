@@ -64,8 +64,8 @@ public sealed class BrowserProfilesHandler : ICleanupHandler
         return new CleanupOperationResult
         {
             Success = errors.Count == 0,
-            BytesFreed = bytes,
-            FilesDeleted = deleted,
+            BytesFreed = 0, PreviewBytes = ctx.DryRun ? bytes : 0, BytesQuarantined = ctx.DryRun ? 0 : bytes,
+            FilesDeleted = 0, FilesQuarantined = deleted,
             FilesSkipped = skipped,
             Errors = errors
         };

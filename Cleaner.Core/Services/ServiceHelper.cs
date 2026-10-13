@@ -80,14 +80,24 @@ public static class ServiceHelper
         var scArg = startType?.ToLowerInvariant() switch
         {
             "automatic" or "auto" => "auto",
+            "automaticdelayed" => "delayed-auto",
             "manual" => "demand",
             "disabled" => "disabled",
-            _ => "auto"
+            "boot" => "boot",
+            "system" => "system",
+            _ => throw new ArgumentException("Unknown service start type")
         };
         return RunSc($"config \"{serviceName}\" start= {scArg}");
     }
 
     public static bool Start(string serviceName) => RunSc($"start \"{serviceName}\"");
+    public static bool StopAndWait(string serviceName) => GetStatus(serviceName) == "Stopped" || Stop(serviceName) && Wait(serviceName, ServiceControllerStatus.Stopped);
+    public static bool StartAndWait(string serviceName) => GetStatus(serviceName) == "Running" || Start(serviceName) && Wait(serviceName, ServiceControllerStatus.Running);
+    private static bool Wait(string name, ServiceControllerStatus status)
+    {
+        try { using var service = new ServiceController(name); service.WaitForStatus(status, TimeSpan.FromSeconds(20)); return true; }
+        catch (Exception ex) { CoreLog.Warn("Service state transition failed: " + name, ex); return false; }
+    }
     public static bool Stop(string serviceName)
     {
         if (IsProtected(serviceName))

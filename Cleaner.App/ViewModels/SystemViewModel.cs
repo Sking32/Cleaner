@@ -1,4 +1,6 @@
-﻿using System;
+using Cleaner.App.Localization;
+using Cleaner.App.Services;
+using System;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
@@ -12,8 +14,12 @@ using Microsoft.Win32;
 
 namespace Cleaner.App.ViewModels;
 
-public partial class SystemViewModel : ObservableObject
+public partial class SystemViewModel : HelpViewModelBase
 {
+    protected override string HelpKey => "system";
+
+    public string FoundText => Loc.F("ui.found_n", FilteredServices.Count);
+
     private readonly AppliedTweaksStore _appliedStore;
 
     // === Информация о системе ===
@@ -31,94 +37,116 @@ public partial class SystemViewModel : ObservableObject
     public ObservableCollection<ServiceItem> FilteredServices { get; } = new();
 
     [ObservableProperty] private string _serviceFilter = "";
-    [ObservableProperty] private string _statusText = "Готово";
+    [ObservableProperty] private int _serviceFilterMode;
+
+    public System.Collections.Generic.IReadOnlyList<string> FilterModes { get; } = new[]
+    {
+        Loc.T("ui.svcfilter.running"),
+        Loc.T("ui.svcfilter.all"),
+        Loc.T("ui.svcfilter.stopped"),
+        Loc.T("ui.svcfilter.recommended"),
+        Loc.T("ui.svcfilter.caution"),
+        Loc.T("ui.svcfilter.system")
+    };
+
+    public StatusBarViewModel StatusBar { get; }
+    [ObservableProperty] private string _statusText = Loc.T("t.gotovo");
     [ObservableProperty] private bool _isBusy;
     [ObservableProperty] private int _pendingRebootCount;
 
     public string PendingRebootText => PendingRebootCount == 0
-        ? "Все изменения применены"
-        : $"⚠ Требуется перезагрузка: {PendingRebootCount} твиков";
+        ? Loc.T("t.vse_izmeneniya_primeneny")
+        : Loc.F("t.trebuetsya_perezagruzka_tvikov", PendingRebootCount);
 
     public bool HasPendingReboot => PendingRebootCount > 0;
     public bool HasServices => FilteredServices.Count > 0;
     public bool HasNoServices => FilteredServices.Count == 0;
 
-    public SystemViewModel(AppliedTweaksStore appliedStore)
+    public SystemViewModel(AppliedTweaksStore appliedStore, StatusBarViewModel statusBar)
     {
         _appliedStore = appliedStore ?? throw new ArgumentNullException(nameof(appliedStore));
+        StatusBar = statusBar ?? throw new ArgumentNullException(nameof(statusBar));
 
         WindowsVersion = GetWindowsProductName();
         WindowsBuild = GetWindowsBuild();
         MachineName = Environment.MachineName;
         UserName = Environment.UserName;
         ProcessorIdentifier = Environment.GetEnvironmentVariable("PROCESSOR_IDENTIFIER") ?? "—";
-        ProcessorCountText = Environment.ProcessorCount + " ядер";
+        ProcessorCountText = Environment.ProcessorCount + Loc.T("t.yader");
         TotalMemoryText = FormatBytes(GetTotalPhysicalMemory());
         DotNetVersion = Environment.Version.ToString();
         Architecture = Environment.Is64BitOperatingSystem ? "64-bit" : "32-bit";
 
-        RefreshAll();
+        _ = RefreshAsync();
     }
 
-    [RelayCommand]
-    private void Refresh() => RefreshAll();
-
-    private void RefreshAll()
+    [RelayCommand(CanExecute = nameof(CanRun))]
+    private async Task RefreshAsync()
     {
-        LoadServices();
-        UpdateRebootCount();
-        StatusText = "Состояние обновлено";
-    }
-
-    private void LoadServices()
-    {
-        Services.Clear();
+        if (IsBusy) return;
+        IsBusy = true;
         try
         {
-            var list = ServiceController.GetServices()
-                .OrderBy(s => s.DisplayName, StringComparer.OrdinalIgnoreCase)
-                .ToList();
-
-            foreach (var sc in list)
-            {
-                try
-                {
-                    Services.Add(new ServiceItem
-                    {
-                        Name = sc.ServiceName,
-                        DisplayName = string.IsNullOrWhiteSpace(sc.DisplayName) ? sc.ServiceName : sc.DisplayName,
-                        Status = sc.Status.ToString(),
-                        StartType = sc.StartType.ToString(),
-                        IsRunning = sc.Status == ServiceControllerStatus.Running
-                    });
-                }
-                catch { }
-                finally { sc.Dispose(); }
-            }
+            await LoadServicesAsync();
+            UpdateRebootCount();
         }
-        catch (Exception ex)
-        {
-            StatusText = "Ошибка при чтении служб: " + ex.Message;
-        }
-        ApplyFilter();
+        finally { IsBusy = false; }
     }
 
+    private async Task LoadServicesAsync()
+    {
+        try
+        {
+            var items = await Task.Run(() =>
+            {
+                var result = new System.Collections.Generic.List<ServiceItem>();
+                foreach (var sc in ServiceController.GetServices())
+                {
+                    try
+                    {
+                        result.Add(new ServiceItem
+                        {
+                            Name = sc.ServiceName,
+                            DisplayName = string.IsNullOrWhiteSpace(sc.DisplayName) ? sc.ServiceName : sc.DisplayName,
+                            Status = sc.Status.ToString(),
+                            StartType = sc.StartType.ToString(),
+                            IsRunning = sc.Status == ServiceControllerStatus.Running
+                        });
+                    }
+                    catch (Exception ex) { CoreLog.Warn("Cannot read service: " + sc.ServiceName, ex); }
+                    finally { sc.Dispose(); }
+                }
+                return result.OrderBy(s => s.DisplayName, StringComparer.OrdinalIgnoreCase).ToList();
+            });
+            Services.Clear();
+            foreach (var item in items) Services.Add(item);
+            ApplyFilter();
+        }
+        catch (Exception ex) { StatusText = Loc.T("t.oshibka_pri_chtenii_sluzhb") + ex.Message; }
+    }
     partial void OnServiceFilterChanged(string value) => ApplyFilter();
+    partial void OnServiceFilterModeChanged(int value) => ApplyFilter();
 
     private void ApplyFilter()
     {
         var f = (ServiceFilter ?? "").Trim();
         var query = Services.AsEnumerable();
 
+        query = ServiceFilterMode switch
+        {
+            0 => f.Length > 0 ? query : query.Where(s => s.IsRunning),
+            2 => query.Where(s => !s.IsRunning),
+            3 => query.Where(s => s.AdviceLevelName == "recommended"),
+            4 => query.Where(s => s.AdviceLevelName == "caution"),
+            5 => query.Where(s => s.AdviceLevelName == "system"),
+            _ => query
+        };
+
         if (f.Length > 0)
         {
             query = query.Where(s =>
                 s.Name.Contains(f, StringComparison.OrdinalIgnoreCase) ||
                 s.DisplayName.Contains(f, StringComparison.OrdinalIgnoreCase));
-        }
-        else
-        {
-            query = query.Where(s => s.IsRunning);
         }
 
         FilteredServices.Clear();
@@ -127,111 +155,108 @@ public partial class SystemViewModel : ObservableObject
 
         OnPropertyChanged(nameof(HasServices));
         OnPropertyChanged(nameof(HasNoServices));
+        OnPropertyChanged(nameof(FoundText));
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanRun))]
     private async Task StartServiceAsync(ServiceItem? item)
     {
-        if (item is null) return;
+        if (item is null || IsBusy) return;
         IsBusy = true;
         try
         {
-            var ok = await Task.Run(() => ServiceHelper.Start(item.Name));
+            var ok = await Task.Run(() => ServiceHelper.StartAndWait(item.Name));
             StatusText = ok
-                ? $"Запущено: {item.DisplayName}"
-                : $"Не удалось запустить: {item.DisplayName} (нужны права администратора?)";
+                ? Loc.F("t.zapuscheno", item.DisplayName)
+                : Loc.F("t.ne_udalos_zapustit_nuzhny_prava_administrato", item.DisplayName);
             await Task.Delay(600);
-            LoadServices();
+            await LoadServicesAsync();
         }
         finally { IsBusy = false; }
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanRun))]
     private async Task StopServiceAsync(ServiceItem? item)
     {
-        if (item is null) return;
-        if (!ConfirmServiceAction(item, "остановить")) return;
+        if (item is null || IsBusy) return;
         IsBusy = true;
         try
         {
-            var ok = await Task.Run(() => ServiceHelper.Stop(item.Name));
+            if (!await ConfirmServiceActionAsync(item, Loc.T("t.ostanovit"))) return;
+            var ok = await Task.Run(() => ServiceHelper.StopAndWait(item.Name));
             StatusText = ok
-                ? $"Остановлено: {item.DisplayName}"
-                : $"Не удалось остановить: {item.DisplayName} (нужны права администратора?)";
+                ? Loc.F("t.ostanovleno", item.DisplayName)
+                : Loc.F("t.ne_udalos_ostanovit_nuzhny_prava_administrat", item.DisplayName);
             await Task.Delay(600);
-            LoadServices();
+            await LoadServicesAsync();
         }
         finally { IsBusy = false; }
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanRun))]
     private async Task RestartServiceAsync(ServiceItem? item)
     {
-        if (item is null) return;
-        if (!ConfirmServiceAction(item, "перезапустить")) return;
+        if (item is null || IsBusy) return;
         IsBusy = true;
         try
         {
-            await Task.Run(() => ServiceHelper.Stop(item.Name));
-            await Task.Delay(1000);
-            var ok = await Task.Run(() => ServiceHelper.Start(item.Name));
+            if (!await ConfirmServiceActionAsync(item, Loc.T("t.perezapustit"))) return;
+            var ok = await Task.Run(() => ServiceHelper.StopAndWait(item.Name) && ServiceHelper.StartAndWait(item.Name));
             StatusText = ok
-                ? $"Перезапущено: {item.DisplayName}"
-                : $"Не удалось перезапустить: {item.DisplayName}";
+                ? Loc.F("t.perezapuscheno", item.DisplayName)
+                : Loc.F("t.ne_udalos_perezapustit", item.DisplayName);
             await Task.Delay(600);
-            LoadServices();
+            await LoadServicesAsync();
         }
         finally { IsBusy = false; }
     }
 
-    private bool ConfirmServiceAction(ServiceItem item, string verb)
+    private async Task<bool> ConfirmServiceActionAsync(ServiceItem item, string verb)
     {
         if (ServiceHelper.IsProtected(item.Name))
         {
-            StatusText = $"Служба «{item.DisplayName}» защищена: её остановка может нарушить работу Windows";
-            System.Windows.MessageBox.Show(
-                $"Служба «{item.DisplayName}» относится к ключевым службам Windows.\n\n" +
-                "Её остановка или перезапуск могут привести к сбоям системы, поэтому программа этого не позволяет.",
+            StatusText = Loc.F("t.sluzhba_zaschischena_ee_ostanovka_mozhet_nar", item.DisplayName);
+            await Dialogs.InfoAsync(
                 "Cleaner",
-                System.Windows.MessageBoxButton.OK,
-                System.Windows.MessageBoxImage.Warning);
+                Loc.F("t.sluzhba_otnositsya_k_klyuchevym_sluzhbam_win", item.DisplayName) +
+                Loc.T("t.ee_ostanovka_ili_perezapusk_mogut_privesti"));
             return false;
         }
 
-        var answer = System.Windows.MessageBox.Show(
-            $"Вы уверены, что хотите {verb} службу «{item.DisplayName}»?\n\n" +
-            "Программы и функции Windows, которые от неё зависят, могут перестать работать.",
-            "Подтверждение",
-            System.Windows.MessageBoxButton.YesNo,
-            System.Windows.MessageBoxImage.Question);
+        var message = Loc.F("t.vy_uvereny_chto_hotite_sluzhbu", verb, item.DisplayName) +
+                      Loc.T("t.programmy_i_funkcii_windows_kotorye_ot");
 
-        return answer == System.Windows.MessageBoxResult.Yes;
+        if (!string.IsNullOrEmpty(item.AdviceNote))
+            message += "\n\n" + item.AdviceNote;
+
+        return await Dialogs.ConfirmAsync(
+            Loc.T("t.podtverzhdenie"),
+            message,
+            item.AdviceLevelName == "caution");
     }
 
     [RelayCommand]
-    private void RebootNow()
+    private async Task RebootNowAsync()
     {
-        var answer = System.Windows.MessageBox.Show(
-            "Компьютер будет перезагружен через 30 секунд.\n\nСохраните открытые документы. Продолжить?",
-            "Перезагрузка",
-            System.Windows.MessageBoxButton.YesNo,
-            System.Windows.MessageBoxImage.Question);
-        if (answer != System.Windows.MessageBoxResult.Yes) return;
+        var confirmed = await Dialogs.ConfirmAsync(
+            Loc.T("t.perezagruzka"),
+            Loc.T("t.kompyuter_budet_perezagruzhen_cherez_30_seku"));
+        if (!confirmed) return;
 
         try
         {
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
             {
                 FileName = "shutdown",
-                Arguments = "/r /t 30 /c \"Cleaner: перезагрузка через 30 секунд\"",
+                Arguments = "/r /t 30 /c \"Cleaner\"",
                 CreateNoWindow = true,
                 UseShellExecute = false
             });
-            StatusText = "Перезагрузка через 30 секунд. Отмена: shutdown /a";
+            StatusText = Loc.T("t.perezagruzka_cherez_30_sekund_otmena_shutdow");
         }
         catch (Exception ex)
         {
-            StatusText = "Ошибка: " + ex.Message;
+            StatusText = Loc.T("t.oshibka") + ex.Message;
         }
     }
 
@@ -240,7 +265,7 @@ public partial class SystemViewModel : ObservableObject
     {
         _appliedStore.ClearAllRebootPending();
         UpdateRebootCount();
-        StatusText = "Флаги перезагрузки сброшены";
+        StatusText = Loc.T("t.flagi_perezagruzki_sbrosheny");
     }
 
     private void UpdateRebootCount()
@@ -248,6 +273,15 @@ public partial class SystemViewModel : ObservableObject
         PendingRebootCount = _appliedStore.PendingRebootCount;
         OnPropertyChanged(nameof(HasPendingReboot));
         OnPropertyChanged(nameof(PendingRebootText));
+    }
+
+    private bool CanRun() => !IsBusy;
+    partial void OnIsBusyChanged(bool value)
+    {
+        RefreshCommand.NotifyCanExecuteChanged();
+        StartServiceCommand.NotifyCanExecuteChanged();
+        StopServiceCommand.NotifyCanExecuteChanged();
+        RestartServiceCommand.NotifyCanExecuteChanged();
     }
 
     // ============================================================
@@ -332,15 +366,37 @@ public sealed class ServiceItem
     public string Status { get; init; } = "";
     public string StartType { get; init; } = "";
     public bool IsRunning { get; init; }
+    public bool CanStart => !IsRunning;
 
-    public string StatusText => IsRunning ? "Работает" : "Остановлена";
+    private ServiceAdvice Advice => ServiceAdvisor.Advise(Name);
+
+    /// <summary>none / recommended / caution / system — для оформления значка.</summary>
+    public string AdviceLevelName => Advice.Level switch
+    {
+        ServiceAdviceLevel.Recommended => "recommended",
+        ServiceAdviceLevel.Caution => "caution",
+        ServiceAdviceLevel.System => "system",
+        _ => "none"
+    };
+
+    public string BadgeText => Advice.Level switch
+    {
+        ServiceAdviceLevel.Recommended => Loc.T("ui.svc.badge.recommended"),
+        ServiceAdviceLevel.Caution => Loc.T("ui.svc.badge.caution"),
+        ServiceAdviceLevel.System => Loc.T("ui.svc.badge.system"),
+        _ => ""
+    };
+
+    public string AdviceNote => Advice.NoteKey != null ? Loc.T(Advice.NoteKey) : "";
+
+    public string StatusText => IsRunning ? Loc.T("t.rabotaet") : Loc.T("t.ostanovlena");
     public string StartTypeRu => StartType switch
     {
-        "Automatic" => "Авто",
-        "Manual" => "Вручную",
-        "Disabled" => "Отключена",
-        "Boot" => "Загрузка",
-        "System" => "Система",
+        "Automatic" => Loc.T("t.avto"),
+        "Manual" => Loc.T("t.vruchnuyu"),
+        "Disabled" => Loc.T("t.otklyuchena"),
+        "Boot" => Loc.T("t.zagruzka"),
+        "System" => Loc.T("t.sistema"),
         _ => StartType
     };
 }

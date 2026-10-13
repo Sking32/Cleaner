@@ -1,0 +1,135 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=System.Runtime">
+
+    <!-- ============================================================
+         ДИЗАЙН-ТОКЕНЫ Cleaner (dark-first)
+         Единственное место, где живут цвета, радиусы, тайминги и размеры.
+         Страницы берут значения только отсюда: поменяв токен, меняешь весь вид.
+         ============================================================ -->
+
+    <!-- ===== Цвета: поверхности ===== -->
+    <Color x:Key="BgBaseColor">#10141C</Color>
+    <Color x:Key="BgElevatedColor">#181E29</Color>
+    <Color x:Key="BgOverlayColor">#202838</Color>
+    <Color x:Key="BgHoverColor">#253046</Color>
+
+    <!-- ===== Цвета: границы ===== -->
+    <Color x:Key="BorderSubtleColor">#2A3445</Color>
+    <Color x:Key="BorderStrongColor">#40506A</Color>
+
+    <!-- ===== Цвета: текст ===== -->
+    <Color x:Key="TextPrimaryColor">#F2F4F7</Color>
+    <Color x:Key="TextSecondaryColor">#B0BDCF</Color>
+    <Color x:Key="TextTertiaryColor">#889AB3</Color>
+
+    <!-- ===== Цвета: акцент (один) и статусы ===== -->
+    <Color x:Key="AccentColor">#78AEFF</Color>
+    <Color x:Key="AccentHoverColor">#98C2FF</Color>
+    <Color x:Key="AccentTealColor">#5EEAD4</Color>
+    <Color x:Key="SuccessColor">#34D399</Color>
+    <Color x:Key="WarningColor">#FBBF24</Color>
+    <Color x:Key="DangerColor">#F87171</Color>
+    <Color x:Key="InfoColor">#60A5FA</Color>
+
+    <!-- ===== Кисти: новые имена ===== -->
+    <SolidColorBrush x:Key="BgBaseBrush" Color="{StaticResource BgBaseColor}"/>
+    <SolidColorBrush x:Key="BgElevatedBrush" Color="{StaticResource BgElevatedColor}"/>
+    <SolidColorBrush x:Key="BgOverlayBrush" Color="{StaticResource BgOverlayColor}"/>
+    <SolidColorBrush x:Key="BgHoverBrush" Color="{StaticResource BgHoverColor}"/>
+    <SolidColorBrush x:Key="BorderSubtleBrush" Color="{StaticResource BorderSubtleColor}"/>
+    <SolidColorBrush x:Key="BorderStrongBrush" Color="{StaticResource BorderStrongColor}"/>
+    <SolidColorBrush x:Key="TextTertiaryBrush" Color="{StaticResource TextTertiaryColor}"/>
+    <SolidColorBrush x:Key="AccentHoverBrush" Color="{StaticResource AccentHoverColor}"/>
+    <SolidColorBrush x:Key="AccentSoftBrush" Color="#1C78AEFF"/>
+    <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource SuccessColor}"/>
+    <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource WarningColor}"/>
+
+    <!-- ===== Кисти: прежние имена (их используют все страницы) ===== -->
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimaryColor}"/>
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondaryColor}"/>
+    <SolidColorBrush x:Key="TextMutedBrush" Color="{StaticResource TextTertiaryColor}"/>
+
+    <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}"/>
+    <SolidColorBrush x:Key="AccentPurpleBrush" Color="#A78BFA"/>
+    <SolidColorBrush x:Key="AccentGlowBrush" Color="#8078AEFF"/>
+
+    <SolidColorBrush x:Key="CardBgBrush" Color="{StaticResource BgElevatedColor}"/>
+    <SolidColorBrush x:Key="CardBorderBrush" Color="{StaticResource BorderSubtleColor}"/>
+    <SolidColorBrush x:Key="CardHoverBgBrush" Color="{StaticResource BgOverlayColor}"/>
+    <SolidColorBrush x:Key="RowHoverBrush" Color="#12FFFFFF"/>
+
+    <SolidColorBrush x:Key="SafeBrush" Color="{StaticResource SuccessColor}"/>
+    <SolidColorBrush x:Key="CautionBrush" Color="{StaticResource WarningColor}"/>
+    <SolidColorBrush x:Key="DangerBrush" Color="{StaticResource DangerColor}"/>
+    <SolidColorBrush x:Key="InfoBrush" Color="{StaticResource InfoColor}"/>
+
+    <!-- ===== Градиенты ===== -->
+    <LinearGradientBrush x:Key="AccentGradientBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#78AEFF" Offset="0"/>
+        <GradientStop Color="#5EEAD4" Offset="1"/>
+    </LinearGradientBrush>
+
+    <!-- Градиент главной кнопки «Очистить» -->
+    <LinearGradientBrush x:Key="GradientCleanBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#78AEFF" Offset="0"/>
+        <GradientStop Color="#5EEAD4" Offset="1"/>
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="PageHeaderBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#1478AEFF" Offset="0"/>
+        <GradientStop Color="#075EEAD4" Offset="0.55"/>
+        <GradientStop Color="#00FFFFFF" Offset="1"/>
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="TopStripeBrush" StartPoint="0,0" EndPoint="1,0">
+        <GradientStop Color="#0078AEFF" Offset="0"/>
+        <GradientStop Color="#6078AEFF" Offset="0.2"/>
+        <GradientStop Color="#605EEAD4" Offset="0.5"/>
+        <GradientStop Color="#6078AEFF" Offset="0.8"/>
+        <GradientStop Color="#0078AEFF" Offset="1"/>
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="CategoryIconBgBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#33FFFFFF" Offset="0"/>
+        <GradientStop Color="#11FFFFFF" Offset="1"/>
+    </LinearGradientBrush>
+
+    <!-- ===== Скругления: 6 / 10 / 14 / 20 ===== -->
+    <CornerRadius x:Key="RadiusSm">6</CornerRadius>
+    <CornerRadius x:Key="RadiusMd">10</CornerRadius>
+    <CornerRadius x:Key="RadiusLg">14</CornerRadius>
+    <CornerRadius x:Key="RadiusXl">20</CornerRadius>
+
+    <!-- ===== Отступы: сетка 4 px ===== -->
+    <sys:Double x:Key="Space1">4</sys:Double>
+    <sys:Double x:Key="Space2">8</sys:Double>
+    <sys:Double x:Key="Space3">12</sys:Double>
+    <sys:Double x:Key="Space4">16</sys:Double>
+    <sys:Double x:Key="Space6">24</sys:Double>
+    <sys:Double x:Key="Space8">32</sys:Double>
+
+    <!-- ===== Типографика ===== -->
+    <FontFamily x:Key="FontUi">Segoe UI Variable Text, Segoe UI</FontFamily>
+    <FontFamily x:Key="FontDisplay">Segoe UI Variable Display, Segoe UI</FontFamily>
+    <FontFamily x:Key="FontMono">Cascadia Mono, Consolas</FontFamily>
+
+    <sys:Double x:Key="FontSizeCaption">11</sys:Double>
+    <sys:Double x:Key="FontSizeBody">13</sys:Double>
+    <sys:Double x:Key="FontSizeBodyLg">14</sys:Double>
+    <sys:Double x:Key="FontSizeTitle">20</sys:Double>
+    <sys:Double x:Key="FontSizeDisplay">30</sys:Double>
+
+    <!-- ===== Тени (применять экономно) ===== -->
+    <DropShadowEffect x:Key="ShadowSm" BlurRadius="12" ShadowDepth="2" Direction="270" Opacity="0.25" Color="#000000"/>
+    <DropShadowEffect x:Key="ShadowMd" BlurRadius="24" ShadowDepth="6" Direction="270" Opacity="0.35" Color="#000000"/>
+    <DropShadowEffect x:Key="ShadowLg" BlurRadius="40" ShadowDepth="12" Direction="270" Opacity="0.45" Color="#000000"/>
+
+    <!-- ===== Движение: быстрое, спокойное, без «пружин» ===== -->
+    <Duration x:Key="DurationFast">0:0:0.15</Duration>
+    <Duration x:Key="DurationBase">0:0:0.22</Duration>
+    <CubicEase x:Key="EaseOut" EasingMode="EaseOut"/>
+
+    <SolidColorBrush x:Key="SidebarBrush" Color="#121823"/>
+    <SolidColorBrush x:Key="BadgeBrush" Color="#253148"/>
+</ResourceDictionary>

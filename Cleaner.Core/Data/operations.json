@@ -99,7 +99,7 @@
       "paths": [],
       "nameKey": "op.recycle.name",
       "descKey": "op.recycle.desc",
-      "command": "Clear-RecycleBin"
+      "command": "Clear-RecycleBin -Force"
     },
     {
       "kind": "operation",

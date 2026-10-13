@@ -40,4 +40,14 @@ public sealed class TweakDefinition
 
     [JsonPropertyName("state")]
     public List<TweakAction> State { get; init; } = new();
+
+    [JsonPropertyName("compatibility")]
+    public TweakCompatibility? Compatibility { get; init; }
+}
+
+public sealed class TweakCompatibility
+{
+    [JsonPropertyName("minWindowsBuild")] public int? MinWindowsBuild { get; init; }
+    [JsonPropertyName("maxWindowsBuild")] public int? MaxWindowsBuild { get; init; }
+    [JsonPropertyName("verifiedWindowsBuilds")] public List<int> VerifiedWindowsBuilds { get; init; } = new();
 }
