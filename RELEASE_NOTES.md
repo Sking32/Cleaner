@@ -1,45 +1,37 @@
-# 🧪 Cleaner 1.1.0-beta.5 — очистка и автоматизация / cleanup and automation
+# 🧪 Cleaner 1.1.0-beta.7.1 — пресеты и быстрый выбор / presets and quick selection
 
 ## 🇷🇺 Русский
 
-Тестовая версия для Windows x64. Помогите проверить поведение приложения; beta ещё не готова к стабильному релизу.
+Небольшое обновление тестовой версии для Windows x64.
 
-- 🗺️ ПКМ на карте диска → расположение файла или папки. Компактные подписи, полное имя и путь в подсказке и под картой.
-- 🧹 Выбор перед очисткой: карантин или безвозвратное удаление. Карантин выбран по умолчанию; удаление без карантина требует явного подтверждения.
-- 🔎 Понятные пропуски: файл занят, нет доступа или уже исчез. В новых отчётах сохраняются причина Windows, версия и режим очистки.
-- ⚡ Удаление карантина сохраняет журнал пакетами по 64 записи; после прерывания можно продолжить удаление.
-- ⏱️ Автоочистка только пока Cleaner открыт: час, 6 часов, день или неделя. Только временные файлы пользователя, созданные и изменённые больше 24 часов назад; всегда в карантин, с исключениями и записью в историю.
-- ⚙️ Запуск вместе с Windows по запросу в настройках. Автоматизация выключена по умолчанию.
-- 📖 Обновлены руководства RU/EN и «Что нового?». История предыдущих версий сохранена.
+- 🧹 Вернулись названия пресетов **Мягкая**, **Стандартная** и **Глубокая**. Их пересмотренный состав и профиль **Для игроков** сохранены.
+- ☑️ Кнопка **Все** выбирает доступные категории текущего режима; **Ничего** снимает все галочки. Выбор не запускает очистку.
+- 🛡️ Во время анализа и очистки изменение пресета и массовый выбор недоступны. Перед выполнением сохраняются анализ, проверка файлов и подтверждение.
+- 🔔 Проверка обновлений теперь распознаёт номера исправлений, например **beta.7.1**, и правильно сравнивает их с beta.7 и beta.8.
+- 🌐 Обновлены подсказки, инструкции RU/EN и история версий внутри приложения.
 
-**Важно:** безвозвратно удалённые файлы Cleaner не восстанавливает. Карантин на том же диске не освобождает место до удаления его содержимого. Точка восстановления не заменяет резервную копию личных файлов. Системные операции могут оставаться безвозвратными независимо от режима файлов. Перенос в карантин по-прежнему требует журналирования каждого файла; ускорено именно удаление карантина.
+**Важно:** в экспертном режиме «Все» выбирает также системные действия с риском для работы Windows. Просмотрите категории и предупреждения перед подтверждением. Ручной Temp включает доступные файлы любого возраста и расширения — сначала закройте приложения. Карантин на том же диске не освобождает место; системные команды не поддерживают карантин. Это всё ещё бета: реальные испытания на целевых версиях Windows ещё предстоят.
 
-**Скачать:** в Assets выберите ZIP для win-x64 и распакуйте целиком. Запустите Cleaner.App.exe; Data должна оставаться рядом. .NET включён, установщик не нужен. Проверка SHA-256 необязательна. Beta не подписана; не отключайте защиту Windows ради запуска.
+📦 **Скачать:** в Assets выберите **Cleaner-1.1.0-beta.7.1-win-x64.zip**, распакуйте целиком и запустите **Cleaner.App.exe**. Папка **Data** должна оставаться рядом. .NET включён; EXE не подписан. SHA-256 необязателен. Не отключайте защиту Windows ради запуска.
 
-**Проверить:** ПКМ и длинные имена на карте, оба режима на ненужных тестовых файлах, отмену, заблокированные файлы, удаление большого тестового карантина. Автозапуск и автоочистку реального Temp проверяйте в отдельной VM; интервал не запускает очистку сразу. После переноса EXE повторно включите автозапуск из новой копии.
+Если предыдущая beta не показывает это обновление, скачайте ZIP вручную со страницы Releases: старые сборки могли не распознавать номер beta.7.1. Не запускайте разные версии одновременно; настройки и карантин используют общий профиль Cleaner.
 
-📣 [Ошибка или отзыв](https://github.com/Sking32/Cleaner/issues/new/choose) · [Руководство](https://github.com/Sking32/Cleaner/blob/master/README.ru.md)
-
-Укажите версию, сборку Windows, шаги, ожидаемый и фактический результат. Перед отправкой отчёта или скриншота скройте личные пути и имена; не прикладывайте карантин и бэкапы.
+📣 [Сообщить об ошибке](https://github.com/Sking32/Cleaner/issues/new/choose) · [Вопросы и впечатления](https://github.com/Sking32/Cleaner/discussions). Укажите версию Cleaner, build Windows, шаги и ожидаемый/фактический результат. Удалите личные данные из скриншотов и отчётов.
 
 ## 🇬🇧 English
 
-A Windows x64 test release. Help validate the app's behavior; this beta is not a stable release.
+A small update to the Windows x64 test build.
 
-- 🗺️ Right-click a disk map cell to open its file or folder location. Compact labels, full names and paths in tooltips and below the map.
-- 🧹 Choose quarantine or permanent deletion before cleanup. Quarantine remains the default; deletion without quarantine requires explicit confirmation.
-- 🔎 Explained skips for busy, access-denied and missing files. New reports include Windows details, the app version and cleanup mode.
-- ⚡ Quarantine deletion checkpoints every 64 entries and can resume after interruption.
-- ⏱️ Automatic cleanup only while Cleaner is open: hourly, every 6 hours, daily or weekly. Only user temp files whose creation and modification are both older than 24 hours; always quarantined, with exclusions and history.
-- ⚙️ Start with Windows on request in Settings. Automation is off by default.
-- 📖 Updated RU/EN guides and What's new; earlier versions are retained.
+- 🧹 Restored the **Soft**, **Standard** and **Deep** preset names. Their reviewed category selections and the **For gamers** profile are preserved.
+- ☑️ **All** selects available categories in the current mode; **None** clears all checkboxes. Selection alone never starts cleanup.
+- 🛡️ Preset changes and bulk selection are unavailable during analysis and cleanup. Analysis, file checks and confirmation remain required before execution.
+- 🔔 Update checks now recognize hotfix numbers such as **beta.7.1** and compare them correctly with beta.7 and beta.8.
+- 🌐 Updated tooltips, RU/EN guides and the in-app version history.
 
-**Important:** Cleaner cannot restore permanently deleted files. Quarantine on the same drive does not free space until its contents are deleted. A restore point does not replace personal file backups. System actions may remain permanent regardless of file mode. Moving files to quarantine still journals each file; this update speeds up quarantine deletion.
+**Important:** expert-mode All also selects system actions that may affect Windows operation. Review categories and warnings before confirming. Manual Temp cleanup includes accessible files of any age and extension — close applications first. Same-drive quarantine does not reclaim space; system commands do not support quarantine. This remains a beta: validation on target Windows versions is still pending.
 
-**Download:** choose the win-x64 ZIP under Assets, extract everything and run Cleaner.App.exe; keep Data beside it. .NET is included, no installer needed. SHA-256 verification is optional. The beta is unsigned; do not disable Windows protection to run it.
+📦 **Download:** choose **Cleaner-1.1.0-beta.7.1-win-x64.zip** under Assets, extract the whole archive and run **Cleaner.App.exe** with **Data** beside it. .NET is included; the EXE is unsigned. SHA-256 verification is optional. Do not disable Windows protection to run the app.
 
-**Test:** map context menus and long names, both modes on disposable files, cancellation, busy files and large test quarantine deletion. Test startup and automatic cleanup of actual Temp in a disposable VM; enabling an interval does not clean immediately. After moving the EXE, re-enable startup from the new copy.
+If an older beta does not show this update, download the ZIP manually from Releases: earlier builds may not recognize beta.7.1. Never run different versions together; Cleaner preferences and quarantine use a shared profile.
 
-📣 [Bug or feedback](https://github.com/Sking32/Cleaner/issues/new/choose) · [Guide](https://github.com/Sking32/Cleaner/blob/master/README.md)
-
-Include the app version, Windows build, steps, expected and actual result. Remove personal paths and names from reports and screenshots before posting; do not upload quarantine or backups.
+📣 [Report a bug](https://github.com/Sking32/Cleaner/issues/new/choose) · [Questions and impressions](https://github.com/Sking32/Cleaner/discussions). Include Cleaner version, Windows build, steps and expected/actual results. Remove private information from screenshots and reports.

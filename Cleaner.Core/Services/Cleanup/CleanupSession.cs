@@ -6,6 +6,7 @@ namespace Cleaner.Core.Services.Cleanup;
 /// <summary>Итог всей сессии очистки.</summary>
 public sealed class CleanupSessionResult
 {
+    [System.Text.Json.Serialization.JsonIgnore] public CleanupPlan? Plan { get; init; }
     public long BytesFreed { get; init; }
     public long PreviewBytes { get; init; }
     public long BytesQuarantined { get; init; }

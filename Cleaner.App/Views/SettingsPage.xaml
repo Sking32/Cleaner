@@ -60,6 +60,24 @@
                 </StackPanel>
             </Border>
             <TextBlock Text="{loc:Loc settings.general}" Style="{StaticResource SectionLabelStyle}" Margin="0,26,0,10"/>
+            <Border Style="{StaticResource CardStyle}" Margin="0,0,0,12">
+                <StackPanel>
+                    <TextBlock Text="{Binding VersionText}" FontWeight="SemiBold"/>
+                    <TextBlock Text="{loc:Loc updates.hint}" Style="{StaticResource SettingHintStyle}"/>
+                    <WrapPanel Margin="0,12,0,0"><ui:Button Content="{loc:Loc updates.check}" Command="{Binding CheckUpdatesCommand}" Margin="0,0,8,0"/><ui:Button Content="GitHub Releases" Command="{Binding OpenReleasesCommand}"/></WrapPanel>
+                    <TextBlock Text="{Binding UpdateStatus}" Style="{StaticResource SettingHintStyle}"/>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource CardStyle}" Margin="0,0,0,12">
+                <Grid>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                    <StackPanel Margin="0,0,20,0">
+                        <TextBlock Text="{loc:Loc settings.expert}" FontWeight="SemiBold"/>
+                        <TextBlock Text="{loc:Loc settings.expert.hint}" Style="{StaticResource SettingHintStyle}" TextWrapping="Wrap"/>
+                    </StackPanel>
+                    <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding ExpertMode, Mode=TwoWay}" OnContent="" OffContent="" VerticalAlignment="Center" AutomationProperties.Name="{loc:Loc settings.expert}"/>
+                </Grid>
+            </Border>
             <Border Style="{StaticResource CardStyle}">
                 <StackPanel>
                     <Grid Margin="0,0,0,18">
@@ -114,6 +132,14 @@
                         <ComboBox Grid.Column="1" ItemsSource="{Binding CleanupIntervals}" DisplayMemberPath="Label" SelectedValuePath="Key" SelectedValue="{Binding AutoCleanupInterval, Mode=TwoWay}" IsEnabled="{Binding AutoCleanupEnabled}"/>
                     </Grid>
                     <TextBlock Text="{Binding AutomationStatus}" Style="{StaticResource SettingHintStyle}" Margin="0,12,0,0"/>
+                </StackPanel>
+            </Border>
+            <TextBlock Text="{loc:Loc settings.storage.title}" Style="{StaticResource SectionLabelStyle}" Margin="0,6,0,10"/>
+            <Border Style="{StaticResource CardStyle}" Margin="0,0,0,20">
+                <StackPanel>
+                    <TextBlock Text="{loc:Loc settings.storage.hint}" Style="{StaticResource SettingHintStyle}"/>
+                    <ui:Button Content="{loc:Loc settings.storage.clear}" Icon="{ui:SymbolIcon Delete24}" Command="{Binding ClearOldLogsCommand}" Margin="0,12,0,0" HorizontalAlignment="Left"/>
+                    <TextBlock Text="{Binding MaintenanceStatus}" Style="{StaticResource SettingHintStyle}"/>
                 </StackPanel>
             </Border>
             <TextBlock Text="{loc:Loc settings.help}" Style="{StaticResource SectionLabelStyle}" Margin="0,6,0,10"/>

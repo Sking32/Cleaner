@@ -37,7 +37,7 @@ public class FirefoxProfilesHandlerTests : IDisposable
     public void No_Firefox_Returns_Ok()
     {
         // На CI-машине Firefox обычно не установлен, тест должен пройти без падений.
-        var handler = new FirefoxProfilesHandler();
+        var handler = new FirefoxProfilesHandler(() => _root);
         var op = new OperationEntry { Kind = "operation", Key = "firefox", Handler = "FirefoxProfiles" };
         var r = handler.Run(op, Ctx());
         Assert.True(r.Success);

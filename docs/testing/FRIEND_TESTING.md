@@ -1,53 +1,85 @@
-# Проверка Cleaner 1.1.0-beta.5
+# Cleaner 1.1.0-beta.7.1 — проверка тестировщиками / tester checklist
 
-Это тестовая сборка. Успешные автоматические тесты не подтверждают совместимость всех системных операций с вашим компьютером.
+## 🇷🇺 На обычном компьютере: знакомство без очистки
 
-## Первый запуск
+1. Распакуйте готовый win-x64 ZIP целиком. `Data` остаётся рядом с `Cleaner.App.exe`; .NET включён. Не запускайте старую и новую копии одновременно.
+2. Прочитайте памятку первого запуска. Для знакомства выберите «Понятно, продолжить». Создание точки восстановления — отдельное системное действие, не обязательное для просмотра интерфейса.
+3. Проверьте RU/EN Windows, ручной выбор языка и «Как в Windows» после перезапуска. Ранее выбранные настройки должны сохраниться; другие языки дают английский.
+4. В шапке и «Что нового?» должна быть `1.1.0-beta.7.1`, предыдущие выпуски сохранены. История и настройки находятся отдельно от основных инструментов.
+5. В простом режиме найдите категории пользовательского и системного Temp и профиль «Для игроков». Раскройте карточку: понятны ли последствия, условия и восстановление? Обычный режим показывает дополнительные кэши, истории и диагностику без автоматического выбора. Экспертный добавляет системные действия с предупреждениями; не применяйте их при знакомстве с интерфейсом.
+6. Нажмите «Проверить компьютер». Анализ не перемещает и не удаляет файлы. Проверьте объёмы, пропуски, график категорий и переход со столбца к деталям. Отмените ещё один анализ: интерфейс должен снова стать доступен.
 
-1. Распакуйте ZIP целиком в обычную папку. Не запускайте EXE из архива и не отделяйте его от папки Data.
-2. Запустите Cleaner.App.exe. В этой сборке .NET включён в приложение; отдельно устанавливать runtime не требуется.
-3. При первом запуске прочитайте памятку безопасности. Для знакомства выберите «Понятно, продолжить» — создавать точку и повышать права не обязательно. Создание точки, согласие/отказ UAC и состояние защиты системы проверять отдельно в тестовой Windows VM; это реальное системное действие.
-4. Внизу бокового меню откройте «Что нового?» и проверьте версию 1.1.0-beta.5, а также записи 1.1.0-beta.2, 1.1.0-beta.1 и 1.0.0. Проверьте переходы в «Историю» и обратно, версию в шапке, список служб на странице «Система» в небольшом окне. Проверьте язык, акцент, плотность, стартовую страницу, размер окна после перезапуска.
+Проверьте названия «Мягкая», «Стандартная», «Глубокая». «Все» ставит галочки доступных категорий текущего режима, «Ничего» снимает их; файлы при этом не изменяются. После массового выбора пресет не должен оставаться выделенным. Примените снова любой пресет и проверьте соответствующий выбор. Во время анализа кнопки «Все», «Ничего» и список пресетов недоступны. В экспертном режиме «Все» включает системные действия — проверяйте только галочки, не запускайте их на основном компьютере.
+7. На «Диске» сравните занято/свободно/всего с выбранным накопителем. Цвет не обозначает здоровье диска. Меняйте накопитель; при недоступности ожидается «Нет данных». Проверьте ПКМ на карте и полное имя маленького блока в подсказке и под картой.
+8. В пустой истории нет примерных данных. Анализы не попадают в график очисток. Новые записи разделяют удалённые данные и карантин, старые с неизвестным методом не классифицируются.
+9. Откройте диагностический экспорт, проверьте скрытые пути и отмените сохранение. Проверка обновлений обращается к GitHub только по кнопке; автоматической установки нет.
+10. Проверьте небольшое окно, реальный масштаб Windows 100/125/150/200%, Tab/Shift+Tab, Enter, Esc, Ctrl+K и длинные подписи. Запишите непонятные места и лишние клики.
 
-## Первый запуск и язык
+Не включайте автоочистку, автозапуск или очистку настоящего Temp ради проверки интерфейса. EXE не подписан; не отключайте защиту Windows.
 
-- На свежем профиле проверьте русский/английский язык Windows. Для других языков ожидается английский. Раскладка клавиатуры не меняет язык приложения.
-- После «Понятно, продолжить» перезапустите приложение: памятка не должна открываться повторно. Проверьте её повторное открытие из настроек.
-- Проверьте ручной язык и возврат к «Как в Windows» с перезапуском. Ранее выбранный язык при обновлении сохраняется.
-- Если файл настроек повреждён или недоступен, ознакомление не считается сохранённым и памятка остаётся. Не удаляйте реальные данные карантина ради проверки: для таких случаев используйте отдельный профиль или VM.
+## 🇷🇺 Отдельно: подготовленная Windows VM
 
-## Что проверить на обычном компьютере
+Согласуйте реальные действия с владельцем VM. Создайте снимок VM и подготовьте только одноразовые данные в тестовом профиле. Настоящие файлы и настройки Windows не относятся к изолированным автоматическим тестам.
 
-- Окно, небольшая ширина, развёрнутый режим, масштаб Windows 100/125/150/200%, длинные названия.
-- Переходы между всеми страницами, поиск в списках, раскрытие деталей, Ctrl+K, Tab/Shift+Tab, Enter и Esc.
-- Сохранение и выбор собственного пресета, обновление по тому же названию, удаление пресета.
-- **Анализ без очистки**: кнопка с лупой на странице очистки. Файлы не изменяются. Оценка и примеры появляются на вкладке результатов, запись — в истории.
-- Экспорт отчёта в выбранную вами папку. Прежде чем отправлять его автору, проверьте личные пути в сообщениях и примерах файлов.
-- Страница «Что нового?» и выбор исходной версии. Старые записи истории могут не содержать подробностей.
+| Сценарий | Ожидается |
+|---|---|
+| Ручной Temp | Доступные файлы любого возраста и расширения; закрыть приложения, проверить карантин |
+| Исключённый, занятый или непроверяемый файл | Сохранён; указана причина пропуска |
+| Данные вне Temp, ссылки, cloud placeholders, исключения, runtime .NET | Защищены. Документы и настройки, вручную оставленные внутри Temp, требуют собственного исключения |
+| Поддерживаемое приложение работает | Связанная категория пропущена; процесс не завершается |
+| Замена/изменение объекта после подтверждённого анализа | Файл не меняется; новые объекты не захватываются |
+| Карантин | Перенос отражён без обещания освобождённого места |
+| Карантин на другом диске | Исходный файл сохранён, причина объяснена |
+| Безвозвратный режим | Отдельное подтверждение; восстановления нет |
+| Отмена очистки | Уже выполненные действия учтены; остальные файлы сохранены |
+| Восстановление с конфликтом имени | Существующий файл не перезаписан, возвращённая копия имеет отдельное имя; содержимое сверено |
+| Поиск карантина | Имя/путь/категория и фильтр незавершённых перемещений; восстановление относится ко всей сессии |
+| Прерывание процесса или повреждение журнала | Остатки сохранены; небезопасное продолжение блокируется |
+| Нехватка места | Следующие действия остановлены; журнал и исходные файлы сохранены |
+| 3000 одноразовых файлов в карантине | Корректная отмена и продолжение удаления; время и характеристики диска зафиксированы |
+| Автоочистка | Только при открытом Cleaner; создание и изменение старше 24 часов, документы/настройки сохраняются, всегда карантин; изначально выключена |
+| Полноэкранное активное окно, диалог, другая операция | Автоочистка ждёт; закрытый Cleaner ничего не выполняет |
+| Автозапуск | Собственная запись Cleaner в HKCU включается/удаляется; после переноса ZIP включается из новой копии |
+| Твики и системные действия | Доступны по режиму и ограничениям build; непроверенный эффект обозначен явно. В VM сверить реальный эффект и откат |
+| Службы | Экспертный режим; критические защищены. Твик меняет тип запуска без принудительной остановки; полный эффект после перезагрузки. Сторонние изменения при откате сохраняются |
+| Старые журналы Cleaner | Настройки → место на диске. Удалены только проверенные журналы прошлых дней; текущий журнал, карантин, настройки и данные восстановления сохранены |
+| Старые настройки, история и карантин | Читаются без потери данных; неполные старые системные бэкапы сохранены для ручной проверки |
 
-## Что проверять отдельно в виртуальной машине
+Подмена объектов, завершение процесса, заполнение диска и повреждение журналов проверяются только в VM на одноразовых данных. Изолированные модели ошибок не заменяют испытания реального процесса и диска.
 
-### Новое в beta.5
+Матрица: Windows 10 22H2 x64 и Windows 11 24H2/25H2/26H2 x64. Все строки требуют отдельного подтверждения. Перед стабильным выпуском минимум **пять неопытных пользователей** должны самостоятельно пройти анализ → объяснение → подтверждение → отчёт → восстановление.
 
-- На карте проверьте ПКМ → расположение файла и папки, длинные имена, маленькие блоки и подпись под картой. Удалённый после анализа файл должен дать понятное сообщение, а не открыть неверный путь.
-- На собственных ненужных файлах проверьте оба режима ручной очистки, анализ без изменений, отмену подтверждения, исключения и занятый файл. Для безвозвратного режима должен появляться явный текст о невозможности возврата; отчёт разделяет удалённые файлы и карантин.
-- Удалите большую тестовую сессию карантина. После отмены оставшиеся файлы должны сохраняться; после прерывания процесса журнал должен предлагать продолжить удаление. Не прерывайте процесс на реальных данных ради проверки.
-- В настройках обе функции автоматизации изначально выключены. На тестовом профиле включите запуск с Windows, выйдите из учётной записи и войдите снова; проверьте свёрнутое окно, отключение автозапуска и обновление пути после переноса приложения. Это меняет собственную запись Cleaner в HKCU, поэтому проверяется только в согласованной VM.
-- Включите автоочистку на час, создайте свои временные файлы старше 24 часов по времени создания и изменения, свежий и исключённый файлы. Через час при открытом приложении должны уйти в карантин только подходящие файлы. Ручной режим безвозвратного удаления на автоочистку не влияет. Проверьте запись в истории и отмену.
-- Перед сроком откройте диалог или запустите другую операцию: автоочистка должна ждать. Закройте приложение: фоновой очистки быть не должно. После запуска/изменения интервала отсчёт начинается заново. Проверка часов и дней дополняет изолированные тесты планировщика, но не заменяется ими.
+## 🇬🇧 On an ordinary PC: explore without cleanup
 
-### Системные действия
+1. Extract the complete win-x64 ZIP with `Data` beside `Cleaner.App.exe`; .NET is included. Never run old and new copies together.
+2. Read the first-launch notice. Choose **Understood, continue** to explore; creating a restore point is a separate system action.
+3. Check Windows RU/EN, manual override and system-language mode after restarting. Existing preferences survive updates; other languages fall back to English.
+4. Confirm `1.1.0-beta.7.1` in the header and What's new, with previous versions preserved. History and Settings are separate from primary tools.
+5. Check simple mode, recommended temporary files and the gaming profile. Expand consequences, requirements and recovery information. Simple mode exposes optional caches and histories without selecting them automatically. Expert mode adds system actions with warnings; do not apply them during UI exploration.
+6. Use **Check computer**, review counts, skipped reasons and clickable category bars, then cancel another analysis. Analysis must never move or delete files.
 
-Создайте снимок чистой Windows VM. Системные изменения, очистку настоящих кэшей Windows, управление службами, автозагрузкой, точками восстановления и твиками проверяйте только после согласования с владельцем VM.
+Check **Soft**, **Standard** and **Deep** names. All selects categories available in the current mode; None clears them without changing files. Bulk selection clears the highlighted preset; choosing a preset again restores its selection. All, None and preset selection are disabled during analysis. Expert-mode All includes system actions: inspect checkboxes only, never apply them on your main PC.
+7. Compare Disk used/free/total with the selected drive. Color is occupancy, not health. Switch drives; unavailable data shows **No data**. Check map context menus and full names of tiny cells.
+8. Empty history has no sample records. Analyses do not enter the cleanup chart; deleted and quarantined sizes stay separate. Unknown legacy methods remain unclassified.
+9. Review diagnostic export with private details hidden, then cancel saving. The update button queries GitHub on request and never installs an update.
+10. Check a small window, actual Windows scaling at 100/125/150/200%, keyboard navigation, Ctrl+K and long labels. Record confusing steps and unnecessary clicks.
 
-- Создайте свои ненужные временные файлы, подождите больше 5 минут. Добавьте один файл в исключения, другой держите открытым. Выполните выбранную файловую очистку, убедитесь, что защищённый и занятый файлы сохранены.
-- Восстановите созданные файлы из карантина и сверяйте содержимое. Проверьте «только чтение» и конфликт имён: существующие файлы не должны перезаписываться.
-- Отмените длинный запуск. Уже выполненные изменения сохраняются; оставшиеся записи должны позволять продолжить восстановление.
-- Включите **один** твик, проверьте фактический результат, перезагрузитесь при необходимости, отключите твик и сравните исходное значение. Снимок VM — страховка, точка восстановления не заменяет его.
-- Зафиксируйте редакцию Windows, номер build, архитектуру, результат операции, изменение после перезагрузки. Метка «Не проверено» не означает подтверждённую совместимость.
+Keep automatic cleanup and startup disabled during UI exploration. The EXE is unsigned; do not disable Windows protection.
 
-## Как сообщить об ошибке
+## 🇬🇧 Authorized Windows VM: disposable data only
 
-Укажите версию Cleaner, Windows и build, архитектуру, масштаб экрана, действие перед ошибкой, ожидаемый и фактический результат. Добавьте снимок экрана и при необходимости проверенный вами отчёт. Журналы находятся в `%LOCALAPPDATA%\Cleaner\Logs` (точный путь показан в настройках). Не отправляйте карантин, настройки, резервные копии реестра или логи без проверки содержимого.
+Obtain the VM owner's agreement, take a snapshot and use a disposable profile. Verify old/fresh/busy/excluded files, protected saves/configs/documents/links/cloud placeholders, running application protection, object replacement after analysis and cancellation. Manual Temp cleanup includes accessible files of any age and extension; close applications first. Automatic cleanup still requires creation and modification ages of at least 24 hours and preserves documents/configurations. Add exclusions for valuable files stored inside Temp.
 
-Приложение пока не подписано. Возможна проверка репутации Windows. Не отключайте антивирус ради тестирования; сначала сверяйте SHA256 архива с полученной от автора суммой.
+Test quarantine versus separately confirmed permanent deletion, same-drive space accounting, cross-drive skips, restoration with name collisions and identical contents, file search, interrupted moves, damaged journals, low disk space and a large disposable session. Process termination, journal corruption and disk exhaustion belong in a prepared VM, never on valuable data.
+
+Automatic cleanup quarantines eligible user temporary files only while Cleaner is open. It waits during a fullscreen foreground window, dialogs and other operations. Startup changes only Cleaner's own HKCU registration. Both options start disabled. Re-enable startup from the new copy after moving the app.
+
+Check mode-dependent access and Windows build constraints. Unverified actions remain labelled unverified. Test actual effects and rollback in the VM only. Service tweaks change startup type without forcibly stopping services; restart to verify the full effect. Critical services remain protected and rollback must preserve outside changes. In Settings, test old Cleaner log cleanup: current logs, settings, quarantine and recovery data must survive. Verify migration of old preferences, history and quarantine; incomplete legacy system backups must be retained for manual review. Isolated fault simulations do not validate real process crashes or hardware behavior.
+
+Target matrix: Windows 10 22H2 x64 and Windows 11 24H2/25H2/26H2 x64; all require explicit validation. A stable release also needs at least **five nontechnical testers** completing analysis → explanation → confirmation → report → recovery independently.
+
+## 📣 Отзыв / feedback
+
+[Issues](https://github.com/Sking32/Cleaner/issues/new/choose) — ошибки и пожелания / bugs and requests. [Discussions](https://github.com/Sking32/Cleaner/discussions) — вопросы и впечатления / questions and impressions.
+
+Укажите / include: Cleaner version, Windows version/build, x64, RU/EN, display scale, reproduction steps, expected and actual result. Review diagnostic previews and screenshots before sharing. Не отправляйте личный профиль, карантин или резервные копии реестра / never attach your personal profile, quarantine contents or registry backups.

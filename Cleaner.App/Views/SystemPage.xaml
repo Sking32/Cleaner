@@ -16,7 +16,7 @@
                 <Grid>
                     <StackPanel Margin="0,0,46,0">
                         <TextBlock Text="{loc:Loc t.sistema}" Style="{StaticResource PageTitleStyle}"/>
-                        <TextBlock Text="{loc:Loc t.informaciya_o_sisteme_i_upravlenie_sluzhbami}" Style="{StaticResource PageSubtitleStyle}" Margin="0,6,0,0"/>
+                        <TextBlock Text="{loc:Loc compatibility.pending}" Style="{StaticResource PageSubtitleStyle}" Margin="0,6,0,0" TextWrapping="Wrap"/>
                     </StackPanel>
                     <ui:Button HorizontalAlignment="Right" VerticalAlignment="Top" Appearance="Transparent" Icon="{ui:SymbolIcon QuestionCircle24}" Command="{Binding ToggleHelpCommand}" ToolTip="{loc:Loc help.show}"/>
                 </Grid>

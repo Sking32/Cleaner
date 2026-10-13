@@ -22,7 +22,7 @@
             <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="{loc:Loc history.search}" ToolTip="{loc:Loc history.search}"/>
             <ui:Button Grid.Column="1" Icon="{ui:SymbolIcon ArrowClockwise24}" Command="{Binding RefreshCommand}" Margin="8,0,0,0" ToolTip="{loc:Loc history.refresh}" AutomationProperties.Name="{loc:Loc history.refresh}"/>
         </Grid>
-        <Grid Grid.Row="2">
+        <TabControl Grid.Row="2" Background="Transparent" BorderThickness="0"><TabItem Header="{loc:Loc analytics.records}"><Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="240"/>
                 <ColumnDefinition Width="*"/>
@@ -80,7 +80,34 @@
                     </ScrollViewer>
                 </Grid>
             </Border>
-        </Grid>
+
+        </Grid></TabItem>
+        <TabItem Header="{loc:Loc analytics.history}">
+            <Border Style="{StaticResource CardStyle}" Margin="0,10,0,0">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <TextBlock Text="{loc:Loc analytics.history.hint}" Style="{StaticResource SettingHintStyle}" Margin="0,0,0,14"/>
+                        <TextBlock Text="{loc:Loc analytics.history.empty}" Style="{StaticResource SettingHintStyle}" Visibility="{Binding HasNoChart, Converter={StaticResource BoolToVis}}"/>
+                        <ItemsControl ItemsSource="{Binding ChartItems}">
+                            <ItemsControl.ItemTemplate><DataTemplate>
+                                <Border Style="{StaticResource RowBorderStyle}" Margin="0,0,0,8">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                        <TextBlock Text="{Binding DateText}" FontWeight="SemiBold" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                                        <StackPanel Grid.Column="1" Margin="12,0,0,0">
+                                            <TextBlock Text="{Binding DeletedText}" FontSize="12"/>
+                                            <ProgressBar Value="{Binding DeletedPercent, Mode=OneWay}" Maximum="100" Height="6" Foreground="{StaticResource SafeBrush}" Background="{StaticResource BorderStrongBrush}" Margin="0,4,0,8"/>
+                                            <TextBlock Text="{Binding QuarantinedText}" FontSize="12"/>
+                                            <ProgressBar Value="{Binding QuarantinedPercent, Mode=OneWay}" Maximum="100" Height="6" Foreground="{DynamicResource AccentBrush}" Background="{StaticResource BorderStrongBrush}" Margin="0,4,0,0"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate></ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </TabItem></TabControl>
         <TextBlock Grid.Row="3" Text="{Binding StatusText}" TextWrapping="Wrap" Foreground="{DynamicResource AccentBrush}" Margin="0,8,0,0"/>
     </Grid>
 </Page>

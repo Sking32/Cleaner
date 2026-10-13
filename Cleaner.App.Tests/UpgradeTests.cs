@@ -134,7 +134,10 @@ public sealed class UpgradeTests
             // The only injected runner is a stub; any attempt to apply fails before touching anything.
             if (!context.DryRun) throw new InvalidOperationException("Applying is forbidden in this fixture.");
             Calls++;
+            var emptyPlan = new CleanupRunner(new CleanupService(new OperationsRepository()), new PresetsRepository())
+                .Run(Array.Empty<string>(), context).Plan;
             return new() { Canceled = Canceled, OperationsRun = 1, PreviewBytes = 100,
+                Plan = emptyPlan,
                 Outcomes = new[] { new OperationOutcome { Key = keys.First(), Handler = "PathCleanup", Success = true, PreviewBytes = 100 } } };
         }
         public CleanupSessionResult RunPreset(string name, CleanupContext context, CancellationToken token = default) => throw new NotSupportedException();
@@ -146,6 +149,71 @@ public sealed class UpgradeTests
             new SafetyService(), new WhitelistService(Path.Combine(_root, "whitelist.json")), new QuarantineService(Path.Combine(_root, "quarantine")));
         foreach (var op in vm.Categories.SelectMany(c => c.Operations)) op.IsChecked = op.Key == "temp_user";
         return vm;
+    }
+
+    [Fact]
+    public void ModeChangeShowsOptionalCategoriesAndAddsExpertCategoriesWithoutExecuting()
+    {
+        UserSettings.SetExpertMode(false);
+        var runner = new PreviewRunner(); var vm = CreateCleanup(runner);
+        Assert.Equal(45, vm.Categories.Sum(c => c.Operations.Count));
+        Assert.Equal(4, vm.Presets.Count);
+        Assert.Contains(vm.Categories.SelectMany(c => c.Operations), op => op.Key == "steam_shader");
+        Assert.DoesNotContain(vm.Categories.SelectMany(c => c.Operations), op => op.Key == "winsxs");
+        UserSettings.SetExpertMode(true);
+        Assert.Equal(56, vm.Categories.Sum(c => c.Operations.Count));
+        UserSettings.SetExpertMode(false);
+        Assert.Equal(45, vm.Categories.Sum(c => c.Operations.Count));
+        Assert.Equal(0, runner.Calls);
+    }
+
+    [Fact]
+    public void UnverifiedExpertTweakRefreshesAccessAndCanStillBeRevertedInSimpleMode()
+    {
+        UserSettings.SetExpertMode(false);
+        var vm = new OptimizeTweakViewModel(new() { Key = "Fixture", Level = "caution" }, "Fixture", "", "", "",
+            (_, _) => throw new InvalidOperationException("No application is permitted in this fixture."));
+        Assert.False(vm.IsCompatible); Assert.False(vm.CanToggle);
+        UserSettings.SetExpertMode(true); vm.RefreshAccess();
+        Assert.True(vm.IsCompatible); Assert.False(vm.IsVerified); Assert.True(vm.CanToggle);
+        vm.SetAppliedSilently(true, false);
+        UserSettings.SetExpertMode(false); vm.RefreshAccess();
+        Assert.False(vm.IsCompatible); Assert.True(vm.CanToggle);
+    }
+
+    [Theory]
+    [InlineData(false, 45)]
+    [InlineData(true, 56)]
+    public void AllAndNoneChangeOnlyTheAvailableSelectionAndPresetsStillWork(bool expert, int count)
+    {
+        UserSettings.SetExpertMode(expert);
+        var runner = new PreviewRunner(); var vm = CreateCleanup(runner);
+        vm.SelectedPreset = vm.Presets.First(p => p.Key == "std");
+        vm.SelectAllCommand.Execute(null);
+        Assert.Equal(count, vm.CheckedCount); Assert.Null(vm.SelectedPreset); Assert.Null(vm.SelectedCustomPreset);
+        Assert.All(vm.Categories.SelectMany(c => c.Operations), op => Assert.True(op.IsChecked));
+        vm.SelectNoneCommand.Execute(null);
+        Assert.Equal(0, vm.CheckedCount); Assert.False(vm.RunCommand.CanExecute(null));
+        Assert.All(vm.Categories.SelectMany(c => c.Operations), op => Assert.False(op.IsChecked));
+        foreach (var key in new[] { "soft", "std", "deep" })
+        {
+            vm.SelectedPreset = vm.Presets.First(p => p.Key == key);
+            Assert.Equal(vm.SelectedPreset.Keys.OrderBy(k => k), vm.Categories.SelectMany(c => c.Operations)
+                .Where(op => op.IsChecked).Select(op => op.Key).OrderBy(k => k));
+        }
+        Assert.Equal(0, runner.Calls);
+    }
+
+    [Fact]
+    public void AllAndNoneCannotChangeSelectionDuringAnOperation()
+    {
+        var runner = new PreviewRunner(); var vm = CreateCleanup(runner); var before = vm.CheckedCount;
+        vm.IsRunning = true;
+        Assert.False(vm.SelectAllCommand.CanExecute(null)); Assert.False(vm.SelectNoneCommand.CanExecute(null));
+        vm.SelectAllCommand.Execute(null); vm.SelectNoneCommand.Execute(null);
+        Assert.Equal(before, vm.CheckedCount); Assert.Equal(0, runner.Calls);
+        vm.IsRunning = false;
+        Assert.True(vm.SelectAllCommand.CanExecute(null)); Assert.True(vm.SelectNoneCommand.CanExecute(null));
     }
 
     [Fact]

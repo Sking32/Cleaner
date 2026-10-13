@@ -9,7 +9,7 @@ namespace Cleaner.Core.Services;
 
 public sealed record FolderSizeEntry(string Name, string Path, long SizeBytes);
 
-public sealed record LargeFileEntry(string Path, long SizeBytes);
+public sealed record LargeFileEntry(string Path, long SizeBytes, FileIdentity? Identity = null);
 
 public readonly record struct ScanProgress(int FilesProcessed, string CurrentPath, long BytesScanned);
 
@@ -67,7 +67,9 @@ public static class DiskAnalyzer
                     ref totalBytes, ref filesProcessed, topFiles, heap);
             }
         }
-        catch { }
+        catch (OperationCanceledException) { throw; }
+        catch (IOException) { }
+        catch (UnauthorizedAccessException) { }
 
         var stack = new Stack<(string path, string topLevel)>();
         try
@@ -81,7 +83,9 @@ public static class DiskAnalyzer
                 stack.Push((sub, name));
             }
         }
-        catch { }
+        catch (OperationCanceledException) { throw; }
+        catch (IOException) { }
+        catch (UnauthorizedAccessException) { }
 
         while (stack.Count > 0)
         {
@@ -100,7 +104,9 @@ public static class DiskAnalyzer
                         progress?.Report(new ScanProgress(filesProcessed, file, totalBytes));
                 }
             }
-            catch { }
+            catch (OperationCanceledException) { throw; }
+        catch (IOException) { }
+        catch (UnauthorizedAccessException) { }
 
             try
             {
@@ -110,7 +116,9 @@ public static class DiskAnalyzer
                     stack.Push((sub, top));
                 }
             }
-            catch { }
+            catch (OperationCanceledException) { throw; }
+        catch (IOException) { }
+        catch (UnauthorizedAccessException) { }
         }
 
         progress?.Report(new ScanProgress(filesProcessed, rootPath, totalBytes));
@@ -128,6 +136,12 @@ public static class DiskAnalyzer
             .Select(x => x.Element)
             .OrderByDescending(f => f.SizeBytes)
             .ToList();
+        for (var i = 0; i < largeFiles.Count; i++)
+        {
+            ct.ThrowIfCancellationRequested();
+            try { using var file = new VerifiedFile(largeFiles[i].Path); largeFiles[i] = largeFiles[i] with { Identity = file.Identity, SizeBytes = file.Identity.Length }; }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { } // Display only; mutation stays disabled for unverified objects.
+        }
 
         return new FolderScanResult(totalBytes, filesProcessed, folders, largeFiles);
     }
@@ -144,7 +158,7 @@ public static class DiskAnalyzer
         PriorityQueue<LargeFileEntry, long> heap)
     {
         long size;
-        try { size = new FileInfo(file).Length; } catch { return; }
+        try { var info = new FileInfo(file); if (((uint)info.Attributes & (0x400 | 0x1000 | 0x40000 | 0x400000)) != 0) return; size = info.Length; } catch { return; }
 
         folderSizes[topLevel] = folderSizes.TryGetValue(topLevel, out var v) ? v + size : size;
         totalBytes += size;

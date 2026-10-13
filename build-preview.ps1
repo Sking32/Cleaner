@@ -1,4 +1,4 @@
-param([ValidateSet('win-x64', 'win-arm64')][string]$Runtime = 'win-x64')
+param([ValidateSet('win-x64')][string]$Runtime = 'win-x64')
 
 $ErrorActionPreference = 'Stop'
 $projectRoot = [IO.Path]::GetFullPath($PSScriptRoot)
@@ -17,7 +17,7 @@ New-Item -ItemType Directory -Path $packageDirectory | Out-Null
 $publishArguments = @('publish', (Join-Path $projectRoot 'Cleaner.App\Cleaner.App.csproj'), '-c', 'Release', '-r', $Runtime,
     '--self-contained', 'true', '-o', $packageDirectory, '--nologo', '-m:1',
     '-p:PublishSingleFile=true', '-p:IncludeNativeLibrariesForSelfExtract=true', '-p:PublishTrimmed=false',
-    '-p:DebugType=None', '-p:DebugSymbols=false')
+    '-p:DebugType=None', '-p:DebugSymbols=false', '-p:IncludeSourceRevisionInInformationalVersion=false')
 & dotnet @publishArguments
 if ($LASTEXITCODE -ne 0) { throw 'Publish failed; no distributable archive was created.' }
 foreach ($required in @('Cleaner.App.exe', 'Data\operations.json', 'Data\tweaks.json', 'Data\presets.json', 'Data\releases.json', 'Data\localization\ru.json', 'Data\localization\en.json')) {

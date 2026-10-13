@@ -5,6 +5,7 @@ namespace Cleaner.Core.Models;
 
 public sealed class TweakDefinition
 {
+    [JsonPropertyName("expertOnly")] public bool ExpertOnly { get; init; }
     [JsonPropertyName("key")]
     public string Key { get; init; } = "";
 

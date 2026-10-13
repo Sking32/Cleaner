@@ -66,6 +66,7 @@ public partial class SystemViewModel : HelpViewModelBase
     {
         _appliedStore = appliedStore ?? throw new ArgumentNullException(nameof(appliedStore));
         StatusBar = statusBar ?? throw new ArgumentNullException(nameof(statusBar));
+        UserSettings.Changed += () => { StartServiceCommand.NotifyCanExecuteChanged(); StopServiceCommand.NotifyCanExecuteChanged(); RestartServiceCommand.NotifyCanExecuteChanged(); };
 
         WindowsVersion = GetWindowsProductName();
         WindowsBuild = GetWindowsBuild();
@@ -158,10 +159,10 @@ public partial class SystemViewModel : HelpViewModelBase
         OnPropertyChanged(nameof(FoundText));
     }
 
-    [RelayCommand(CanExecute = nameof(CanRun))]
+    [RelayCommand(CanExecute = nameof(CanChangeServices))]
     private async Task StartServiceAsync(ServiceItem? item)
     {
-        if (item is null || IsBusy) return;
+        if (item is null || !CanChangeServices() || ServiceHelper.IsProtected(item.Name)) return;
         IsBusy = true;
         try
         {
@@ -175,10 +176,10 @@ public partial class SystemViewModel : HelpViewModelBase
         finally { IsBusy = false; }
     }
 
-    [RelayCommand(CanExecute = nameof(CanRun))]
+    [RelayCommand(CanExecute = nameof(CanChangeServices))]
     private async Task StopServiceAsync(ServiceItem? item)
     {
-        if (item is null || IsBusy) return;
+        if (item is null || !CanChangeServices()) return;
         IsBusy = true;
         try
         {
@@ -193,10 +194,10 @@ public partial class SystemViewModel : HelpViewModelBase
         finally { IsBusy = false; }
     }
 
-    [RelayCommand(CanExecute = nameof(CanRun))]
+    [RelayCommand(CanExecute = nameof(CanChangeServices))]
     private async Task RestartServiceAsync(ServiceItem? item)
     {
-        if (item is null || IsBusy) return;
+        if (item is null || !CanChangeServices()) return;
         IsBusy = true;
         try
         {
@@ -211,28 +212,11 @@ public partial class SystemViewModel : HelpViewModelBase
         finally { IsBusy = false; }
     }
 
-    private async Task<bool> ConfirmServiceActionAsync(ServiceItem item, string verb)
+    private Task<bool> ConfirmServiceActionAsync(ServiceItem item, string verb)
     {
-        if (ServiceHelper.IsProtected(item.Name))
-        {
-            StatusText = Loc.F("t.sluzhba_zaschischena_ee_ostanovka_mozhet_nar", item.DisplayName);
-            await Dialogs.InfoAsync(
-                "Cleaner",
-                Loc.F("t.sluzhba_otnositsya_k_klyuchevym_sluzhbam_win", item.DisplayName) +
-                Loc.T("t.ee_ostanovka_ili_perezapusk_mogut_privesti"));
-            return false;
-        }
-
-        var message = Loc.F("t.vy_uvereny_chto_hotite_sluzhbu", verb, item.DisplayName) +
-                      Loc.T("t.programmy_i_funkcii_windows_kotorye_ot");
-
-        if (!string.IsNullOrEmpty(item.AdviceNote))
-            message += "\n\n" + item.AdviceNote;
-
-        return await Dialogs.ConfirmAsync(
-            Loc.T("t.podtverzhdenie"),
-            message,
-            item.AdviceLevelName == "caution");
+        if (!UserSettings.GetExpertMode() || ServiceHelper.IsProtected(item.Name))
+        { StatusText = Loc.T("services.protected"); return Task.FromResult(false); }
+        return Dialogs.ConfirmAsync(Loc.T("t.podtverzhdenie_izmeneniya"), Loc.F("services.action.warning", verb, item.DisplayName, item.Name), true);
     }
 
     [RelayCommand]
@@ -275,6 +259,7 @@ public partial class SystemViewModel : HelpViewModelBase
         OnPropertyChanged(nameof(PendingRebootText));
     }
 
+    private bool CanChangeServices() => !IsBusy && UserSettings.GetExpertMode();
     private bool CanRun() => !IsBusy;
     partial void OnIsBusyChanged(bool value)
     {

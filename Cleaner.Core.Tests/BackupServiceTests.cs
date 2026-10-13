@@ -36,6 +36,7 @@ public class BackupServiceTests : IDisposable
     {
         _registry.SetValue(Hive, TestRoot, "Flag", 1, RegistryValueKind.DWord, true);
         _svc.SaveBeforeChange("flag", Hive, TestRoot, "Flag", "test");
+        _svc.ExpectRegistry("flag", 0, RegistryValueKind.DWord);
 
         _registry.SetValue(Hive, TestRoot, "Flag", 0, RegistryValueKind.DWord, false);
 
@@ -48,6 +49,7 @@ public class BackupServiceTests : IDisposable
     {
         _registry.SetValue(Hive, TestRoot, "Name", "original", RegistryValueKind.String, true);
         _svc.SaveBeforeChange("name", Hive, TestRoot, "Name");
+        _svc.ExpectRegistry("name", "modified", RegistryValueKind.String);
 
         _registry.SetValue(Hive, TestRoot, "Name", "modified", RegistryValueKind.String, false);
         Assert.True(_svc.RestoreByKey("name"));
@@ -62,6 +64,7 @@ public class BackupServiceTests : IDisposable
         _svc.SaveBeforeChange("blob", Hive, TestRoot, "Blob");
 
         byte[] changed = { 0xFF, 0xFF };
+        _svc.ExpectRegistry("blob", changed, RegistryValueKind.Binary);
         _registry.SetValue(Hive, TestRoot, "Blob", changed, RegistryValueKind.Binary, false);
 
         Assert.True(_svc.RestoreByKey("blob"));
@@ -76,6 +79,7 @@ public class BackupServiceTests : IDisposable
         _svc.SaveBeforeChange("x", Hive, TestRoot, "X");
 
         _registry.SetValue(Hive, TestRoot, "X", 999, RegistryValueKind.DWord, false);
+        _svc.ExpectRegistry("x", 999, RegistryValueKind.DWord);
         _svc.SaveBeforeChange("x", Hive, TestRoot, "X");
 
         Assert.True(_svc.RestoreByKey("x"));
@@ -86,6 +90,7 @@ public class BackupServiceTests : IDisposable
     public void Saves_Remove_When_Value_Missing()
     {
         _svc.SaveBeforeChange("missing", Hive, TestRoot, "NoSuchValue");
+        _svc.ExpectRegistry("missing", 5, RegistryValueKind.DWord);
 
         _registry.SetValue(Hive, TestRoot, "NoSuchValue", 5, RegistryValueKind.DWord, true);
         Assert.True(_registry.ValueExists(Hive, TestRoot, "NoSuchValue"));
@@ -107,6 +112,8 @@ public class BackupServiceTests : IDisposable
         _registry.SetValue(Hive, TestRoot, "B", "one", RegistryValueKind.String, true);
         _svc.SaveBeforeChange("a", Hive, TestRoot, "A");
         _svc.SaveBeforeChange("b", Hive, TestRoot, "B");
+        _svc.ExpectRegistry("a", 99, RegistryValueKind.DWord);
+        _svc.ExpectRegistry("b", "changed", RegistryValueKind.String);
 
         _registry.SetValue(Hive, TestRoot, "A", 99, RegistryValueKind.DWord, false);
         _registry.SetValue(Hive, TestRoot, "B", "changed", RegistryValueKind.String, false);
@@ -132,6 +139,7 @@ public class BackupServiceTests : IDisposable
     {
         _registry.SetValue(Hive, TestRoot, "Persist", 42, RegistryValueKind.DWord, true);
         _svc.SaveBeforeChange("persist", Hive, TestRoot, "Persist");
+        _svc.ExpectRegistry("persist", 0, RegistryValueKind.DWord);
 
         var svc2 = new BackupService(_backupFile, _registry, _commands);
         Assert.Contains("persist", svc2.Keys);

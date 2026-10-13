@@ -21,9 +21,7 @@ public sealed class BrowserProfilesHandler : ICleanupHandler
         "Cache",
         "Code Cache",
         "GPUCache",
-        "Media Cache",
-        Path.Combine("Service Worker", "CacheStorage"),
-        Path.Combine("Service Worker", "ScriptCache")
+        "Media Cache"
     };
 
     public CleanupOperationResult Run(OperationEntry op, CleanupContext ctx)

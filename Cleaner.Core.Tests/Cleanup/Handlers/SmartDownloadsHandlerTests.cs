@@ -40,7 +40,7 @@ public class SmartDownloadsHandlerTests : IDisposable
             new QuarantineService(q),
             dryRun: true);
 
-        var handler = new SmartDownloadsHandler();
+        var handler = new SmartDownloadsHandler(() => _root);
         var op = new OperationEntry
         {
             Kind = "operation",

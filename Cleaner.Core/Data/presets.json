@@ -7,7 +7,7 @@
       "noteKey": "preset.soft.note",
       "keys": [
         "temp_user",
-        "wer_user"
+        "temp_sys"
       ]
     },
     "std": {
@@ -17,20 +17,12 @@
       "keys": [
         "temp_user",
         "temp_sys",
-        "wer_user",
-        "prefetch",
-        "wer_sys",
-        "wer_queue",
-        "crashdumps",
-        "livekernel",
-        "cbs",
-        "notifications",
-        "downloadedprog",
-        "recent",
-        "onedrive",
-        "npm_cache",
-        "pip_cache",
-        "nuget_cache"
+        "thumbs",
+        "chrome",
+        "edge",
+        "firefox",
+        "opera",
+        "yandex"
       ]
     },
     "deep": {
@@ -40,50 +32,34 @@
       "keys": [
         "temp_user",
         "temp_sys",
-        "dns",
-        "recycle",
-        "wer_user",
-        "prefetch",
-        "wer_sys",
-        "wer_queue",
-        "crashdumps",
-        "livekernel",
-        "cbs",
-        "notifications",
-        "dodelivery",
-        "downloadedprog",
-        "recent",
-        "windows_store",
-        "onedrive",
-        "npm_cache",
-        "pip_cache",
-        "nuget_cache",
         "thumbs",
-        "minidump",
-        "fontcache",
-        "d3dscache",
-        "nvidia",
-        "amd",
-        "steam_shader",
         "chrome",
         "edge",
+        "firefox",
         "opera",
         "yandex",
-        "firefox",
         "teams",
         "discord",
         "vscode",
-        "office",
         "steam",
         "epic",
-        "spotify",
-        "telegram",
         "zoom",
         "slack",
         "notion",
-        "obs_logs",
-        "wupdate",
-        "winsxs"
+        "npm_cache",
+        "pip_cache",
+        "nuget_cache",
+        "obs_logs"
+      ]
+    },
+    "gamer": {
+      "nameKey": "preset.gamer.name",
+      "shortKey": "preset.gamer.short",
+      "noteKey": "preset.gamer.note",
+      "keys": [
+        "temp_user",
+        "temp_sys",
+        "thumbs"
       ]
     }
   },
@@ -91,69 +67,48 @@
     "gamer": {
       "nameKey": "optpreset.gamer",
       "keys": [
-        "GameMode",
-        "XboxGameBar"
+        "GameMode"
       ]
     },
     "privacy": {
       "nameKey": "optpreset.privacy",
       "keys": [
-        "Telemetry",
         "AdvertisingId",
-        "ActivityHistory",
-        "Cortana",
-        "XboxGameBar",
-        "BingSearch",
         "LockScreenAds",
-        "Copilot",
-        "Recall",
-        "Feedback",
-        "Location",
-        "DiagnosticData",
-        "InkingTyping",
-        "SpeechRecognition",
-        "UpdateP2P"
+        "Tips",
+        "SearchHighlights",
+        "Feedback"
       ]
     },
     "perf": {
       "nameKey": "optpreset.perf",
       "keys": [
         "VisualFx",
-        "Transparency",
-        "StartupDelay",
-        "MenuDelay"
+        "Transparency"
       ]
     },
     "win11": {
       "nameKey": "optpreset.win11",
       "keys": [
-        "ClassicContext",
-        "Widgets",
         "SearchHighlights",
         "StartRecommendations",
-        "Tips",
-        "ConsumerFeatures",
-        "TaskbarAlign",
-        "SearchBox",
-        "ChatIcon",
-        "TaskView",
-        "EndTask"
+        "Tips"
       ]
     },
     "dev": {
       "nameKey": "optpreset.dev",
       "keys": [
-        "VisualFx",
-        "StartupDelay",
-        "MenuDelay",
-        "Tips",
-        "ConsumerFeatures",
-        "EdgePreload"
+        "Transparency",
+        "Tips"
       ]
     },
     "safe": {
       "nameKey": "optpreset.safe",
-      "keys": []
+      "keys": [
+        "AdvertisingId",
+        "LockScreenAds",
+        "Tips"
+      ]
     }
   },
   "rebootTweaks": [

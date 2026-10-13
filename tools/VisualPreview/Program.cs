@@ -61,6 +61,13 @@ internal static class Program
         app.Resources = (ResourceDictionary)XamlReader.Parse(resources); Console.WriteLine("Resources loaded");
         ApplicationThemeManager.Apply(ApplicationTheme.Dark);
         Appearance.Apply();
+        if (args.Contains("--diagnostics-only"))
+        {
+            CheckDiagnosticPreview(root);
+            File.WriteAllLines(Path.Combine(root, "binding-diagnostics.txt"), bindingTrace.Messages);
+            if (bindingTrace.Messages.Count > 0) throw new InvalidOperationException(string.Join(Environment.NewLine, bindingTrace.Messages));
+            Console.WriteLine(root); return;
+        }
         var cleanup = new CleanupPage { DataContext = CleanupFixture() };
         var privacy = new PrivacyPage { DataContext = PrivacyFixture(root) };
         var optimize = new OptimizePage { DataContext = OptimizeFixture() };
@@ -69,7 +76,10 @@ internal static class Program
         var disk = new DiskPage { DataContext = DiskFixture(root) };
         var fixtureStartup = new FixtureStartup();
         var settings = new SettingsPage(new SettingsViewModel(fixtureStartup));
-        var history = new HistoryPage(new HistoryViewModel(() => new[] { CleanupHistoryEntry.FromReport(new Cleaner.Core.Services.Cleanup.CleanupReport { DryRun = true, Result = new() { OperationsRun = 2, PreviewBytes = 1048576, Outcomes = new[] { new Cleaner.Core.Services.Cleanup.OperationOutcome { Key = "temp_user", Handler = "PathCleanup", Success = true, PreviewBytes = 1048576 } } } }, "preview") }));
+        var history = new HistoryPage(new HistoryViewModel(() => Enumerable.Range(0, 5).Select(i => CleanupHistoryEntry.FromReport(
+            new Cleaner.Core.Services.Cleanup.CleanupReport { AppVersion = AppVersion.Current, CreatedUtc = DateTime.UtcNow.AddDays(-i), Result = new() {
+                OperationsRun = 1, FilesQuarantined = 1, BytesQuarantined = (i + 1) * 1048576,
+                FilesDeleted = i % 2, BytesFreed = i % 2 * 524288 } }, "applied")).ToArray()));
         var news = new WhatsNewPage(new WhatsNewViewModel());
         if (((WhatsNewViewModel)news.DataContext).HasError) throw new InvalidOperationException(((WhatsNewViewModel)news.DataContext).ErrorText);
         Console.WriteLine("Pages loaded");
@@ -103,9 +113,22 @@ internal static class Program
                 var visual = (FrameworkElement)window.Content;
                 visual.Measure(new Size(width, height)); visual.Arrange(new Rect(0, 0, width, height));
                 visual.UpdateLayout();
+                if (tag == "cleanup")
+                {
+                    foreach (var name in new[] { "SelectAllButton", "SelectNoneButton" })
+                    {
+                        var button = (Wpf.Ui.Controls.Button)cleanup.FindName(name);
+                        var bounds = button.TransformToAncestor(visual).TransformBounds(new Rect(button.RenderSize));
+                        var expected = name == "SelectAllButton" ? "SelectAllCommand" : "SelectNoneCommand";
+                        if (BindingOperations.GetBinding(button, Wpf.Ui.Controls.Button.CommandProperty)?.Path?.Path != expected ||
+                            button.ActualHeight < 20 || bounds.Left < 0 || bounds.Right > width || bounds.Bottom > height)
+                            throw new InvalidOperationException("Bulk selection button is clipped or incorrectly bound: " + name);
+                    }
+                }
                 if (tag == "disk")
                 {
                     var map = (FrameworkElement)disk.FindName("DiskMap");
+                    if (map.ActualHeight < 70) throw new InvalidOperationException("The disk gauge leaves too little space for its map.");
                     var detail = Descendants(disk).OfType<System.Windows.Controls.TextBlock>().First(t =>
                         BindingOperations.GetBinding(t, System.Windows.Controls.TextBlock.TextProperty)?.Path?.Path == "MapSelectionText");
                     var mapBottom = map.TranslatePoint(new Point(0, map.ActualHeight), visual).Y;
@@ -155,7 +178,31 @@ internal static class Program
                 var bitmap = new RenderTargetBitmap(1120, 700, 96, 96, PixelFormats.Pbgra32); bitmap.Render(visual);
                 var encoder = new PngBitmapEncoder(); encoder.Frames.Add(BitmapFrame.Create(bitmap));
                 using (var file = File.Create(Path.Combine(root, "cleanup-preview-1120x700-1x.png"))) encoder.Save(file);
+                tabs.SelectedIndex = 2; SaveFixtureImage(window, root, "cleanup-categories");
                 tabs.SelectedIndex = 0;
+            }
+            if (tag == "history" && !args.Contains("--bindings-only"))
+            {
+                var tabs = Descendants(history).OfType<TabControl>().First(); tabs.SelectedIndex = 1;
+                SaveFixtureImage(window, root, "history-chart");
+                var original = history.DataContext; history.DataContext = new HistoryViewModel(() => Array.Empty<CleanupHistoryEntry>());
+                SaveFixtureImage(window, root, "history-empty"); history.DataContext = original; tabs.SelectedIndex = 0;
+            }
+            if (tag == "privacy" && !args.Contains("--bindings-only"))
+            {
+                var filesTab = Descendants(privacy).OfType<TabControl>().Single(t => t.Items.Cast<TabItem>().Any(i => Equals(i.Header, Loc.T("recovery.files.title"))));
+                filesTab.SelectedIndex = 1; SaveFixtureImage(window, root, "recovery-files");
+                if (!Descendants(privacy).OfType<System.Windows.Controls.TextBlock>().Any(t => t.Text == "old-cache.tmp"))
+                    throw new InvalidOperationException("Quarantine file details were not rendered.");
+                filesTab.SelectedIndex = 0;
+            }
+            if (tag == "disk" && !args.Contains("--bindings-only"))
+            {
+                var gauge = Descendants(disk).OfType<Cleaner.App.Controls.DiskGauge>().Single();
+                foreach (var percent in new[] { 0.0, 70, 90, 100, double.NaN })
+                {
+                    gauge.Percent = percent; SaveFixtureImage(window, root, "disk-gauge-" + (double.IsNaN(percent) ? "missing" : percent.ToString("0")));
+                }
             }
             if (tag == "settings" && !args.Contains("--bindings-only"))
             {
@@ -170,12 +217,12 @@ internal static class Program
                 scroll.ScrollToTop();
             }
         }
+        CheckDiagnosticPreview(root);
         CheckPressedButtons((FrameworkElement)window.Content);
         File.WriteAllLines(Path.Combine(root, "binding-diagnostics.txt"), bindingTrace.Messages);
-        var pressedErrors = bindingTrace.Messages.Where(message => message.Contains("PressedForeground", StringComparison.Ordinal)).ToArray();
-        if (pressedErrors.Length > 0)
-            throw new InvalidOperationException($"PressedForeground binding errors: {pressedErrors.Length}. First: {pressedErrors[0]}");
-        Console.WriteLine("Pressed button binding checks passed across all pages.");
+        if (bindingTrace.Messages.Count > 0)
+            throw new InvalidOperationException($"WPF binding diagnostics: {bindingTrace.Messages.Count}. First: {bindingTrace.Messages[0]}");
+        Console.WriteLine("All WPF binding checks passed across all pages.");
         var settingsButton = (Wpf.Ui.Controls.Button)window.FindName("SettingsButton");
         if (settingsButton.Content != null || navigation.Items.Cast<ListBoxItem>().Any(i => (string)i.Tag == "settings"))
             throw new InvalidOperationException("Settings must have a separate icon-only button.");
@@ -283,7 +330,9 @@ internal static class Program
             throw new InvalidOperationException("Settings must reopen the safety notice.");
         safetyVm.ContinueCommand.Execute(null);
         Console.WriteLine("Isolated first-run notice, automatic language and fake restore point checks passed.");
-
+        File.WriteAllLines(Path.Combine(root, "binding-diagnostics.txt"), bindingTrace.Messages);
+        if (bindingTrace.Messages.Count > 0)
+            throw new InvalidOperationException($"WPF binding diagnostics after interactions: {bindingTrace.Messages.Count}. First: {bindingTrace.Messages[0]}");
         Console.WriteLine(root);
         window.Close();
     }
@@ -294,6 +343,40 @@ internal static class Program
         var timer = new DispatcherTimer(DispatcherPriority.Send) { Interval = TimeSpan.FromMilliseconds(milliseconds) };
         timer.Tick += (_, _) => { timer.Stop(); frame.Continue = false; };
         timer.Start(); Dispatcher.PushFrame(frame);
+    }
+    private static void CheckDiagnosticPreview(string root)
+    {
+        var type = typeof(MainWindow).Assembly.GetType("Cleaner.App.Services.DiagnosticExportPreview")!;
+        var report = new { AppVersion = AppVersion.Current, Path = @"C:\Users\Fixture\private.tmp", FilesSkipped = 1, Errors = new[] { @"C:\Users\Fixture\private.tmp: busy" } };
+        var dialog = (Window)type.GetMethod("CreateWindow", BindingFlags.Static | BindingFlags.NonPublic)!.Invoke(null,
+            new object[] { report, "fixture", new Action<string>(_ => throw new InvalidOperationException("Preview cannot save a real report.")) })!;
+        var content = (FrameworkElement)dialog.Content;
+        foreach (var (width, height) in new[] { (680, 500), (440, 320) })
+        {
+            content.Measure(new Size(width, height)); content.Arrange(new Rect(0, 0, width, height)); content.UpdateLayout(); Pump(100);
+            var box = Descendants(content).OfType<System.Windows.Controls.TextBox>().Single();
+            if (box.Text.Contains("Fixture", StringComparison.Ordinal)) throw new InvalidOperationException("Diagnostic preview must start with private details hidden.");
+            foreach (var button in Descendants(content).OfType<System.Windows.Controls.Button>())
+                if (button.TranslatePoint(new Point(0, button.ActualHeight), content).Y > height)
+                    throw new InvalidOperationException("Diagnostic action was clipped.");
+            var bitmap = new RenderTargetBitmap(width, height, 96, 96, PixelFormats.Pbgra32); bitmap.Render(content);
+            var encoder = new PngBitmapEncoder(); encoder.Frames.Add(BitmapFrame.Create(bitmap));
+            using var file = File.Create(Path.Combine(root, $"diagnostics-{width}x{height}.png")); encoder.Save(file);
+        }
+        var checkbox = Descendants(content).OfType<CheckBox>().Single(); var preview = Descendants(content).OfType<System.Windows.Controls.TextBox>().Single();
+        CheckPressedButtons(content);
+        checkbox.IsChecked = true; if (!preview.Text.Contains("Fixture", StringComparison.Ordinal)) throw new InvalidOperationException("Private details opt-in did not work.");
+        checkbox.IsChecked = false; if (preview.Text.Contains("Fixture", StringComparison.Ordinal)) throw new InvalidOperationException("Private details were not hidden again.");
+        dialog.Close(); Console.WriteLine("Diagnostic preview: redaction and layout passed; no file dialog or export was opened.");
+    }
+
+    private static void SaveFixtureImage(MainWindow window, string root, string name)
+    {
+        Pump(120); var visual = (FrameworkElement)window.Content;
+        visual.Measure(new Size(1120, 700)); visual.Arrange(new Rect(0, 0, 1120, 700)); visual.UpdateLayout();
+        var bitmap = new RenderTargetBitmap(1120, 700, 96, 96, PixelFormats.Pbgra32); bitmap.Render(visual);
+        var encoder = new PngBitmapEncoder(); encoder.Frames.Add(BitmapFrame.Create(bitmap));
+        using var file = File.Create(Path.Combine(root, name + "-1120x700-1x.png")); encoder.Save(file);
     }
 
     private static IEnumerable<DependencyObject> Descendants(DependencyObject parent)
@@ -394,6 +477,9 @@ internal static class Program
             }).ToArray()
         }).Where(c => c.Operations.Length > 0).ToArray();
         vm.CheckedCount = 12; vm.PreviewSizeText = "1.24 GB"; vm.CurrentStage = 0; vm.CanEditSelection = true;
+        vm.ExpertMode = true;
+        vm.CategoryChart = new[] { new CategoryChartItem("quick", Loc.T("section.sec.quick.name"), 1048576, 1048576), new CategoryChartItem("browsers", Loc.T("section.sec.browsers.name"), 524288, 1048576) };
+        vm.HasCategoryChart = true;
         vm.FileModes = new[] { new CleanupModeChoice(Cleaner.Core.Services.Cleanup.CleanupFileMode.Quarantine, Loc.T("cleanup.mode.quarantine")),
             new CleanupModeChoice(Cleaner.Core.Services.Cleanup.CleanupFileMode.PermanentDelete, Loc.T("cleanup.mode.delete")) };
         vm.FileMode = Cleaner.Core.Services.Cleanup.CleanupFileMode.Quarantine;
@@ -415,6 +501,8 @@ internal static class Program
         };
         vm.FilteredSessions = sessions; vm.SelectedSession = sessions[0]; vm.HasSelectedSession = true;
         vm.HasNoVisibleSessions = false; vm.SessionSearchText = ""; vm.EmptySessionsText = Loc.T("t.karantin_pust");
+        vm.FilteredFiles = new[] { new QuarantineFileItem(new QuarantineEntry { OriginalPath = @"C:\Example\old-cache.tmp", SizeBytes = 1048576 }) };
+        vm.FileSearchText = ""; vm.PendingFilesOnly = false; vm.FileListStatus = Loc.F("recovery.files.count", 1);
         vm.QuarantineSummary = Loc.F("t.sessiy_obektov", 2, 181, "1.27 GB");
         vm.WhitelistRules = new[] { "C:\\Example\\Important\\*", "*.project" }; vm.HasWhitelistRules = true;
         vm.WhitelistPath = Path.Combine(root, "whitelist.json"); vm.NewRuleText = ""; return vm;
@@ -467,7 +555,9 @@ internal static class Program
     private static object DiskFixture(string root)
     {
         dynamic vm = Bag("Disk"); vm.CanSelectDrive = true; vm.IsScanning = false; vm.IsMutating = false;
+        vm.ExpertMode = false;
         vm.Drives = new[] { new { Display = "Example drive · 512 GB", UsedPercent = 75.0 } }; vm.SelectedDrive = vm.Drives[0];
+        vm.CapacityText = Loc.F("analytics.capacity", "384 GB", "128 GB", "512 GB");
         vm.TreemapNodes = new[] { new DiskTreeNode("Projects — a folder with a very long name", Path.Combine(root, "Projects"), 600, true),
             new DiskTreeNode("Media", Path.Combine(root, "Media"), 400, true), new DiskTreeNode("Downloads", Path.Combine(root, "Downloads"), 220, true),
             new DiskTreeNode("very-long-file-name.log", Path.Combine(root, "fixture.log"), 18, false) };

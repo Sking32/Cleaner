@@ -10,12 +10,13 @@ namespace Cleaner.Core.Services.Cleanup.Handlers;
 /// </summary>
 public sealed class JumpListsHandler : ICleanupHandler
 {
+    private readonly System.Func<string> _appData;
+    public JumpListsHandler(System.Func<string>? appData = null) => _appData = appData ?? (() => System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData));
     public string Name => "JumpLists";
 
     public CleanupOperationResult Run(OperationEntry op, CleanupContext ctx)
     {
-        var appData = System.Environment.GetFolderPath(
-            System.Environment.SpecialFolder.ApplicationData);
+        var appData = _appData();
 
         var targets = new[]
         {

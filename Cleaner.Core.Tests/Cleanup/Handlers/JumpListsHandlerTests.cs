@@ -39,7 +39,7 @@ public class JumpListsHandlerTests : IDisposable
             new WhitelistService(Path.Combine(_root, "wl.json")),
             new QuarantineService(q), dryRun: true, commands: new FakeCommands());
 
-        var handler = new JumpListsHandler();
+        var handler = new JumpListsHandler(() => _root);
         var op = new OperationEntry { Kind = "operation", Key = "jump_lists", Handler = "JumpLists" };
         var r = handler.Run(op, ctx);
         Assert.True(r.Success);

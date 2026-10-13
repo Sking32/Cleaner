@@ -9,6 +9,7 @@ public sealed class AppSettingsData
     public string? Language { get; set; }
     public int SafetyNoticeVersion { get; set; }
     public bool AutoCleanupEnabled { get; set; }
+    public bool ExpertMode { get; set; }
     public int AutoCleanupIntervalMinutes { get; set; } = 1440;
     public string Accent { get; set; } = "blue";
     public string StartPage { get; set; } = "cleanup";
@@ -51,7 +52,7 @@ public sealed class AppSettingsStore
             _data ??= new AppSettingsData();
             _data.DismissedHints ??= new();
             _data.History ??= new();
-            _data.History = _data.History.Where(entry => entry != null).Take(50).ToList();
+            _data.History = HistoryRetention.Prune(_data.History);
             foreach (var entry in _data.History)
             {
                 entry.Outcomes = (entry.Outcomes ?? new()).Where(o => o != null).ToList();

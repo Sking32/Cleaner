@@ -27,12 +27,14 @@ public sealed class ActionInterpreter : IActionInterpreter
     private readonly IBackupService _backup;
     private readonly IRegistryAccess _registry;
     private readonly ICommandExecutor _commands;
+    private readonly IServiceAccess _services;
 
-    public ActionInterpreter(IBackupService backup, IRegistryAccess? registry = null, ICommandExecutor? commands = null)
+    public ActionInterpreter(IBackupService backup, IRegistryAccess? registry = null, ICommandExecutor? commands = null, IServiceAccess? services = null)
     {
         _backup = backup ?? throw new ArgumentNullException(nameof(backup));
         _registry = registry ?? new WindowsRegistryAccess();
         _commands = commands ?? new SystemCommandExecutor();
+        _services = services ?? new WindowsServiceAccess(_registry, _commands);
     }
 
     // ============================================================
@@ -107,6 +109,7 @@ public sealed class ActionInterpreter : IActionInterpreter
 
         var kind = ParseKind(a.Kind);
         var value = ConvertJsonValue(a.Value, kind);
+        _backup.ExpectRegistry(RegistryBackupKey(tweakKey, a.Hive!, a.Key!, a.Name ?? ""), value, kind);
         _registry.SetValue(a.Hive!, a.Key!, a.Name ?? "", value, kind, a.CreateKeyIfMissing);
         return new ActionExecResult(true);
     }
@@ -116,6 +119,7 @@ public sealed class ActionInterpreter : IActionInterpreter
         RequireHiveKey(a);
 
         _backup.SaveBeforeChange(RegistryBackupKey(tweakKey, a.Hive!, a.Key!, a.Name ?? ""), a.Hive!, a.Key!, a.Name ?? "", category);
+        _backup.ExpectRegistry(RegistryBackupKey(tweakKey, a.Hive!, a.Key!, a.Name ?? ""), null, null);
         _registry.DeleteValue(a.Hive!, a.Key!, a.Name ?? "");
         return new ActionExecResult(true);
     }
@@ -124,6 +128,7 @@ public sealed class ActionInterpreter : IActionInterpreter
     {
         RequireHiveKey(a);
         _backup.SaveBeforeChange(RegistryBackupKey(tweakKey, a.Hive!, a.Key!, a.Name ?? ""), a.Hive!, a.Key!, a.Name ?? "", category);
+        _backup.ExpectRegistry(RegistryBackupKey(tweakKey, a.Hive!, a.Key!, a.Name ?? ""), null, null);
         _registry.DeleteValue(a.Hive!, a.Key!, a.Name ?? "");
         return new ActionExecResult(true);
     }
@@ -155,6 +160,7 @@ public sealed class ActionInterpreter : IActionInterpreter
         {
             var full = $"{a.Key}\\{sub}";
             _backup.SaveBeforeChange(RegistryBackupKey(tweakKey, a.Hive!, full, a.Name ?? ""), a.Hive!, full, a.Name ?? "", category);
+            _backup.ExpectRegistry(RegistryBackupKey(tweakKey, a.Hive!, full, a.Name ?? ""), value, kind);
             _registry.SetValue(a.Hive!, full, a.Name ?? "", value, kind, createKeyIfMissing: false);
         }
         return new ActionExecResult(true);
@@ -168,6 +174,7 @@ public sealed class ActionInterpreter : IActionInterpreter
         {
             var full = $"{a.Key}\\{sub}";
             _backup.SaveBeforeChange(RegistryBackupKey(tweakKey, a.Hive!, full, a.Name ?? ""), a.Hive!, full, a.Name ?? "", category);
+            _backup.ExpectRegistry(RegistryBackupKey(tweakKey, a.Hive!, full, a.Name ?? ""), null, null);
             _registry.DeleteValue(a.Hive!, full, a.Name ?? "");
         }
         return new ActionExecResult(true);
@@ -181,29 +188,24 @@ public sealed class ActionInterpreter : IActionInterpreter
         var dateStr = DateTime.UtcNow.AddDays(days).ToString(format, CultureInfo.InvariantCulture);
 
         _backup.SaveBeforeChange(RegistryBackupKey(tweakKey, a.Hive!, a.Key!, a.Name ?? ""), a.Hive!, a.Key!, a.Name ?? "", category);
+        _backup.ExpectRegistry(RegistryBackupKey(tweakKey, a.Hive!, a.Key!, a.Name ?? ""), dateStr, RegistryValueKind.String);
         _registry.SetValue(a.Hive!, a.Key!, a.Name ?? "", dateStr, RegistryValueKind.String, a.CreateKeyIfMissing);
         return new ActionExecResult(true);
     }
 
     private ActionExecResult ServiceSet(TweakAction a, string tweakKey, string category)
     {
-        if (string.IsNullOrEmpty(a.ServiceName))
+        if (string.IsNullOrEmpty(a.ServiceName) || !WindowsServiceAccess.ValidName(a.ServiceName))
             return new ActionExecResult(false, "serviceName is required");
-        if (!ServiceHelper.Exists(a.ServiceName!))
-            return new ActionExecResult(false, $"service not found: {a.ServiceName}");
-
-        var current = ServiceHelper.GetStartType(a.ServiceName!);
-        var status = ServiceHelper.GetStatus(a.ServiceName!);
-        if (current == null || status is not ("Running" or "Stopped"))
-            return new ActionExecResult(false, "Cannot capture a stable original service configuration.");
-        if (current == "Automatic" && _registry.GetValue("HKLM", @"SYSTEM\CurrentControlSet\Services\" + a.ServiceName, "DelayedAutoStart") is int delayed && delayed == 1)
-            current = "AutomaticDelayed";
-        _backup.SaveServiceBeforeChange($"{tweakKey}_svc_{a.ServiceName}", a.ServiceName!, current, category, status == "Running");
-
-        if (a.StopFirst && !ServiceHelper.StopAndWait(a.ServiceName!))
-            return new ActionExecResult(false, "Cannot stop service safely.");
-
-        var ok = ServiceHelper.SetStartType(a.ServiceName!, a.StartupType ?? "Automatic");
+        if (ServiceHelper.IsProtected(a.ServiceName)) return new(false, "services.protected");
+        var current = _services.ReadStartup(a.ServiceName);
+        if (current is not ("Automatic" or "AutomaticDelayed" or "Manual" or "Disabled")) return new(false, "Cannot capture service startup state.");
+        var desired = a.StartupType ?? "Automatic";
+        if (desired is not ("Automatic" or "AutomaticDelayed" or "Manual" or "Disabled")) return new(false, "Unsupported service startup state.");
+        var key = $"{tweakKey}_svc_{a.ServiceName}";
+        _backup.SaveServiceBeforeChange(key, a.ServiceName, current, category);
+        _backup.ExpectService(key, desired);
+        var ok = _services.SetStartup(a.ServiceName, desired);
         return ok ? new ActionExecResult(true) : new ActionExecResult(false, "sc.exe config failed");
     }
 
@@ -215,6 +217,7 @@ public sealed class ActionInterpreter : IActionInterpreter
         var backupKey = tweakKey + "_cmd_" + Fingerprint((a.FileName + "|" + a.Arguments).ToLowerInvariant());
         if (!_backup.Keys.Contains(backupKey))
             _backup.SaveRaw(backupKey, "", "", CommandBackup.Capture(a, _commands), BackupType.Command, category);
+        _backup.ExpectCommand(backupKey, CommandBackup.Desired(a));
         var result = _commands.Run(a.FileName!, a.Arguments, timeoutMs: 120000);
         return result.Success
             ? new ActionExecResult(true)
@@ -223,7 +226,7 @@ public sealed class ActionInterpreter : IActionInterpreter
 
     private ActionExecResult RestartExplorer()
     {
-        ExplorerRestarter.Restart();
+        // Explorer may be copying files. Shell preferences take effect after a user-initiated restart/sign-out.
         return new ActionExecResult(true);
     }
 
@@ -344,7 +347,7 @@ public sealed class ActionInterpreter : IActionInterpreter
         if (string.IsNullOrEmpty(a.ServiceName))
             return new StateCheckResult(false, "serviceName is required");
 
-        var current = ServiceHelper.GetStartType(a.ServiceName!);
+        var current = _services.ReadStartup(a.ServiceName!);
         if (current == null) return new StateCheckResult(false, "service not found");
 
         var expected = a.ExpectedStartupType ?? "Automatic";

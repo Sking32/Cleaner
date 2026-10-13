@@ -9,6 +9,16 @@ public sealed record CommandRestore(string FileName, string Arguments);
 /// <summary>Snapshots for the supported system commands. Unknown mutations fail closed.</summary>
 internal static class CommandBackup
 {
+    public static CommandRestore Desired(TweakAction action)
+    {
+        var file = Path.GetFileName(action.FileName ?? "").ToLowerInvariant();
+        var args = action.Arguments ?? "";
+        if (file == "powercfg.exe") args = args.ToLowerInvariant().Replace("scheme_min", "8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c")
+            .Replace("scheme_max", "a1841308-3541-4fab-bc81-f71556f20b4a").Replace("scheme_balanced", "381b4222-f694-41f0-9685-ff5bb260df2e");
+        var desired = new CommandRestore(file, args);
+        if (!IsAllowed(desired)) throw new NotSupportedException("Command state cannot be verified.");
+        return desired;
+    }
     private static readonly Regex GuidPattern = new(@"[0-9a-fA-F]{8}-(?:[0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}");
 
     public static CommandRestore Capture(TweakAction action, ICommandExecutor commands)

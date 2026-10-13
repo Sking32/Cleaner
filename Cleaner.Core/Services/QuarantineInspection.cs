@@ -4,6 +4,11 @@ namespace Cleaner.Core.Services;
 
 public sealed partial class QuarantineService
 {
+    public static IReadOnlyList<QuarantineEntry> ReadEntries(string sessionDirectory)
+    {
+        var full = Path.GetFullPath(sessionDirectory);
+        lock (Gates.GetOrAdd(full, _ => new object())) return ReadManifest(full).Entries.AsReadOnly();
+    }
     /// <summary>Read-only inspection. Never creates journals or changes recovery data.</summary>
     public static IReadOnlyList<QuarantineSession> InspectSessions(string? rootDirectory = null,
         bool verifyContents = false, CancellationToken cancellationToken = default)
@@ -59,7 +64,7 @@ public sealed partial class QuarantineService
         var issues = new List<string>();
         void Issue(string message) { if (issues.Count < 100) issues.Add(message); }
         if (manifest.DeletionInProgress) Issue("Interrupted permanent deletion; remaining entries can be deleted again.");
-        var known = manifest.Entries.Select(e => e.StoredName).Append("manifest.json").ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var known = manifest.Entries.Select(e => e.StoredName).Append("manifest.json").Append("moves.jsonl").ToHashSet(StringComparer.OrdinalIgnoreCase);
         foreach (var unknown in Directory.GetFileSystemEntries(directory).Where(p => !known.Contains(Path.GetFileName(p))))
         {
             health = QuarantineHealth.UnrecordedFiles;

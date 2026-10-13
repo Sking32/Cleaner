@@ -19,7 +19,7 @@ public class PresetsRepositoryTests
     public void Loads_Three_Cleanup_Presets()
     {
         var repo = new PresetsRepository();
-        Assert.Equal(3, repo.CleanupPresets.Count);
+        Assert.Equal(4, repo.CleanupPresets.Count);
         Assert.True(repo.CleanupPresets.ContainsKey("soft"));
         Assert.True(repo.CleanupPresets.ContainsKey("std"));
         Assert.True(repo.CleanupPresets.ContainsKey("deep"));

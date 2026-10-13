@@ -86,6 +86,31 @@ public partial class DiskViewModel : HelpViewModelBase
     public ObservableCollection<LargeFileItem> LargeFiles { get; } = new();
 
     [ObservableProperty] private DriveItem? _selectedDrive;
+    private bool _refreshingCapacity;
+    public string CapacityText => SelectedDrive?.CapacityText ?? Loc.T("analytics.no.data");
+    public bool ExpertMode => UserSettings.GetExpertMode();
+    public async Task RefreshCapacityAsync()
+    {
+        if (_refreshingCapacity || SelectedDrive == null) return;
+        _refreshingCapacity = true;
+        var previous = SelectedDrive;
+        try
+        {
+            var updated = await Task.Run(() =>
+            {
+                try
+                {
+                    var drive = new DriveInfo(previous.Root);
+                    return new DriveItem { Root = previous.Root, Label = previous.Label, Type = previous.Type,
+                        TotalBytes = drive.IsReady ? drive.TotalSize : 0, FreeBytes = drive.IsReady ? drive.TotalFreeSpace : 0 };
+                }
+                catch { return new DriveItem { Root = previous.Root, Label = previous.Label, Type = previous.Type }; }
+            });
+            var index = Drives.IndexOf(previous);
+            if (index >= 0 && ReferenceEquals(SelectedDrive, previous)) { Drives[index] = updated; SelectedDrive = updated; }
+        }
+        finally { _refreshingCapacity = false; if (SelectedDrive?.Root != previous.Root) _ = RefreshCapacityAsync(); }
+    }
     [ObservableProperty] private bool _isScanning;
     [ObservableProperty] private string _statusText = Loc.T("t.vyberite_disk_i_nazhmite_analiz");
     [ObservableProperty] private string _progressText = "";
@@ -101,6 +126,7 @@ public partial class DiskViewModel : HelpViewModelBase
         _quarantine = quarantine ?? throw new ArgumentNullException(nameof(quarantine));
         _safety = safety;
         _whitelist = whitelist;
+        UserSettings.Changed += () => { OnPropertyChanged(nameof(ExpertMode)); DeleteOldShadowsCommand.NotifyCanExecuteChanged(); };
         LoadDrives();
     }
 
@@ -340,21 +366,37 @@ public partial class DiskViewModel : HelpViewModelBase
             danger: true);
         if (!confirmed) return;
 
-        var entry = await Task.Run(() => _quarantine.MoveToQuarantine(item.Path, "disk"));
-        if (entry is null)
+        if (item.Identity == null) { StatusText = Loc.T("preview.skip.unverifiable"); return; }
+        var move = await Task.Run(() =>
         {
-            StatusText = Loc.F("ui.disk.quarantine.failed", item.Path);
+            if (!_safety.Check(item.Path).IsSafe || _whitelist.IsWhitelisted(item.Path)) return new QuarantineMoveResult(null, "safety");
+            var result = _quarantine.MovePlanned(new Cleaner.Core.Services.Cleanup.PlannedFile("disk", item.Path, item.Identity, item.Path), "disk");
+            if (result.Entry != null)
+                try { _quarantine.Checkpoint(); } catch (Exception ex) { return result with { Reason = "journal_checkpoint_failed", Detail = ex.Message }; }
+            return result;
+        });
+        if (move.Entry is null)
+        {
+            StatusText = Loc.T("preview.skip." + move.Reason);
             return;
         }
+        var journalNeedsRecovery = move.Entry.Pending || move.Reason != null;
+        UserSettings.AddCleanup(CleanupHistoryEntry.FromReport(new Cleaner.Core.Services.Cleanup.CleanupReport { AppVersion = AppVersion.Current,
+            QuarantineDirectory = _quarantine.SessionDirectory, Result = new() { OperationsRun = 1, OperationsFailed = journalNeedsRecovery ? 1 : 0,
+                FilesQuarantined = 1, BytesQuarantined = move.Entry.SizeBytes,
+                Outcomes = new[] { new Cleaner.Core.Services.Cleanup.OperationOutcome { Key = "disk", Handler = "PathCleanup", Success = !journalNeedsRecovery,
+                    FilesQuarantined = 1, BytesQuarantined = move.Entry.SizeBytes,
+                    Errors = move.Reason == null ? Array.Empty<string>() : new[] { move.Detail ?? move.Reason } } } } }, "applied", move.Detail));
 
         _allLargeFiles.Remove(item);
         LargeFiles.Remove(item);
         StatusText = Loc.F("ui.disk.quarantine.done", item.Path);
+        if (move.Reason != null) StatusText += " · " + Loc.T("preview.skip.unverifiable");
         OnPropertyChanged(nameof(HasResults));
         OnPropertyChanged(nameof(HasNoResults));
         }
         catch (Exception ex) { StatusText = Loc.T("t.oshibka") + ex.Message; }
-        finally { IsMutating = false; }
+        finally { IsMutating = false; UserSettings.NotifyDiskChanged(); }
     }
 
     [RelayCommand(CanExecute = nameof(CanCancel))]
@@ -377,7 +419,9 @@ public partial class DiskViewModel : HelpViewModelBase
 
     partial void OnSelectedDriveChanged(DriveItem? value)
     {
+        OnPropertyChanged(nameof(CapacityText));
         ScanCommand.NotifyCanExecuteChanged();
+        if (!_refreshingCapacity) _ = RefreshCapacityAsync();
     }
 
     [RelayCommand(CanExecute = nameof(CanMutate))]
@@ -400,25 +444,20 @@ public partial class DiskViewModel : HelpViewModelBase
         finally { IsMutating = false; }
     }
 
-    [RelayCommand(CanExecute = nameof(CanMutate))]
+    private bool CanDeleteShadows() => CanMutate() && ExpertMode;
+    [RelayCommand(CanExecute = nameof(CanDeleteShadows))]
     private async Task DeleteOldShadowsAsync()
     {
-        if (!CanMutate()) return;
+        if (!CanDeleteShadows()) return;
+        if (!await Dialogs.ConfirmAsync(Loc.T("t.podtverzhdenie_ochistki"), Loc.T("cleanup.consequence.shadows"), true)) return;
         IsMutating = true;
-        StatusText = Loc.T("t.udalyayu_starye_tenevye_kopii");
         try
         {
-            if (!await Dialogs.ConfirmAsync("Cleaner", Loc.T("disk.shadows.confirm"), danger: true)) return;
             if (!await SessionRestorePoint.EnsureAsync(Loc.T("t.pered_ochistkoy"))) return;
-            var context = new Cleaner.Core.Services.Cleanup.CleanupContext(_safety, _whitelist, _quarantine);
-            var result = await Task.Run(() => new Cleaner.Core.Services.Cleanup.Handlers.ShadowCopyHandler().Run(
-                new Cleaner.Core.Data.OperationEntry { Key = "ShadowCopy" }, context));
-            StatusText = result.Success ? Loc.T("t.gotovo") : Loc.T("t.oshibka") + string.Join("; ", result.Errors);
-            ShadowText = result.Message ?? string.Join("; ", result.Errors);
-        }
-        catch (Exception ex)
-        {
-            StatusText = Loc.T("t.oshibka") + ex.Message;
+            var context = new Cleaner.Core.Services.Cleanup.CleanupContext(_safety, _whitelist, _quarantine, expertMode: true);
+            var result = await Task.Run(() => new Cleaner.Core.Services.Cleanup.Handlers.ShadowCopyHandler().Run(new Cleaner.Core.Data.OperationEntry { Key = "shadowcopy" }, context));
+            StatusText = result.Success ? Loc.T("cleanup.shadows.completed") : string.Join("; ", result.Errors);
+            await RefreshCapacityAsync();
         }
         finally { IsMutating = false; }
     }
@@ -486,7 +525,9 @@ public sealed class DriveItem
     public long TotalBytes { get; init; }
     public long FreeBytes { get; init; }
 
-    public double UsedPercent => TotalBytes > 0 ? (TotalBytes - FreeBytes) * 100.0 / TotalBytes : 0;
+    public double UsedPercent => TotalBytes > 0 && FreeBytes >= 0 && FreeBytes <= TotalBytes ? (TotalBytes - FreeBytes) * 100.0 / TotalBytes : double.NaN;
+    public string CapacityText => !double.IsFinite(UsedPercent) ? Loc.T("analytics.no.data") : Loc.F("analytics.capacity",
+        FormatSize(TotalBytes - FreeBytes), FormatSize(FreeBytes), FormatSize(TotalBytes));
 
     public string Display => Loc.F("t.svobodno_iz", Root.TrimEnd('\\'), Label, FormatSize(FreeBytes), FormatSize(TotalBytes));
     public string TypeText => Type == DriveType.Removable ? Loc.T("t.semnyy") : Loc.T("t.lokalnyy");
@@ -530,12 +571,14 @@ public sealed class FolderItem
 
 public sealed class LargeFileItem
 {
+    public FileIdentity? Identity { get; }
     public string Path { get; }
     public string SizeText { get; }
     public long SizeBytes { get; }
 
     public LargeFileItem(LargeFileEntry info)
     {
+        Identity = info.Identity;
         Path = info.Path;
         SizeBytes = info.SizeBytes;
         SizeText = FormatSize(info.SizeBytes);

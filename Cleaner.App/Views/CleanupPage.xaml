@@ -104,16 +104,20 @@
             <DockPanel Margin="0,0,0,8">
                 <ComboBox DockPanel.Dock="Right" Width="220" ItemsSource="{Binding FileModes}" DisplayMemberPath="Label" SelectedValuePath="Key" SelectedValue="{Binding FileMode, Mode=TwoWay}" ToolTip="{Binding FileModeHint}" AutomationProperties.Name="{loc:Loc cleanup.mode.title}"/>
                 <TextBlock DockPanel.Dock="Right" Text="{loc:Loc cleanup.mode.title}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" Margin="0,0,12,0" VerticalAlignment="Center"/>
-                <TextBlock Text="{loc:Loc t.preset_3}" Style="{StaticResource SectionLabelStyle}" VerticalAlignment="Center"/>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="{loc:Loc t.preset_3}" Style="{StaticResource SectionLabelStyle}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                    <ui:Button x:Name="SelectAllButton" Content="{loc:Loc cleanup.selection.all}" Command="{Binding SelectAllCommand}" Appearance="Secondary" Padding="10,5" Margin="0,0,6,0" ToolTip="{loc:Loc cleanup.selection.all.hint}" AutomationProperties.Name="{loc:Loc cleanup.selection.all}"/>
+                    <ui:Button x:Name="SelectNoneButton" Content="{loc:Loc cleanup.selection.none}" Command="{Binding SelectNoneCommand}" Appearance="Secondary" Padding="10,5" ToolTip="{loc:Loc cleanup.selection.none.hint}" AutomationProperties.Name="{loc:Loc cleanup.selection.none}"/>
+                </StackPanel>
             </DockPanel>
             <DockPanel LastChildFill="True">
-                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" IsEnabled="{Binding CanEditSelection}">
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" IsEnabled="{Binding CanEditSelection}" Visibility="{Binding ExpertMode, Converter={StaticResource BoolToVis}}">
                     <TextBlock Text="{loc:Loc presets.custom}" VerticalAlignment="Center" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="4,0,6,0"/>
                     <ComboBox Width="125" ItemsSource="{Binding CustomPresets}" DisplayMemberPath="Name" SelectedItem="{Binding SelectedCustomPreset}" ToolTip="{loc:Loc presets.custom}" AutomationProperties.Name="{loc:Loc presets.custom}"/>
                     <ui:Button Icon="{ui:SymbolIcon Save24}" Command="{Binding EditPresetCommand}" Appearance="Transparent" Padding="6" Margin="4,0,0,0" ToolTip="{loc:Loc presets.save}" AutomationProperties.Name="{loc:Loc presets.save}"/>
                     <ui:Button Icon="{ui:SymbolIcon Delete24}" Command="{Binding DeletePresetCommand}" Appearance="Transparent" Padding="6" ToolTip="{loc:Loc presets.delete}" AutomationProperties.Name="{loc:Loc presets.delete}"/>
                 </StackPanel>
-                <ListBox ItemsSource="{Binding Presets}" SelectedItem="{Binding SelectedPreset, Mode=TwoWay}" Background="Transparent" BorderThickness="0" Padding="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ItemContainerStyle="{StaticResource PresetChipStyle}">
+                <ListBox ItemsSource="{Binding Presets}" SelectedItem="{Binding SelectedPreset, Mode=TwoWay}" IsEnabled="{Binding CanEditSelection}" Background="Transparent" BorderThickness="0" Padding="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ItemContainerStyle="{StaticResource PresetChipStyle}">
                     <ListBox.ItemsPanel>
                         <ItemsPanelTemplate>
                             <WrapPanel/>
@@ -162,7 +166,7 @@
                                                                 <ColumnDefinition Width="*"/>
                                                             </Grid.ColumnDefinitions>
                                                             <!-- Бейдж уровня -->
-                                                            <CheckBox AutomationProperties.Name="{Binding Name}" IsChecked="{Binding IsChecked, Mode=TwoWay}" VerticalContentAlignment="Top" ToolTip="{Binding Description}" VerticalAlignment="Center" Padding="0" Margin="0,0,8,0"/>
+                                                            <CheckBox AutomationProperties.Name="{Binding Name}" IsChecked="{Binding IsChecked, Mode=TwoWay}" IsEnabled="{Binding IsEnabled}" VerticalContentAlignment="Top" ToolTip="{Binding Description}" VerticalAlignment="Center" Padding="0" Margin="0,0,8,0"/>
                                                             <Border Grid.Column="1" Width="22" Height="22" CornerRadius="11" VerticalAlignment="Top" Margin="0,3,10,0" ToolTip="{Binding LevelHint}">
                                                                 <Border.Style>
                                                                     <Style TargetType="Border">
@@ -191,12 +195,16 @@
                                                                     <Expander.Header>
                                                                         <StackPanel>
                                                                             <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}" TextWrapping="Wrap"/>
-                                                                            <TextBlock HorizontalAlignment="Left" Text="{Binding Summary}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" MaxWidth="720" Margin="0,2,0,0"/>
+                                                                            <TextBlock Text="{Binding Consequence}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Consequence}" Margin="0,2,0,0"/>
                                                                         </StackPanel>
                                                                     </Expander.Header>
-                                                                    <TextBlock Text="{Binding Description}" TextWrapping="Wrap" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,8,8,8"/>
+                                                                    <StackPanel Margin="0,8,8,8">
+                                                                        <TextBlock Text="{Binding Description}" TextWrapping="Wrap" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                                        <TextBlock Text="{Binding Consequence}" TextWrapping="Wrap" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,6,0,0"/>
+                                                                        <TextBlock Text="{Binding Applicability}" TextWrapping="Wrap" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,6,0,0"/>
+                                                                        <TextBlock Text="{Binding Reversibility}" TextWrapping="Wrap" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,6,0,0"/>
+                                                                    </StackPanel>
                                                                 </Expander>
-                                                                <TextBlock HorizontalAlignment="Left" Text="{Binding Hint}" FontSize="11" Foreground="{StaticResource CautionBrush}" Margin="0,3,0,0" TextWrapping="Wrap" MaxWidth="720" Visibility="{Binding HasHint, Converter={StaticResource BoolToVis}}"/>
                                                             </StackPanel>
                                                         </Grid>
                                                     </Border>
@@ -247,7 +255,7 @@
                                             </Grid>
                                             <TextBlock Text="{Binding CategoryText}" Style="{StaticResource SettingHintStyle}"/>
                                             <TextBlock Text="{Binding MethodText}" FontSize="12" Margin="0,4,0,0"/>
-                                            <Expander Style="{StaticResource CompactExpanderStyle}" Header="{Binding StatusText}" Margin="0,4,0,0">
+                                            <Expander Style="{StaticResource CompactExpanderStyle}" Header="{Binding StatusText}" IsExpanded="{Binding IsHighlighted, Mode=TwoWay}" Margin="0,4,0,0">
                                                 <TextBox Text="{Binding DetailsText, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" BorderThickness="0" Background="Transparent" Margin="0,6,0,0"/>
                                             </Expander>
                                         </StackPanel>
@@ -257,6 +265,29 @@
                         </ItemsControl>
                     </ScrollViewer>
                 </Grid>
+            </TabItem>
+            <TabItem Header="{loc:Loc analytics.categories}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="0,12,0,0">
+                        <TextBlock Text="{loc:Loc analytics.categories.hint}" Style="{StaticResource SettingHintStyle}" Margin="0,0,0,14"/>
+                        <ItemsControl ItemsSource="{Binding CategoryChart}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <ui:Button Appearance="Transparent" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="12" Margin="0,0,0,8"
+                                        Command="{Binding DataContext.OpenCategoryCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding Key}" AutomationProperties.Name="{Binding Name}">
+                                        <StackPanel>
+                                            <Grid><TextBlock Text="{Binding Name}" FontWeight="SemiBold"/><TextBlock Text="{Binding SizeText}" HorizontalAlignment="Right" Foreground="{DynamicResource AccentBrush}"/></Grid>
+                                            <ProgressBar Value="{Binding Percent, Mode=OneWay}" Maximum="100" Height="8" Foreground="{DynamicResource AccentBrush}" Background="{StaticResource BorderStrongBrush}" Margin="0,10,0,0"/>
+                                        </StackPanel>
+                                    </ui:Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <TextBlock Text="{loc:Loc analytics.categories.empty}">
+                            <TextBlock.Style><Style TargetType="TextBlock" BasedOn="{StaticResource SettingHintStyle}"><Style.Triggers><DataTrigger Binding="{Binding HasCategoryChart}" Value="True"><Setter Property="Visibility" Value="Collapsed"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
+                        </TextBlock>
+                    </StackPanel>
+                </ScrollViewer>
             </TabItem>
         </TabControl>
         <Border x:Name="SelectionSummary" Grid.Row="3" Grid.Column="1" Style="{StaticResource CardStyle}">
@@ -289,7 +320,7 @@
                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Orientation="Horizontal">
                     <StackPanel Orientation="Horizontal">
                         <ui:ProgressRing Width="20" Height="20" IsIndeterminate="True" Margin="0,0,12,0" Visibility="{Binding IsRunning, Converter={StaticResource BoolToVis}}"/>
-                        <ui:Button Icon="{ui:SymbolIcon Search24}" Command="{Binding AnalyzeCommand}" ToolTip="{loc:Loc preview.analyze}" AutomationProperties.Name="{loc:Loc preview.analyze}" Padding="8" Margin="0,0,8,0"/>
+                        <ui:Button Content="{loc:Loc analytics.check}" Icon="{ui:SymbolIcon Search24}" Command="{Binding AnalyzeCommand}" ToolTip="{loc:Loc preview.analyze}" AutomationProperties.Name="{loc:Loc preview.analyze}" Padding="8" Margin="0,0,8,0"/>
                         <ui:Button Appearance="Primary" Style="{StaticResource PrimaryButtonStyle}" Icon="{ui:SymbolIcon Play24}" Content="{Binding RunButtonText}" Command="{Binding RunCommand}" Padding="14,8"/>
                         <ui:Button Content="{loc:Loc t.otmena}" Command="{Binding CancelCommand}" Margin="8,0,0,0" Padding="12,8"/>
                     </StackPanel>

@@ -55,7 +55,7 @@
                     <ui:TextBox PlaceholderText="{loc:Loc design.search.tweaks}" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"/>
                     <CheckBox Grid.Column="1" Content="{loc:Loc design.applied.only}" IsChecked="{Binding AppliedOnly, Mode=TwoWay}" VerticalAlignment="Center" Margin="16,0,0,0"/>
                 </Grid>
-                <TextBlock Text="{loc:Loc design.no.results}" Style="{StaticResource SettingHintStyle}" Visibility="{Binding HasNoSearchResults, Converter={StaticResource BoolToVis}}" Margin="0,0,0,8"/>
+                <TextBlock Text="{loc:Loc compatibility.pending}" Style="{StaticResource SettingHintStyle}" Visibility="{Binding HasNoSearchResults, Converter={StaticResource BoolToVis}}" Margin="0,0,0,8" TextWrapping="Wrap"/>
                 <Border Padding="12,8" CornerRadius="8" Background="#2060CDFF" BorderBrush="#4060CDFF" BorderThickness="1" Visibility="{Binding HasPresetNote, Converter={StaticResource BoolToVis}}">
                     <TextBlock Text="{Binding PresetNoteText}" FontSize="12" TextWrapping="Wrap" Foreground="{StaticResource TextPrimaryBrush}"/>
                 </Border>

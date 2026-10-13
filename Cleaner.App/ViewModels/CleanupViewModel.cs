@@ -31,6 +31,7 @@ public partial class CleanupViewModel : HelpViewModelBase
     private CancellationTokenSource? _cts;
     private CleanupReport? _lastReport;
     private CleanupFileMode _activeMode;
+    private bool _lastExpertMode = UserSettings.GetExpertMode();
     public IReadOnlyList<CleanupModeChoice> FileModes { get; } = new[]
     { new CleanupModeChoice(CleanupFileMode.Quarantine, Loc.T("cleanup.mode.quarantine")),
       new CleanupModeChoice(CleanupFileMode.PermanentDelete, Loc.T("cleanup.mode.delete")) };
@@ -41,7 +42,32 @@ public partial class CleanupViewModel : HelpViewModelBase
     [ObservableProperty] private string _previewSizeText = "—";
     [ObservableProperty] private string _resultSummary = "";
     public bool CanEditSelection => !IsRunning;
+    [RelayCommand(CanExecute = nameof(CanEditSelection))]
+    private void SelectAll() => SetAllSelection(true);
+    [RelayCommand(CanExecute = nameof(CanEditSelection))]
+    private void SelectNone() => SetAllSelection(false);
+    private void SetAllSelection(bool selected)
+    {
+        if (IsRunning) return;
+        SelectedPreset = null;
+        SelectedCustomPreset = null;
+        foreach (var operation in Categories.SelectMany(c => c.Operations))
+            operation.IsChecked = selected && operation.IsEnabled;
+        PresetNoteText = selected ? Loc.T("cleanup.selection.all.hint") : "";
+        OnPropertyChanged(nameof(HasPresetNote));
+        StatusText = Loc.T(selected ? "cleanup.selection.all.status" : "cleanup.selection.none.status");
+        UpdateCheckedCount();
+    }
     public ObservableCollection<CleanupDetailRow> ResultRows { get; } = new();
+    public ObservableCollection<CategoryChartItem> CategoryChart { get; } = new();
+    public bool HasCategoryChart => CategoryChart.Count > 0;
+    public bool ExpertMode => UserSettings.GetExpertMode();
+    [RelayCommand] private void OpenCategory(string? key)
+    {
+        if (key == null) return;
+        foreach (var row in ResultRows) row.IsHighlighted = string.Equals(_ops.GetByKey(row.Key)?.Category, key, StringComparison.OrdinalIgnoreCase);
+        ResultTabIndex = 1;
+    }
     public ObservableCollection<UserCleanupPreset> CustomPresets { get; } = new();
     [ObservableProperty] private UserCleanupPreset? _selectedCustomPreset;
     [ObservableProperty] private bool _presetEditorOpen;
@@ -63,7 +89,7 @@ public partial class CleanupViewModel : HelpViewModelBase
         if (value == null || IsRunning) return;
         SelectedPreset = null;
         var known = Categories.SelectMany(c => c.Operations).Select(o => o.Key).ToHashSet(StringComparer.OrdinalIgnoreCase);
-        foreach (var op in Categories.SelectMany(c => c.Operations)) op.IsChecked = value.Keys.Contains(op.Key, StringComparer.OrdinalIgnoreCase);
+        foreach (var op in Categories.SelectMany(c => c.Operations)) op.IsChecked = op.IsEnabled && value.Keys.Contains(op.Key, StringComparer.OrdinalIgnoreCase);
         PresetName = value.Name;
         PresetNoteText = value.Keys.Any(k => !known.Contains(k)) ? Loc.T("presets.unknown") : Loc.T("presets.custom.note");
         OnPropertyChanged(nameof(HasPresetNote));
@@ -89,6 +115,13 @@ public partial class CleanupViewModel : HelpViewModelBase
     {
         ResultRows.Clear();
         foreach (var outcome in result.Outcomes) ResultRows.Add(new CleanupDetailRow(outcome, _ops, preview, result));
+        CategoryChart.Clear();
+        var groups = result.Outcomes.GroupBy(o => _ops.GetByKey(o.Key)?.Category ?? "other")
+            .Select(g => (Key: g.Key, Bytes: g.Sum(o => preview ? o.PreviewBytes : o.BytesQuarantined + o.BytesFreed)))
+            .Where(g => g.Bytes > 0).OrderByDescending(g => g.Bytes).ToArray();
+        var max = groups.Select(g => g.Bytes).DefaultIfEmpty(1).Max();
+        foreach (var group in groups) CategoryChart.Add(new(group.Key, Loc.T("section.sec." + group.Key + ".name"), group.Bytes, max));
+        OnPropertyChanged(nameof(HasCategoryChart));
         CategorySummary = string.Join(" · ", result.Outcomes.GroupBy(o => _ops.GetByKey(o.Key)?.Category ?? "other").Select(g =>
             Loc.T("section.sec." + g.Key + ".name") + ": " + CleanupDetailRow.FormatBytes(g.Sum(o => preview ? o.PreviewBytes : o.BytesQuarantined + o.BytesFreed))));
         PreviewNote = Loc.F("preview.sample.note", result.OmittedPreviewFiles, result.OmittedSkipDetails);
@@ -109,9 +142,9 @@ public partial class CleanupViewModel : HelpViewModelBase
     {
         try
         {
-            var path = ReportExport.ChoosePath("Cleaner-cleanup");
+            if (_lastReport == null) return;
+            var path = DiagnosticExportPreview.Show(_lastReport, "Cleaner-cleanup");
             if (path == null || _lastReport == null) return;
-            _lastReport.Save(path);
             StatusText = Loc.F("report.saved", path);
         }
         catch (Exception ex) { StatusText = Loc.T("t.oshibka") + ex.Message; }
@@ -165,12 +198,25 @@ public partial class CleanupViewModel : HelpViewModelBase
         LoadPresets();
         LoadCategories();
         LoadCustomPresets();
+        SelectedPreset = Presets.FirstOrDefault(p => p.Key == "soft");
+        UserSettings.Changed += () =>
+        {
+            RefreshMode();
+        };
         UpdateCheckedCount();
     }
 
     // ------------------------------------------------------------------
     //  Загрузка данных
     // ------------------------------------------------------------------
+    private void RefreshMode()
+    {
+        if (IsRunning || _lastExpertMode == ExpertMode) return;
+        _lastExpertMode = ExpertMode;
+        Categories.Clear(); Presets.Clear(); LoadPresets(); LoadCategories();
+        SelectedPreset = Presets.FirstOrDefault(p => p.Key == "soft");
+        OnPropertyChanged(nameof(ExpertMode));
+    }
 
     private void LoadPresets()
     {
@@ -204,6 +250,7 @@ public partial class CleanupViewModel : HelpViewModelBase
 
         foreach (var op in _ops.Operations)
         {
+            if (!ExpertMode && op.ExpertOnly) continue;
             if (string.IsNullOrEmpty(op.Category)) continue;
             if (!byCategory.TryGetValue(op.Category!, out var cat)) continue;
 
@@ -217,6 +264,7 @@ public partial class CleanupViewModel : HelpViewModelBase
             };
             cat.Operations.Add(opVm);
         }
+        foreach (var empty in Categories.Where(c => c.Operations.Count == 0).ToArray()) Categories.Remove(empty);
 
         UpdateCheckedCount();
     }
@@ -251,7 +299,7 @@ public partial class CleanupViewModel : HelpViewModelBase
         SelectedCustomPreset = null;
         var keys = new HashSet<string>(value.Keys, StringComparer.OrdinalIgnoreCase);
         foreach (var op in Categories.SelectMany(c => c.Operations))
-            op.IsChecked = keys.Contains(op.Key);
+            op.IsChecked = op.IsEnabled && keys.Contains(op.Key);
 
         PresetNoteText = value.Note;
         OnPropertyChanged(nameof(HasPresetNote));
@@ -273,7 +321,7 @@ public partial class CleanupViewModel : HelpViewModelBase
     {
         var selectedOps = Categories
             .SelectMany(c => c.Operations)
-            .Where(o => o.IsChecked)
+            .Where(o => o.IsChecked && o.IsEnabled)
             .ToList();
         var selected = selectedOps.Select(o => o.Key).ToList();
 
@@ -310,7 +358,7 @@ public partial class CleanupViewModel : HelpViewModelBase
                 _safety, _whitelist, _quarantine,
                 progress: progress,
                 cancellationToken: token,
-                dryRun: true, fileMode: _activeMode);
+                dryRun: true, fileMode: _activeMode, capturePlan: true, activity: new ApplicationActivity(), expertMode: ExpertMode);
 
             var scan = await Task.Run(() => _runner.Run(selected, scanCtx, token), token);
             _lastReport = MakeReport(scan, true);
@@ -328,6 +376,7 @@ public partial class CleanupViewModel : HelpViewModelBase
                 StatusText = Loc.T("t.otmeneno_nichego_ne_udaleno");
                 return;
             }
+            if (scan.Plan?.CanApply != true) { StatusText = Loc.T("cleanup.plan.failed"); return; }
 
             var hasNonFileOps = selectedOps.Any(o =>
                 !CleanupDetailRow.IsQuarantined(o.Handler));
@@ -345,7 +394,7 @@ public partial class CleanupViewModel : HelpViewModelBase
 
             // Шаг 2. Подтверждение пользователя.
             CurrentStage = 2;
-            if (!await ConfirmRunAsync(selected.Count, scan.PreviewBytes, dangerNames, hasNonFileOps, _activeMode))
+            if (!await ConfirmRunAsync(selected.Count, scan.PreviewBytes, dangerNames, hasNonFileOps, _activeMode, selectedOps))
             {
                 historyKind = "declined";
                 StatusText = Loc.T("t.otmeneno_nichego_ne_udaleno");
@@ -367,7 +416,7 @@ public partial class CleanupViewModel : HelpViewModelBase
                 _safety, _whitelist, _quarantine,
                 progress: progress,
                 cancellationToken: token,
-                dryRun: false, fileMode: _activeMode);
+                dryRun: false, fileMode: _activeMode, plan: scan.Plan, activity: new ApplicationActivity(), expertMode: ExpertMode);
 
             historyKind = "applied";
             _lastReport = MakeReport(new CleanupSessionResult(), false);
@@ -409,6 +458,8 @@ public partial class CleanupViewModel : HelpViewModelBase
             if (UserSettings.LastSaveError != null) StatusText += " · " + Loc.T("history.save.failed");
             CurrentStage = 4;
             IsRunning = false;
+            RefreshMode();
+            UserSettings.NotifyDiskChanged();
             _cts?.Dispose();
             _cts = null;
             RunCommand.NotifyCanExecuteChanged();
@@ -419,7 +470,7 @@ public partial class CleanupViewModel : HelpViewModelBase
     }
 
     /// <summary>Окно подтверждения перед настоящей очисткой.</summary>
-    private static async Task<bool> ConfirmRunAsync(int operationsCount, long bytes, IReadOnlyList<string> dangerNames, bool hasNonFileOps, CleanupFileMode mode)
+    private static async Task<bool> ConfirmRunAsync(int operationsCount, long bytes, IReadOnlyList<string> dangerNames, bool hasNonFileOps, CleanupFileMode mode, IReadOnlyList<CleanupOperationViewModel> operations)
     {
         var sb = new System.Text.StringBuilder();
         sb.AppendLine(Loc.F("t.vybrano_operaciy", operationsCount));
@@ -437,6 +488,9 @@ public partial class CleanupViewModel : HelpViewModelBase
         }
 
         sb.AppendLine(Loc.T(mode == CleanupFileMode.Quarantine ? "cleanup.mode.quarantine.hint" : "cleanup.mode.delete.confirm"));
+        if (operations.Any(o => o.Key is "temp_user" or "temp_sys")) sb.AppendLine(Loc.T("cleanup.temp.all.confirm"));
+        foreach (var operation in operations.Where(o => !o.Recommended))
+            sb.AppendLine("• " + operation.Name + ": " + operation.Consequence);
 
         if (hasNonFileOps)
         {
@@ -502,7 +556,7 @@ public partial class CleanupViewModel : HelpViewModelBase
         {
             _lastReport ??= MakeReport(new CleanupSessionResult(), false);
             UserSettings.AddCleanup(CleanupHistoryEntry.FromReport(_lastReport, kind, error));
-            _cts.Dispose(); _cts = null; CurrentStage = 4; IsRunning = false;
+            _cts.Dispose(); _cts = null; CurrentStage = 4; IsRunning = false; UserSettings.NotifyDiskChanged();
         }
     }
 
@@ -518,6 +572,8 @@ public partial class CleanupViewModel : HelpViewModelBase
     partial void OnIsRunningChanged(bool value)
     {
         OnPropertyChanged(nameof(CanEditSelection));
+        SelectAllCommand.NotifyCanExecuteChanged();
+        SelectNoneCommand.NotifyCanExecuteChanged();
         RunCommand.NotifyCanExecuteChanged();
         AnalyzeCommand.NotifyCanExecuteChanged();
         SavePresetCommand.NotifyCanExecuteChanged();
@@ -549,10 +605,11 @@ public partial class CleanupViewModel : HelpViewModelBase
             PreviewSizeText = "—";
             ResultSummary = "";
             ResultRows.Clear(); OnPropertyChanged(nameof(HasResults)); ResultTabIndex = 0;
+            CategoryChart.Clear(); OnPropertyChanged(nameof(HasCategoryChart));
         }
         CheckedCount = Categories
             .SelectMany(c => c.Operations)
-            .Count(o => o.IsChecked);
+            .Count(o => o.IsChecked && o.IsEnabled);
     }
 
     private static string FormatBytes(long bytes)

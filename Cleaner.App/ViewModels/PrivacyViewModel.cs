@@ -44,6 +44,7 @@ public partial class PrivacyViewModel : HelpViewModelBase
         IsBusy = false;
         CancelCommand.NotifyCanExecuteChanged();
         ExportReportCommand.NotifyCanExecuteChanged();
+        UserSettings.NotifyDiskChanged();
     }
 
     private bool CanCancel() => IsBusy && _cts != null;
@@ -56,10 +57,9 @@ public partial class PrivacyViewModel : HelpViewModelBase
     {
         try
         {
-            var path = ReportExport.ChoosePath("Cleaner-quarantine");
+            if (_lastReport == null) return;
+            var path = DiagnosticExportPreview.Show(_lastReport, "Cleaner-quarantine");
             if (path == null || _lastReport == null) return;
-            AtomicFile.Write(path, JsonSerializer.Serialize(_lastReport, new JsonSerializerOptions
-            { WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
             StatusText = Loc.F("report.saved", path);
         }
         catch (Exception ex) { StatusText = Loc.T("t.oshibka") + ex.Message; }
@@ -101,7 +101,33 @@ public partial class PrivacyViewModel : HelpViewModelBase
     }
     [ObservableProperty] private QuarantineSessionItem? _selectedSession;
     public bool HasSelectedSession => SelectedSession != null;
-    partial void OnSelectedSessionChanged(QuarantineSessionItem? value) => OnPropertyChanged(nameof(HasSelectedSession));
+    partial void OnSelectedSessionChanged(QuarantineSessionItem? value)
+    {
+        OnPropertyChanged(nameof(HasSelectedSession));
+        _ = LoadSelectedFilesAsync();
+    }
+    public ObservableCollection<QuarantineFileItem> SessionFiles { get; } = new();
+    public ICollectionView FilteredFiles { get; }
+    [ObservableProperty] private string _fileSearchText = "";
+    [ObservableProperty] private bool _pendingFilesOnly;
+    [ObservableProperty] private string _fileListStatus = "";
+    private int _fileLoadRevision;
+    partial void OnFileSearchTextChanged(string value) => FilteredFiles.Refresh();
+    partial void OnPendingFilesOnlyChanged(bool value) => FilteredFiles.Refresh();
+    public async Task LoadSelectedFilesAsync()
+    {
+        var revision = ++_fileLoadRevision; var session = SelectedSession;
+        SessionFiles.Clear(); FileListStatus = "";
+        if (session == null) return;
+        try
+        {
+            var entries = await Task.Run(() => QuarantineService.ReadEntries(session.Directory));
+            if (revision != _fileLoadRevision) return;
+            foreach (var entry in entries) SessionFiles.Add(new(entry));
+            FileListStatus = Loc.F("recovery.files.count", entries.Count);
+        }
+        catch (Exception) { if (revision == _fileLoadRevision) FileListStatus = Loc.T("recovery.files.failed"); }
+    }
 
     [ObservableProperty]
     private string _newRuleText = "";
@@ -130,6 +156,8 @@ public partial class PrivacyViewModel : HelpViewModelBase
         _whitelist = whitelist ?? throw new ArgumentNullException(nameof(whitelist));
         _tweaks = tweaks ?? throw new ArgumentNullException(nameof(tweaks));
         _applied = applied ?? throw new ArgumentNullException(nameof(applied));
+        FilteredFiles = CollectionViewSource.GetDefaultView(SessionFiles);
+        FilteredFiles.Filter = item => item is QuarantineFileItem file && file.Matches(FileSearchText, PendingFilesOnly);
         FilteredSessions = CollectionViewSource.GetDefaultView(QuarantineSessions);
         FilteredSessions.Filter = item => item is QuarantineSessionItem session &&
             (SessionSearchText.Trim().Length == 0 || (session.Id + " " + session.CreatedText + " " + session.HealthText)

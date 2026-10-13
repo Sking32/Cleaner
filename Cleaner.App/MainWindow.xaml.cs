@@ -57,7 +57,7 @@ public partial class MainWindow : FluentWindow
     private async void OnAutoCleanupTick(object? sender, EventArgs args)
     {
         if (_autoTickRunning) return;
-        var busy = IsOperationActive || UserSettings.NeedsSafetyNotice || SafetyOverlay.Visibility == Visibility.Visible
+        var busy = IsOperationActive || ForegroundActivity.IsFullScreen() || UserSettings.NeedsSafetyNotice || SafetyOverlay.Visibility == Visibility.Visible
             || DialogOverlay.Visibility == Visibility.Visible || PaletteOverlay.Visibility == Visibility.Visible;
         if (!_autoSchedule.TryBegin(DateTimeOffset.UtcNow, UserSettings.GetAutoCleanupEnabled(), UserSettings.GetAutoCleanupInterval(), busy))
         { UpdateAutoCleanupSchedule(); return; }

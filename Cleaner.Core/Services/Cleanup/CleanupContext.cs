@@ -11,6 +11,54 @@ public enum CleanupFileMode { Quarantine, PermanentDelete }
 /// </summary>
 public sealed class CleanupContext
 {
+    internal readonly List<PlannedFile> PlannedFiles = new();
+    private readonly HashSet<string> _plannedPaths = new(StringComparer.OrdinalIgnoreCase);
+    public bool CapturePlan { get; }
+    public CleanupPlan? Plan { get; }
+    public IApplicationActivity Activity { get; }
+    public IFileVerifier FileVerifier { get; }
+    public bool ExpertMode { get; }
+    internal List<PlannedAction> PlannedActions { get; } = new();
+    internal void RecordAction(Cleaner.Core.Data.OperationEntry operation) => PlannedActions.Add(PlannedAction.Capture(operation, Registry));
+    public SafetyResult CheckSafety(string path, string operationKey) => MinimumFileAge > TimeSpan.Zero && operationKey is "temp_user" or "temp_sys"
+        ? Safety.Check(path) : Safety.CheckForCleanup(path, operationKey);
+    private readonly Dictionary<string, string[]> _approvedRoots = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, string[]> _patterns = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, TimeSpan> _ages = new(StringComparer.OrdinalIgnoreCase);
+    internal void ConfigureRule(Cleaner.Core.Data.OperationEntry operation)
+    {
+        _patterns[operation.Key] = operation.FilePatterns.ToArray();
+        _ages[operation.Key] = operation.OlderThanDays is > 0 ? TimeSpan.FromDays(operation.OlderThanDays.Value) : TimeSpan.Zero;
+    }
+    internal bool MatchesRule(string key, string path) => !_patterns.TryGetValue(key, out var patterns) || patterns.Length == 0 ||
+        patterns.Any(pattern => System.IO.Enumeration.FileSystemName.MatchesSimpleExpression(pattern, Path.GetFileName(path), true));
+    internal TimeSpan MinimumAgeFor(string key) => _ages.TryGetValue(key, out var ruleAge) && ruleAge > MinimumFileAge ? ruleAge : MinimumFileAge;
+    internal void ApproveRoots(string key, IEnumerable<string> roots)
+        => _approvedRoots[key] = roots.Where(Path.IsPathFullyQualified).Where(p => !PathExpander.ContainsWildcard(p))
+            .Select(Path.GetFullPath).ToArray();
+    public bool TryRecordPreviewFile(string key, string path, long size)
+    {
+        if (CapturePlan)
+        {
+            if (PlannedFiles.Count >= 250000) throw new InvalidOperationException("Cleanup plan exceeds the safety limit; select fewer categories.");
+            if (!_plannedPaths.Add(Path.GetFullPath(path))) { RecordSkip(key, path, "duplicate"); return false; }
+            try
+            {
+                var fullPath = Path.GetFullPath(path);
+                var root = _approvedRoots.GetValueOrDefault(key)?.FirstOrDefault(r => CleanupPlan.ContainsPath(r, fullPath));
+                if (root == null) { RecordSkip(key, path, "unverifiable"); return false; }
+                using var file = FileVerifier.Open(path);
+                var age = MinimumAgeFor(key);
+                if (age > TimeSpan.Zero && (DateTime.UtcNow - DateTime.FromFileTimeUtc(file.Identity.Created) < age ||
+                    DateTime.UtcNow - DateTime.FromFileTimeUtc(file.Identity.Modified) < age))
+                { RecordSkip(key, path, "too_recent"); return false; }
+                PlannedFiles.Add(new(key, fullPath, file.Identity, root));
+                size = file.Identity.Length;
+            }
+            catch (Exception ex) { RecordSkip(key, path, FileFailure.Classify(ex), ex.Message); return false; }
+        }
+        RecordPreviewFile(key, path, size); return true;
+    }
     private readonly List<CleanupPreviewFile> _previewFiles = new();
     private readonly Dictionary<string, int> _previewCounts = new(StringComparer.OrdinalIgnoreCase);
     public IReadOnlyList<CleanupPreviewFile> PreviewFiles => _previewFiles.ToArray();
@@ -58,7 +106,12 @@ public sealed class CleanupContext
         ICommandExecutor? commands = null,
         Cleaner.Core.Registry.IRegistryAccess? registry = null,
         CleanupFileMode fileMode = CleanupFileMode.Quarantine,
-        TimeSpan minimumFileAge = default)
+        TimeSpan minimumFileAge = default,
+        bool capturePlan = false,
+        CleanupPlan? plan = null,
+        IApplicationActivity? activity = null,
+        IFileVerifier? fileVerifier = null,
+        bool expertMode = false)
     {
         Safety = safety ?? throw new ArgumentNullException(nameof(safety));
         Whitelist = whitelist ?? throw new ArgumentNullException(nameof(whitelist));
@@ -72,15 +125,23 @@ public sealed class CleanupContext
         if (minimumFileAge < TimeSpan.Zero) throw new ArgumentOutOfRangeException(nameof(minimumFileAge));
         FileMode = fileMode;
         MinimumFileAge = minimumFileAge;
+        CapturePlan = capturePlan; Plan = plan; Activity = activity ?? new NoApplicationActivity();
+        ExpertMode = expertMode;
+        FileVerifier = fileVerifier ?? new WindowsFileVerifier();
+        if (capturePlan && !dryRun || plan != null && dryRun) throw new ArgumentException("Invalid cleanup plan context.");
     }
 
     /// <summary>Удобный helper для отчёта прогресса из handler'а.</summary>
     public void Report(string operationKey, string handler, string? currentPath,
                        int filesProcessed, long bytesFreedSoFar, string? stage = null)
     {
+        var now = System.Diagnostics.Stopwatch.GetTimestamp();
+        if (stage != "done" && _lastProgress != 0 && System.Diagnostics.Stopwatch.GetElapsedTime(_lastProgress, now).TotalMilliseconds < 100) return;
+        _lastProgress = now;
         Progress?.Report(new CleanupProgress(
             operationKey, handler, currentPath, filesProcessed, bytesFreedSoFar, stage));
     }
 
     public bool IsCancellationRequested => CancellationToken.IsCancellationRequested;
+    private long _lastProgress;
 }

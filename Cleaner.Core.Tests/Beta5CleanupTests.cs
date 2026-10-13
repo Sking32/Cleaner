@@ -100,7 +100,7 @@ public sealed class Beta5CleanupTests(ITestOutputHelper output) : IDisposable
         var created = MakeFile("created.txt", 1);
         var excluded = MakeFile("excluded.txt"); var whitelist = Whitelist; whitelist.Add(excluded);
         var result = AutomaticCleanup.Run(Temp, Safety, whitelist, Quarantine);
-        Assert.Equal(1, result.FilesQuarantined); Assert.Equal(0, result.FilesDeleted);
+        Assert.True(result.FilesQuarantined == 1, JsonSerializer.Serialize(result)); Assert.Equal(0, result.FilesDeleted);
         Assert.False(File.Exists(old)); Assert.True(File.Exists(modified)); Assert.True(File.Exists(created)); Assert.True(File.Exists(excluded));
         Assert.Equal(3, result.FilesSkipped);
         Assert.Contains(result.SkipDetails, skip => skip.Reason == "too_recent");

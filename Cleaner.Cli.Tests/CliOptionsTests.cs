@@ -8,6 +8,14 @@ namespace Cleaner.Cli.Tests;
 public class CliOptionsTests
 {
     [Fact]
+    public void ExpertAccessIsExplicitAndDoesNotImplyExecution()
+    {
+        var options = CliOptions.Parse(new[] { "--ops", "winsxs", "--expert" });
+        Assert.True(options.ExpertMode); Assert.True(options.DryRun); Assert.Null(options.Validate());
+        Assert.False(CliOptions.Parse(new[] { "--preset", "soft" }).ExpertMode);
+        Assert.NotNull(CliOptions.Parse(new[] { "--merge-tweaks", "a", "b", "--expert" }).Validate());
+    }
+    [Fact]
     public void ExecutionRequiresExplicitApply()
     {
         Assert.True(CliOptions.Parse(new[] { "--preset", "soft" }).DryRun);

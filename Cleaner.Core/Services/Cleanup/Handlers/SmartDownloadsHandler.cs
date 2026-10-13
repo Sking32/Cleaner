@@ -12,24 +12,26 @@ namespace Cleaner.Core.Services.Cleanup.Handlers;
 /// </summary>
 public sealed class SmartDownloadsHandler : ICleanupHandler
 {
+    private readonly Func<string> _downloads;
+    public SmartDownloadsHandler(Func<string>? downloads = null) => _downloads = downloads ?? (() => KnownFolders.Downloads);
     public string Name => "SmartDownloads";
 
-    private static readonly HashSet<string> SkipExt =
+    private static readonly HashSet<string> TemporaryExtensions =
         new(StringComparer.OrdinalIgnoreCase)
         {
-            ".exe", ".msi", ".iso", ".zip", ".7z", ".rar"
+            ".tmp", ".part", ".crdownload", ".download"
         };
 
     public CleanupOperationResult Run(OperationEntry op, CleanupContext ctx)
     {
-        var downloads = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-            "Downloads");
+        var downloads = _downloads();
+        if (string.IsNullOrWhiteSpace(downloads)) return CleanupOperationResult.Fail("Cannot resolve Downloads.");
 
         if (!Directory.Exists(downloads))
             return CleanupOperationResult.Ok(message: "no Downloads folder");
 
         var days = op.OlderThanDays ?? 30;
+        if (ctx.CapturePlan) ctx.ApproveRoots(op.Key, new[] { downloads });
         var cutoff = DateTime.UtcNow.AddDays(-days);
 
         long bytes = 0;
@@ -41,7 +43,7 @@ public sealed class SmartDownloadsHandler : ICleanupHandler
             if (ctx.IsCancellationRequested) break;
 
             var ext = Path.GetExtension(file);
-            if (SkipExt.Contains(ext)) { skipped++; continue; }
+            if (!TemporaryExtensions.Contains(ext)) { skipped++; continue; }
 
             DateTime lastWrite;
             try { lastWrite = File.GetLastWriteTimeUtc(file); }

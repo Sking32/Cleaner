@@ -34,7 +34,8 @@ public class OptimizeServiceTests : IDisposable
             _registry.SetValue(action.Hive!, action.Key!, "Fixture", 0, RegistryValueKind.DWord, true);
         var presets = new PresetsRepository();
 
-        _svc = new OptimizeService(_tweaks, _interp, _backup, _appliedStore, presets);
+        // Tests the interpreter and rollback with memory-only Windows settings, not OS compatibility.
+        _svc = new OptimizeService(_tweaks, _interp, _backup, _appliedStore, presets, _ => new(true, true, "compatibility.verified"));
     }
 
     public void Dispose()

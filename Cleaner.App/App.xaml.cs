@@ -140,7 +140,9 @@ public partial class App : Application
         services.AddSingleton<IBackupService>(_ => new BackupService());
         services.AddSingleton<AppliedTweaksStore>();
         services.AddSingleton<IActionInterpreter, ActionInterpreter>();
-        services.AddSingleton<IOptimizeService, OptimizeService>();
+        services.AddSingleton<IOptimizeService>(sp => new OptimizeService(sp.GetRequiredService<TweakRepository>(),
+            sp.GetRequiredService<IActionInterpreter>(), sp.GetRequiredService<IBackupService>(),
+            sp.GetRequiredService<AppliedTweaksStore>(), sp.GetRequiredService<PresetsRepository>(), expertMode: UserSettings.GetExpertMode));
         services.AddSingleton<IQuarantineService>(_ => new QuarantineService());
         services.AddSingleton<IStartupRegistration>(_ => new StartupRegistration(new Cleaner.Core.Registry.WindowsRegistryAccess(), Environment.ProcessPath ?? ""));
 

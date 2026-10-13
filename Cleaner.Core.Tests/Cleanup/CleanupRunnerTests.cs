@@ -102,7 +102,7 @@ public class CleanupRunnerTests : IDisposable
         // (handler сразу вернёт "dry-run" и Success=true).
         var r = _runner.Run(new[] { "winsxs" }, Ctx(dryRun: true));
         Assert.Equal(1, r.OperationsRun);
-        Assert.Equal(0, r.OperationsFailed);
+        Assert.Equal(1, r.OperationsFailed); // Unverified shipped system actions remain disabled even in preview.
     }
 
     [Fact]

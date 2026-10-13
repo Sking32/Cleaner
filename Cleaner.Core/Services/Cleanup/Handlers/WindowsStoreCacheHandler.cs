@@ -21,7 +21,7 @@ public sealed class WindowsStoreCacheHandler : ICleanupHandler
 
         try
         {
-            var result = ctx.Commands.Run("wsreset.exe", "-i", timeoutMs: 120_000, cancellationToken: ctx.CancellationToken);
+            var result = ctx.Commands.Run("wsreset.exe", "", timeoutMs: 120_000, cancellationToken: ctx.CancellationToken);
             ctx.Report(op.Key, Name, "wsreset.exe", 0, 0,
                 result.Success ? "done" : "failed");
 

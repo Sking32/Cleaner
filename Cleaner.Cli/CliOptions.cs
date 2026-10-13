@@ -19,6 +19,7 @@ public sealed class CliOptions
     public IReadOnlyList<string> Operations { get; init; } = Array.Empty<string>();
 
     public bool DryRun { get; init; } = true;
+    public bool ExpertMode { get; init; }
     private string? ParseError { get; init; }
     public bool Silent { get; init; }
     public bool Quiet { get; init; }
@@ -42,7 +43,7 @@ public sealed class CliOptions
         if (mergeCount > 1) return "choose exactly one merge tool";
         if (MergeTweaks || MergeStrings || MergeOperations)
         {
-            if (Preset != null || Operations.Count > 0 || ShowHelp || ListOperations || !DryRun || LogPath != null || WebhookUrl != null || ReportPath != null)
+            if (Preset != null || Operations.Count > 0 || ShowHelp || ListOperations || !DryRun || ExpertMode || LogPath != null || WebhookUrl != null || ReportPath != null)
                 return "merge tools cannot be mixed with runtime options";
             if (Positional.Count != 2)
                 return "merge-tools require exactly 2 positional arguments";
@@ -69,7 +70,7 @@ public sealed class CliOptions
 
         string? preset = null;
         var operations = new List<string>();
-        bool dryRun = false, apply = false, silent = false, quiet = false, json = false;
+        bool dryRun = false, apply = false, silent = false, quiet = false, json = false, expert = false;
         string? parseError = null;
         bool noRelaunch = false, help = false, listOps = false;
         bool mergeTweaks = false, mergeStrings = false, mergeOps = false;
@@ -112,6 +113,7 @@ public sealed class CliOptions
 
                 case "--dry-run": dryRun = true; break;
                 case "--apply": apply = true; break;
+                case "--expert": expert = true; break;
                 case "--silent": silent = true; break;
                 case "--quiet": quiet = true; break;
                 case "--json": json = true; break;
@@ -153,6 +155,7 @@ public sealed class CliOptions
             Preset = string.IsNullOrWhiteSpace(preset) ? null : preset,
             Operations = operations,
             DryRun = !apply,
+            ExpertMode = expert,
             ParseError = dryRun && apply ? "--apply and --dry-run cannot be combined" : parseError,
             Silent = silent,
             Quiet = quiet,

@@ -51,34 +51,43 @@
       "key": "temp_user",
       "category": "quick",
       "level": "safe",
-      "defaultChecked": false,
+      "defaultChecked": true,
       "hint": "",
       "handler": "PathCleanup",
       "paths": [
-        "%TEMP%"
+        "%TEMP%",
+        "%LOCALAPPDATA%\\Temp"
       ],
       "nameKey": "op.temp_user.name",
-      "descKey": "op.temp_user.desc"
+      "descKey": "op.temp_user.desc",
+      "enabled": true,
+      "recommended": true,
+      "consequenceKey": "cleanup.consequence.cache",
+      "expertOnly": false
     },
     {
       "kind": "operation",
       "key": "temp_sys",
       "category": "quick",
       "level": "safe",
-      "defaultChecked": false,
+      "defaultChecked": true,
       "hint": "",
       "handler": "PathCleanup",
       "paths": [
         "%WINDIR%\\Temp"
       ],
       "nameKey": "op.temp_sys.name",
-      "descKey": "op.temp_sys.desc"
+      "descKey": "op.temp_sys.desc",
+      "enabled": true,
+      "recommended": true,
+      "consequenceKey": "cleanup.consequence.cache",
+      "expertOnly": false
     },
     {
       "kind": "operation",
       "key": "prefetch",
       "category": "quick",
-      "level": "safe",
+      "level": "danger",
       "defaultChecked": false,
       "hint": "",
       "handler": "PathCleanup",
@@ -86,20 +95,31 @@
         "%WINDIR%\\Prefetch"
       ],
       "nameKey": "op.prefetch.name",
-      "descKey": "op.prefetch.desc"
+      "descKey": "op.prefetch.desc",
+      "enabled": true,
+      "recommended": false,
+      "consequenceKey": "cleanup.consequence.cache",
+      "expertOnly": true,
+      "applicabilityKey": "cleanup.applicability.expert"
     },
     {
       "kind": "operation",
       "key": "recycle",
       "category": "quick",
-      "level": "danger",
+      "level": "medium",
       "defaultChecked": false,
       "hint": "",
       "handler": "Command",
       "paths": [],
       "nameKey": "op.recycle.name",
       "descKey": "op.recycle.desc",
-      "command": "Clear-RecycleBin -Force"
+      "command": "Clear-RecycleBin -Force",
+      "enabled": true,
+      "recommended": false,
+      "consequenceKey": "cleanup.consequence.personal",
+      "expertOnly": false,
+      "reversibilityKey": "cleanup.reversibility.system",
+      "applicabilityKey": "cleanup.applicability.system"
     },
     {
       "kind": "operation",
@@ -112,7 +132,13 @@
       "paths": [],
       "nameKey": "op.dns.name",
       "descKey": "op.dns.desc",
-      "command": "ipconfig /flushdns"
+      "command": "ipconfig /flushdns",
+      "enabled": true,
+      "recommended": false,
+      "consequenceKey": "cleanup.consequence.cache",
+      "expertOnly": false,
+      "reversibilityKey": "cleanup.reversibility.system",
+      "applicabilityKey": "cleanup.applicability.system"
     },
     {
       "kind": "operation",
@@ -126,7 +152,11 @@
         "%LOCALAPPDATA%\\Microsoft\\Windows\\WER"
       ],
       "nameKey": "op.wer_user.name",
-      "descKey": "op.wer_user.desc"
+      "descKey": "op.wer_user.desc",
+      "enabled": true,
+      "recommended": false,
+      "consequenceKey": "cleanup.consequence.diagnostics",
+      "expertOnly": false
     },
     {
       "kind": "operation",
@@ -140,7 +170,11 @@
         "%PROGRAMDATA%\\Microsoft\\Windows\\WER"
       ],
       "nameKey": "op.wer_sys.name",
-      "descKey": "op.wer_sys.desc"
+      "descKey": "op.wer_sys.desc",
+      "enabled": true,
+      "recommended": false,
+      "consequenceKey": "cleanup.consequence.diagnostics",
+      "expertOnly": false
     },
     {
       "kind": "operation",
@@ -157,7 +191,11 @@
         "%LOCALAPPDATA%\\Microsoft\\Windows\\WER\\ReportArchive"
       ],
       "nameKey": "op.wer_queue.name",
-      "descKey": "op.wer_queue.desc"
+      "descKey": "op.wer_queue.desc",
+      "enabled": true,
+      "recommended": false,
+      "consequenceKey": "cleanup.consequence.diagnostics",
+      "expertOnly": false
     },
     {
       "kind": "operation",
@@ -172,7 +210,11 @@
         "%WINDIR%\\MEMORY.DMP"
       ],
       "nameKey": "op.minidump.name",
-      "descKey": "op.minidump.desc"
+      "descKey": "op.minidump.desc",
+      "enabled": true,
+      "recommended": false,
+      "consequenceKey": "cleanup.consequence.diagnostics",
+      "expertOnly": false
     },
     {
       "kind": "operation",
@@ -186,7 +228,11 @@
         "%LOCALAPPDATA%\\CrashDumps"
       ],
       "nameKey": "op.crashdumps.name",
-      "descKey": "op.crashdumps.desc"
+      "descKey": "op.crashdumps.desc",
+      "enabled": true,
+      "recommended": false,
+      "consequenceKey": "cleanup.consequence.diagnostics",
+      "expertOnly": false
     },
     {
       "kind": "operation",
@@ -200,7 +246,11 @@
         "%WINDIR%\\LiveKernelReports"
       ],
       "nameKey": "op.livekernel.name",
-      "descKey": "op.livekernel.desc"
+      "descKey": "op.livekernel.desc",
+      "enabled": true,
+      "recommended": false,
+      "consequenceKey": "cleanup.consequence.diagnostics",
+      "expertOnly": false
     },
     {
       "kind": "operation",
@@ -214,7 +264,16 @@
         "%WINDIR%\\Logs\\CBS"
       ],
       "nameKey": "op.cbs.name",
-      "descKey": "op.cbs.desc"
+      "descKey": "op.cbs.desc",
+      "enabled": true,
+      "recommended": false,
+      "consequenceKey": "cleanup.consequence.diagnostics",
+      "expertOnly": false,
+      "olderThanDays": 7,
+      "filePatterns": [
+        "CbsPersist_*.log",
+        "CbsPersist_*.cab"
+      ]
     },
     {
       "kind": "operation",
@@ -231,6 +290,16 @@
       "descKey": "op.winlogs.desc",
       "skipSubdirs": [
         "CBS"
+      ],
+      "enabled": true,
+      "recommended": false,
+      "consequenceKey": "cleanup.consequence.diagnostics",
+      "expertOnly": false,
+      "olderThanDays": 7,
+      "filePatterns": [
+        "*.log",
+        "*.etl",
+        "*.bak"
       ]
     },
     {
@@ -239,29 +308,50 @@
       "category": "syscache",
       "level": "medium",
       "defaultChecked": false,
-      "hint": "restart Explorer",
-      "handler": "ThumbnailCache",
-      "paths": [],
+      "hint": "",
+      "handler": "PathCleanup",
+      "paths": [
+        "%LOCALAPPDATA%\\Microsoft\\Windows\\Explorer"
+      ],
       "nameKey": "op.thumbs.name",
-      "descKey": "op.thumbs.desc"
+      "descKey": "op.thumbs.desc",
+      "enabled": true,
+      "recommended": true,
+      "consequenceKey": "cleanup.consequence.cache",
+      "expertOnly": false,
+      "filePatterns": [
+        "thumbcache_*.db",
+        "iconcache_*.db"
+      ]
     },
     {
       "kind": "operation",
       "key": "fontcache",
       "category": "syscache",
-      "level": "medium",
+      "level": "danger",
       "defaultChecked": false,
       "hint": "",
-      "handler": "FontCache",
-      "paths": [],
+      "handler": "MultiPathCleanup",
+      "paths": [
+        "%WINDIR%\\ServiceProfiles\\LocalService\\AppData\\Local\\FontCache",
+        "%LOCALAPPDATA%\\FontCache"
+      ],
       "nameKey": "op.fontcache.name",
-      "descKey": "op.fontcache.desc"
+      "descKey": "op.fontcache.desc",
+      "enabled": true,
+      "recommended": false,
+      "consequenceKey": "cleanup.consequence.cache",
+      "expertOnly": true,
+      "applicabilityKey": "cleanup.applicability.expert",
+      "filePatterns": [
+        "*.dat"
+      ]
     },
     {
       "kind": "operation",
       "key": "notifications",
       "category": "syscache",
-      "level": "safe",
+      "level": "danger",
       "defaultChecked": false,
       "hint": "",
       "handler": "PathCleanup",
@@ -269,7 +359,12 @@
         "%LOCALAPPDATA%\\Microsoft\\Windows\\Notifications"
       ],
       "nameKey": "op.notifications.name",
-      "descKey": "op.notifications.desc"
+      "descKey": "op.notifications.desc",
+      "enabled": true,
+      "recommended": false,
+      "consequenceKey": "cleanup.consequence.cache",
+      "expertOnly": true,
+      "applicabilityKey": "cleanup.applicability.expert"
     },
     {
       "kind": "operation",
@@ -282,7 +377,13 @@
       "paths": [],
       "nameKey": "op.dodelivery.name",
       "descKey": "op.dodelivery.desc",
-      "command": "Delete-DeliveryOptimizationCache"
+      "command": "Delete-DeliveryOptimizationCache",
+      "enabled": true,
+      "recommended": false,
+      "consequenceKey": "cleanup.consequence.cache",
+      "expertOnly": false,
+      "reversibilityKey": "cleanup.reversibility.system",
+      "applicabilityKey": "cleanup.applicability.system"
     },
     {
       "kind": "operation",
@@ -296,7 +397,11 @@
         "%WINDIR%\\Downloaded Program Files"
       ],
       "nameKey": "op.downloadedprog.name",
-      "descKey": "op.downloadedprog.desc"
+      "descKey": "op.downloadedprog.desc",
+      "enabled": true,
+      "recommended": false,
+      "consequenceKey": "cleanup.consequence.cache",
+      "expertOnly": false
     },
     {
       "kind": "operation",
@@ -308,7 +413,13 @@
       "handler": "WindowsStoreCache",
       "paths": [],
       "nameKey": "op.windows_store.name",
-      "descKey": "op.windows_store.desc"
+      "descKey": "op.windows_store.desc",
+      "enabled": true,
+      "recommended": false,
+      "consequenceKey": "cleanup.consequence.cache",
+      "expertOnly": false,
+      "reversibilityKey": "cleanup.reversibility.system",
+      "applicabilityKey": "cleanup.applicability.system"
     },
     {
       "kind": "operation",
@@ -319,18 +430,28 @@
       "hint": "",
       "handler": "PathCleanup",
       "paths": [
-        "%LOCALAPPDATA%\\Microsoft\\OneDrive\\Cache",
         "%LOCALAPPDATA%\\Microsoft\\OneDrive\\logs",
         "%LOCALAPPDATA%\\Microsoft\\OneDrive\\setup\\logs"
       ],
       "nameKey": "op.onedrive.name",
-      "descKey": "op.onedrive.desc"
+      "descKey": "op.onedrive.desc",
+      "enabled": true,
+      "recommended": false,
+      "consequenceKey": "cleanup.consequence.diagnostics",
+      "expertOnly": false,
+      "olderThanDays": 7,
+      "filePatterns": [
+        "*.log",
+        "*.etl",
+        "*.odl",
+        "*.odlgz"
+      ]
     },
     {
       "kind": "operation",
       "key": "d3dscache",
       "category": "gfx",
-      "level": "safe",
+      "level": "medium",
       "defaultChecked": false,
       "hint": "",
       "handler": "PathCleanup",
@@ -338,13 +459,17 @@
         "%LOCALAPPDATA%\\D3DSCache"
       ],
       "nameKey": "op.d3dscache.name",
-      "descKey": "op.d3dscache.desc"
+      "descKey": "op.d3dscache.desc",
+      "enabled": true,
+      "recommended": false,
+      "consequenceKey": "cleanup.consequence.shaders",
+      "expertOnly": false
     },
     {
       "kind": "operation",
       "key": "nvidia",
       "category": "gfx",
-      "level": "safe",
+      "level": "medium",
       "defaultChecked": false,
       "hint": "",
       "handler": "PathCleanup",
@@ -353,13 +478,17 @@
         "%LOCALAPPDATA%\\NVIDIA\\GLCache"
       ],
       "nameKey": "op.nvidia.name",
-      "descKey": "op.nvidia.desc"
+      "descKey": "op.nvidia.desc",
+      "enabled": true,
+      "recommended": false,
+      "consequenceKey": "cleanup.consequence.shaders",
+      "expertOnly": false
     },
     {
       "kind": "operation",
       "key": "amd",
       "category": "gfx",
-      "level": "safe",
+      "level": "medium",
       "defaultChecked": false,
       "hint": "",
       "handler": "PathCleanup",
@@ -368,13 +497,17 @@
         "%LOCALAPPDATA%\\AMD\\GLCache"
       ],
       "nameKey": "op.amd.name",
-      "descKey": "op.amd.desc"
+      "descKey": "op.amd.desc",
+      "enabled": true,
+      "recommended": false,
+      "consequenceKey": "cleanup.consequence.shaders",
+      "expertOnly": false
     },
     {
       "kind": "operation",
       "key": "steam_shader",
       "category": "gfx",
-      "level": "safe",
+      "level": "medium",
       "defaultChecked": false,
       "hint": "",
       "handler": "PathCleanup",
@@ -383,7 +516,11 @@
         "%PROGRAMFILES%\\Steam\\steamapps\\shadercache"
       ],
       "nameKey": "op.steam_shader.name",
-      "descKey": "op.steam_shader.desc"
+      "descKey": "op.steam_shader.desc",
+      "enabled": true,
+      "recommended": false,
+      "consequenceKey": "cleanup.consequence.shaders",
+      "expertOnly": false
     },
     {
       "kind": "operation",
@@ -397,7 +534,11 @@
         "%LOCALAPPDATA%\\Google\\Chrome\\User Data"
       ],
       "nameKey": "op.chrome.name",
-      "descKey": "op.chrome.desc"
+      "descKey": "op.chrome.desc",
+      "enabled": true,
+      "recommended": true,
+      "consequenceKey": "cleanup.consequence.application",
+      "expertOnly": false
     },
     {
       "kind": "operation",
@@ -411,7 +552,11 @@
         "%LOCALAPPDATA%\\Microsoft\\Edge\\User Data"
       ],
       "nameKey": "op.edge.name",
-      "descKey": "op.edge.desc"
+      "descKey": "op.edge.desc",
+      "enabled": true,
+      "recommended": true,
+      "consequenceKey": "cleanup.consequence.application",
+      "expertOnly": false
     },
     {
       "kind": "operation",
@@ -426,7 +571,11 @@
         "%LOCALAPPDATA%\\Opera Software\\Opera GX Stable\\Cache"
       ],
       "nameKey": "op.opera.name",
-      "descKey": "op.opera.desc"
+      "descKey": "op.opera.desc",
+      "enabled": true,
+      "recommended": true,
+      "consequenceKey": "cleanup.consequence.application",
+      "expertOnly": false
     },
     {
       "kind": "operation",
@@ -440,7 +589,11 @@
         "%LOCALAPPDATA%\\Yandex\\YandexBrowser\\User Data\\Default\\Cache"
       ],
       "nameKey": "op.yandex.name",
-      "descKey": "op.yandex.desc"
+      "descKey": "op.yandex.desc",
+      "enabled": true,
+      "recommended": true,
+      "consequenceKey": "cleanup.consequence.application",
+      "expertOnly": false
     },
     {
       "kind": "operation",
@@ -450,9 +603,15 @@
       "defaultChecked": false,
       "hint": "",
       "handler": "FirefoxProfiles",
-      "paths": [],
+      "paths": [
+        "%LOCALAPPDATA%\\Mozilla\\Firefox\\Profiles"
+      ],
       "nameKey": "op.firefox.name",
-      "descKey": "op.firefox.desc"
+      "descKey": "op.firefox.desc",
+      "enabled": true,
+      "recommended": true,
+      "consequenceKey": "cleanup.consequence.application",
+      "expertOnly": false
     },
     {
       "kind": "operation",
@@ -466,14 +625,17 @@
         "%APPDATA%\\Microsoft\\Teams\\Cache",
         "%APPDATA%\\Microsoft\\Teams\\Code Cache",
         "%APPDATA%\\Microsoft\\Teams\\GPUCache",
-        "%APPDATA%\\Microsoft\\Teams\\blob_storage",
         "%APPDATA%\\Microsoft\\Teams\\tmp",
         "%LOCALAPPDATA%\\Packages\\MSTeams_8wekyb3d8bbwe\\LocalCache\\Microsoft\\MSTeams\\Cache",
         "%LOCALAPPDATA%\\Packages\\MSTeams_8wekyb3d8bbwe\\LocalCache\\Microsoft\\MSTeams\\Code Cache",
         "%LOCALAPPDATA%\\Packages\\MSTeams_8wekyb3d8bbwe\\LocalCache\\Microsoft\\MSTeams\\GPUCache"
       ],
       "nameKey": "op.teams.name",
-      "descKey": "op.teams.desc"
+      "descKey": "op.teams.desc",
+      "enabled": true,
+      "recommended": true,
+      "consequenceKey": "cleanup.consequence.application",
+      "expertOnly": false
     },
     {
       "kind": "operation",
@@ -489,7 +651,11 @@
         "%APPDATA%\\discord\\GPUCache"
       ],
       "nameKey": "op.discord.name",
-      "descKey": "op.discord.desc"
+      "descKey": "op.discord.desc",
+      "enabled": true,
+      "recommended": true,
+      "consequenceKey": "cleanup.consequence.application",
+      "expertOnly": false
     },
     {
       "kind": "operation",
@@ -505,13 +671,17 @@
         "%APPDATA%\\Code\\GPUCache"
       ],
       "nameKey": "op.vscode.name",
-      "descKey": "op.vscode.desc"
+      "descKey": "op.vscode.desc",
+      "enabled": true,
+      "recommended": true,
+      "consequenceKey": "cleanup.consequence.application",
+      "expertOnly": false
     },
     {
       "kind": "operation",
       "key": "office",
       "category": "apps",
-      "level": "medium",
+      "level": "danger",
       "defaultChecked": false,
       "hint": "",
       "handler": "PathCleanup",
@@ -519,7 +689,12 @@
         "%LOCALAPPDATA%\\Microsoft\\Office\\16.0\\OfficeFileCache"
       ],
       "nameKey": "op.office.name",
-      "descKey": "op.office.desc"
+      "descKey": "op.office.desc",
+      "enabled": true,
+      "recommended": false,
+      "consequenceKey": "cleanup.consequence.application",
+      "expertOnly": true,
+      "applicabilityKey": "cleanup.applicability.expert"
     },
     {
       "kind": "operation",
@@ -534,7 +709,11 @@
         "%PROGRAMFILES%\\Steam\\appcache\\httpcache"
       ],
       "nameKey": "op.steam.name",
-      "descKey": "op.steam.desc"
+      "descKey": "op.steam.desc",
+      "enabled": true,
+      "recommended": true,
+      "consequenceKey": "cleanup.consequence.application",
+      "expertOnly": false
     },
     {
       "kind": "operation",
@@ -548,7 +727,11 @@
         "%LOCALAPPDATA%\\EpicGamesLauncher\\Saved\\webcache"
       ],
       "nameKey": "op.epic.name",
-      "descKey": "op.epic.desc"
+      "descKey": "op.epic.desc",
+      "enabled": true,
+      "recommended": true,
+      "consequenceKey": "cleanup.consequence.application",
+      "expertOnly": false
     },
     {
       "kind": "operation",
@@ -559,11 +742,14 @@
       "hint": "",
       "handler": "PathCleanup",
       "paths": [
-        "%LOCALAPPDATA%\\Spotify\\Data",
-        "%LOCALAPPDATA%\\Spotify\\Storage"
+        "%LOCALAPPDATA%\\Spotify\\Data"
       ],
       "nameKey": "op.spotify.name",
-      "descKey": "op.spotify.desc"
+      "descKey": "op.spotify.desc",
+      "enabled": true,
+      "recommended": false,
+      "consequenceKey": "cleanup.consequence.application",
+      "expertOnly": false
     },
     {
       "kind": "operation",
@@ -575,11 +761,14 @@
       "handler": "PathCleanup",
       "paths": [
         "%APPDATA%\\Telegram Desktop\\tdata\\user_data\\cache",
-        "%APPDATA%\\Telegram Desktop\\tdata\\user_data\\media_cache",
-        "%APPDATA%\\Telegram Desktop\\tdata\\emoji"
+        "%APPDATA%\\Telegram Desktop\\tdata\\user_data\\media_cache"
       ],
       "nameKey": "op.telegram.name",
-      "descKey": "op.telegram.desc"
+      "descKey": "op.telegram.desc",
+      "enabled": true,
+      "recommended": false,
+      "consequenceKey": "cleanup.consequence.application",
+      "expertOnly": false
     },
     {
       "kind": "operation",
@@ -595,7 +784,11 @@
         "%APPDATA%\\Zoom\\data\\GPUCache"
       ],
       "nameKey": "op.zoom.name",
-      "descKey": "op.zoom.desc"
+      "descKey": "op.zoom.desc",
+      "enabled": true,
+      "recommended": true,
+      "consequenceKey": "cleanup.consequence.application",
+      "expertOnly": false
     },
     {
       "kind": "operation",
@@ -611,7 +804,11 @@
         "%APPDATA%\\Slack\\GPUCache"
       ],
       "nameKey": "op.slack.name",
-      "descKey": "op.slack.desc"
+      "descKey": "op.slack.desc",
+      "enabled": true,
+      "recommended": true,
+      "consequenceKey": "cleanup.consequence.application",
+      "expertOnly": false
     },
     {
       "kind": "operation",
@@ -627,7 +824,11 @@
         "%APPDATA%\\Notion\\GPUCache"
       ],
       "nameKey": "op.notion.name",
-      "descKey": "op.notion.desc"
+      "descKey": "op.notion.desc",
+      "enabled": true,
+      "recommended": true,
+      "consequenceKey": "cleanup.consequence.application",
+      "expertOnly": false
     },
     {
       "kind": "operation",
@@ -637,10 +838,16 @@
       "defaultChecked": false,
       "hint": "",
       "handler": "ObsLogs",
-      "paths": [],
+      "paths": [
+        "%APPDATA%\\obs-studio\\logs"
+      ],
       "nameKey": "op.obs_logs.name",
       "descKey": "op.obs_logs.desc",
-      "olderThanDays": 7
+      "olderThanDays": 7,
+      "enabled": true,
+      "recommended": true,
+      "consequenceKey": "cleanup.consequence.application",
+      "expertOnly": false
     },
     {
       "kind": "operation",
@@ -656,7 +863,11 @@
         "%LOCALAPPDATA%\\npm\\_cacache"
       ],
       "nameKey": "op.npm_cache.name",
-      "descKey": "op.npm_cache.desc"
+      "descKey": "op.npm_cache.desc",
+      "enabled": true,
+      "recommended": true,
+      "consequenceKey": "cleanup.consequence.cache",
+      "expertOnly": false
     },
     {
       "kind": "operation",
@@ -671,7 +882,11 @@
         "%LOCALAPPDATA%\\pip\\cache"
       ],
       "nameKey": "op.pip_cache.name",
-      "descKey": "op.pip_cache.desc"
+      "descKey": "op.pip_cache.desc",
+      "enabled": true,
+      "recommended": true,
+      "consequenceKey": "cleanup.consequence.cache",
+      "expertOnly": false
     },
     {
       "kind": "operation",
@@ -686,7 +901,11 @@
         "%LOCALAPPDATA%\\NuGet\\Cache"
       ],
       "nameKey": "op.nuget_cache.name",
-      "descKey": "op.nuget_cache.desc"
+      "descKey": "op.nuget_cache.desc",
+      "enabled": true,
+      "recommended": true,
+      "consequenceKey": "cleanup.consequence.cache",
+      "expertOnly": false
     },
     {
       "kind": "operation",
@@ -700,7 +919,11 @@
         "%APPDATA%\\Microsoft\\Windows\\Recent"
       ],
       "nameKey": "op.recent.name",
-      "descKey": "op.recent.desc"
+      "descKey": "op.recent.desc",
+      "enabled": true,
+      "recommended": false,
+      "consequenceKey": "cleanup.consequence.personal",
+      "expertOnly": false
     },
     {
       "kind": "operation",
@@ -710,15 +933,22 @@
       "defaultChecked": false,
       "hint": "",
       "handler": "JumpLists",
-      "paths": [],
+      "paths": [
+        "%APPDATA%\\Microsoft\\Windows\\Recent\\AutomaticDestinations",
+        "%APPDATA%\\Microsoft\\Windows\\Recent\\CustomDestinations"
+      ],
       "nameKey": "op.jump_lists.name",
-      "descKey": "op.jump_lists.desc"
+      "descKey": "op.jump_lists.desc",
+      "enabled": true,
+      "recommended": false,
+      "consequenceKey": "cleanup.consequence.personal",
+      "expertOnly": false
     },
     {
       "kind": "operation",
       "key": "clipboard_history",
       "category": "privacy",
-      "level": "safe",
+      "level": "danger",
       "defaultChecked": false,
       "hint": "",
       "handler": "PathCleanup",
@@ -726,7 +956,12 @@
         "%LOCALAPPDATA%\\Microsoft\\Windows\\Clipboard"
       ],
       "nameKey": "op.clipboard_history.name",
-      "descKey": "op.clipboard_history.desc"
+      "descKey": "op.clipboard_history.desc",
+      "enabled": true,
+      "recommended": false,
+      "consequenceKey": "cleanup.consequence.cache",
+      "expertOnly": true,
+      "applicabilityKey": "cleanup.applicability.expert"
     },
     {
       "kind": "operation",
@@ -739,7 +974,13 @@
       "paths": [],
       "nameKey": "op.recent_typed.name",
       "descKey": "op.recent_typed.desc",
-      "registryKey": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\TypedPaths"
+      "registryKey": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\TypedPaths",
+      "enabled": true,
+      "recommended": false,
+      "consequenceKey": "cleanup.consequence.personal",
+      "expertOnly": false,
+      "reversibilityKey": "cleanup.reversibility.system",
+      "applicabilityKey": "cleanup.applicability.system"
     },
     {
       "kind": "operation",
@@ -751,19 +992,35 @@
       "handler": "RegCleanRunMRU",
       "paths": [],
       "nameKey": "op.run_history.name",
-      "descKey": "op.run_history.desc"
+      "descKey": "op.run_history.desc",
+      "enabled": true,
+      "recommended": false,
+      "consequenceKey": "cleanup.consequence.personal",
+      "expertOnly": false,
+      "reversibilityKey": "cleanup.reversibility.system",
+      "applicabilityKey": "cleanup.applicability.system"
     },
     {
       "kind": "operation",
       "key": "activity_history",
       "category": "privacy",
-      "level": "safe",
+      "level": "danger",
       "defaultChecked": false,
       "hint": "",
-      "handler": "ActivityHistory",
-      "paths": [],
+      "handler": "PathCleanupRecursive",
+      "paths": [
+        "%LOCALAPPDATA%\\ConnectedDevicesPlatform"
+      ],
       "nameKey": "op.activity_history.name",
-      "descKey": "op.activity_history.desc"
+      "descKey": "op.activity_history.desc",
+      "enabled": true,
+      "recommended": false,
+      "consequenceKey": "cleanup.consequence.cache",
+      "expertOnly": true,
+      "applicabilityKey": "cleanup.applicability.expert",
+      "filePatterns": [
+        "ActivitiesCache.db*"
+      ]
     },
     {
       "kind": "operation",
@@ -775,7 +1032,12 @@
       "handler": "SmartDownloads",
       "paths": [],
       "nameKey": "op.downloads_smart.name",
-      "descKey": "op.downloads_smart.desc"
+      "descKey": "op.downloads_smart.desc",
+      "enabled": true,
+      "recommended": false,
+      "consequenceKey": "cleanup.consequence.downloads",
+      "expertOnly": false,
+      "olderThanDays": 30
     },
     {
       "kind": "operation",
@@ -784,10 +1046,17 @@
       "level": "danger",
       "defaultChecked": false,
       "hint": "",
-      "handler": "WindowsUpdateCache",
-      "paths": [],
+      "handler": "PathCleanup",
+      "paths": [
+        "%WINDIR%\\SoftwareDistribution\\Download"
+      ],
       "nameKey": "op.wupdate.name",
-      "descKey": "op.wupdate.desc"
+      "descKey": "op.wupdate.desc",
+      "enabled": true,
+      "recommended": false,
+      "consequenceKey": "cleanup.consequence.update",
+      "expertOnly": true,
+      "applicabilityKey": "cleanup.applicability.expert"
     },
     {
       "kind": "operation",
@@ -799,7 +1068,13 @@
       "handler": "DismComponentCleanup",
       "paths": [],
       "nameKey": "op.winsxs.name",
-      "descKey": "op.winsxs.desc"
+      "descKey": "op.winsxs.desc",
+      "enabled": true,
+      "recommended": false,
+      "consequenceKey": "cleanup.consequence.components",
+      "expertOnly": true,
+      "applicabilityKey": "cleanup.applicability.expert",
+      "reversibilityKey": "cleanup.reversibility.system"
     },
     {
       "kind": "operation",
@@ -811,7 +1086,13 @@
       "handler": "WindowsOld",
       "paths": [],
       "nameKey": "op.windowsold.name",
-      "descKey": "op.windowsold.desc"
+      "descKey": "op.windowsold.desc",
+      "enabled": true,
+      "recommended": false,
+      "consequenceKey": "cleanup.consequence.windowsold",
+      "expertOnly": true,
+      "applicabilityKey": "cleanup.applicability.expert",
+      "reversibilityKey": "cleanup.reversibility.system"
     },
     {
       "kind": "operation",
@@ -823,7 +1104,13 @@
       "handler": "ShadowCopy",
       "paths": [],
       "nameKey": "op.shadowcopy.name",
-      "descKey": "op.shadowcopy.desc"
+      "descKey": "op.shadowcopy.desc",
+      "enabled": true,
+      "recommended": false,
+      "consequenceKey": "cleanup.consequence.shadows",
+      "expertOnly": true,
+      "applicabilityKey": "cleanup.applicability.expert",
+      "reversibilityKey": "cleanup.reversibility.system"
     },
     {
       "kind": "operation",
@@ -835,7 +1122,13 @@
       "handler": "ToggleHibernation",
       "paths": [],
       "nameKey": "op.hibernate.name",
-      "descKey": "op.hibernate.desc"
+      "descKey": "op.hibernate.desc",
+      "enabled": true,
+      "recommended": false,
+      "consequenceKey": "cleanup.consequence.hibernate",
+      "expertOnly": true,
+      "applicabilityKey": "cleanup.applicability.expert",
+      "reversibilityKey": "cleanup.reversibility.system"
     }
   ]
 }

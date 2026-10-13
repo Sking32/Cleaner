@@ -11,6 +11,46 @@ public sealed record SettingsChoice(string Key, string Label);
 
 public partial class SettingsViewModel : ObservableObject
 {
+    [ObservableProperty] private bool _maintenanceBusy;
+    [ObservableProperty] private string _maintenanceStatus = "";
+    private bool CanMaintainLogs() => !MaintenanceBusy;
+    partial void OnMaintenanceBusyChanged(bool value) => ClearOldLogsCommand.NotifyCanExecuteChanged();
+    [RelayCommand(CanExecute = nameof(CanMaintainLogs))]
+    private async Task ClearOldLogsAsync()
+    {
+        MaintenanceBusy = true;
+        try
+        {
+            var maintenance = new ApplicationLogMaintenance(AppLog.LogDirectory);
+            var plan = await Task.Run(maintenance.Analyze);
+            if (plan.Count == 0) { MaintenanceStatus = Loc.T("settings.storage.empty"); return; }
+            if (!await Dialogs.ConfirmAsync(Loc.T("settings.storage.title"), Loc.F("settings.storage.confirm", plan.Count, CleanupDetailRow.FormatBytes(plan.Sum(f => f.Identity.Length))))) return;
+            var result = await Task.Run(() => maintenance.Apply(plan));
+            MaintenanceStatus = Loc.F("settings.storage.result", result.Deleted, CleanupDetailRow.FormatBytes(result.BytesDeleted), result.Skipped);
+        }
+        catch (Exception error) { MaintenanceStatus = Loc.T("t.oshibka") + error.Message; }
+        finally { MaintenanceBusy = false; }
+    }
+    [ObservableProperty] private string _updateStatus = "";
+    [RelayCommand] private async Task CheckUpdatesAsync()
+    {
+        UpdateStatus = Loc.T("updates.checking");
+        try { var newer = await ReleaseUpdates.FindNewerAsync(AppVersion.Current); UpdateStatus = newer == null ? Loc.T("updates.current") : Loc.F("updates.available", newer); }
+        catch { UpdateStatus = Loc.T("updates.failed"); }
+    }
+    [RelayCommand] private void OpenReleases()
+    {
+        try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(ReleaseUpdates.OfficialPage) { UseShellExecute = true }); }
+        catch { UpdateStatus = Loc.T("updates.failed"); }
+    }
+    [ObservableProperty] private bool _expertMode = UserSettings.GetExpertMode();
+    private bool _restoringMode;
+    partial void OnExpertModeChanged(bool value)
+    {
+        if (_restoringMode) return;
+        if (!UserSettings.SetExpertMode(value)) { _restoringMode = true; ExpertMode = !value; _restoringMode = false; }
+        Saved();
+    }
     private readonly IStartupRegistration? _startup;
     private bool _restoringAutomation;
     public IReadOnlyList<SettingsChoice> CleanupIntervals { get; } = new[]

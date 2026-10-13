@@ -56,7 +56,12 @@
           "kind": "DWord",
           "expected": 2
         }
-      ]
+      ],
+      "expertOnly": false,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "Transparency",
@@ -99,7 +104,12 @@
           "kind": "DWord",
           "expected": 0
         }
-      ]
+      ],
+      "expertOnly": false,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "StartupDelay",
@@ -154,7 +164,12 @@
           "kind": "DWord",
           "expected": 0
         }
-      ]
+      ],
+      "expertOnly": false,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "MenuDelay",
@@ -197,7 +212,12 @@
           "kind": "String",
           "lessOrEqualInt": 50
         }
-      ]
+      ],
+      "expertOnly": false,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "BackgroundApps",
@@ -252,7 +272,12 @@
           "kind": "DWord",
           "expected": 1
         }
-      ]
+      ],
+      "expertOnly": true,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "SysMain",
@@ -285,7 +310,12 @@
           "serviceName": "SysMain",
           "expectedStartupType": "Disabled"
         }
-      ]
+      ],
+      "expertOnly": true,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "Prefetch",
@@ -342,7 +372,12 @@
           "kind": "DWord",
           "expected": 0
         }
-      ]
+      ],
+      "expertOnly": true,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "AutoMaintenance",
@@ -382,7 +417,12 @@
           "kind": "DWord",
           "expected": 1
         }
-      ]
+      ],
+      "expertOnly": true,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "DefenderScanLimit",
@@ -425,13 +465,18 @@
           "kind": "DWord",
           "lessOrEqualInt": 20
         }
-      ]
+      ],
+      "expertOnly": true,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "WerSvc",
       "category": "perf",
       "level": "caution",
-      "requiresReboot": false,
+      "requiresReboot": true,
       "conflictsWith": [],
       "nameKey": "tweak.WerSvc.name",
       "shortKey": "tweak.WerSvc.short",
@@ -458,7 +503,12 @@
           "serviceName": "WerSvc",
           "expectedStartupType": "Disabled"
         }
-      ]
+      ],
+      "expertOnly": true,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "FastStartup",
@@ -499,7 +549,12 @@
           "kind": "DWord",
           "expected": 0
         }
-      ]
+      ],
+      "expertOnly": true,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "ReservedStorage",
@@ -532,7 +587,12 @@
           "arguments": "/Online /Get-ReservedStorageState",
           "outputContains": "Disabled"
         }
-      ]
+      ],
+      "expertOnly": true,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "EventLogSize",
@@ -575,7 +635,12 @@
           "arguments": "gl Application /f:xml",
           "outputContains": "<maxSize>10485760</maxSize>"
         }
-      ]
+      ],
+      "expertOnly": true,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "SearchIndexing",
@@ -608,7 +673,12 @@
           "serviceName": "WSearch",
           "expectedStartupType": "Disabled"
         }
-      ]
+      ],
+      "expertOnly": true,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "PowerThrottling",
@@ -648,13 +718,18 @@
           "kind": "DWord",
           "expected": 1
         }
-      ]
+      ],
+      "expertOnly": true,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "Telemetry",
       "category": "privacy",
       "level": "caution",
-      "requiresReboot": false,
+      "requiresReboot": true,
       "conflictsWith": [],
       "nameKey": "tweak.Telemetry.name",
       "shortKey": "tweak.Telemetry.short",
@@ -710,7 +785,12 @@
           "kind": "DWord",
           "expected": 0
         }
-      ]
+      ],
+      "expertOnly": true,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "AdvertisingId",
@@ -753,7 +833,12 @@
           "kind": "DWord",
           "expected": 0
         }
-      ]
+      ],
+      "expertOnly": false,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "ActivityHistory",
@@ -808,7 +893,12 @@
           "kind": "DWord",
           "expected": 0
         }
-      ]
+      ],
+      "expertOnly": false,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "Cortana",
@@ -851,7 +941,12 @@
           "kind": "DWord",
           "expected": 0
         }
-      ]
+      ],
+      "expertOnly": true,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "XboxGameBar",
@@ -912,7 +1007,12 @@
           "kind": "DWord",
           "expected": 0
         }
-      ]
+      ],
+      "expertOnly": false,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "BingSearch",
@@ -973,7 +1073,12 @@
           "kind": "DWord",
           "expected": 0
         }
-      ]
+      ],
+      "expertOnly": false,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "LockScreenAds",
@@ -1034,7 +1139,12 @@
           "kind": "DWord",
           "expected": 0
         }
-      ]
+      ],
+      "expertOnly": false,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "Copilot",
@@ -1074,7 +1184,12 @@
           "kind": "DWord",
           "expected": 1
         }
-      ]
+      ],
+      "expertOnly": false,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "Recall",
@@ -1114,7 +1229,12 @@
           "kind": "DWord",
           "expected": 1
         }
-      ]
+      ],
+      "expertOnly": false,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 26100
+      }
     },
     {
       "key": "Feedback",
@@ -1169,7 +1289,12 @@
           "kind": "DWord",
           "expected": 1
         }
-      ]
+      ],
+      "expertOnly": false,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "Location",
@@ -1227,7 +1352,12 @@
           "kind": "DWord",
           "expected": 1
         }
-      ]
+      ],
+      "expertOnly": true,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "Camera",
@@ -1270,7 +1400,12 @@
           "kind": "String",
           "expected": "Deny"
         }
-      ]
+      ],
+      "expertOnly": true,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "Microphone",
@@ -1313,7 +1448,12 @@
           "kind": "String",
           "expected": "Deny"
         }
-      ]
+      ],
+      "expertOnly": true,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "DiagnosticData",
@@ -1368,7 +1508,12 @@
           "kind": "DWord",
           "expected": 0
         }
-      ]
+      ],
+      "expertOnly": true,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "InkingTyping",
@@ -1423,7 +1568,12 @@
           "kind": "DWord",
           "expected": 1
         }
-      ]
+      ],
+      "expertOnly": false,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "SpeechRecognition",
@@ -1481,7 +1631,12 @@
           "kind": "DWord",
           "expected": 0
         }
-      ]
+      ],
+      "expertOnly": true,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "UpdateP2P",
@@ -1524,7 +1679,12 @@
           "kind": "DWord",
           "expected": 0
         }
-      ]
+      ],
+      "expertOnly": true,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "ClassicContext",
@@ -1570,7 +1730,8 @@
           "hive": "HKCU",
           "key": "Software\\Classes\\CLSID\\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\\InprocServer32"
         }
-      ]
+      ],
+      "expertOnly": false
     },
     {
       "key": "Widgets",
@@ -1638,7 +1799,8 @@
           "kind": "DWord",
           "expected": 0
         }
-      ]
+      ],
+      "expertOnly": false
     },
     {
       "key": "SearchHighlights",
@@ -1685,7 +1847,8 @@
           "kind": "DWord",
           "expected": 0
         }
-      ]
+      ],
+      "expertOnly": false
     },
     {
       "key": "StartRecommendations",
@@ -1747,7 +1910,8 @@
           "kind": "DWord",
           "expected": 0
         }
-      ]
+      ],
+      "expertOnly": false
     },
     {
       "key": "TaskbarAlign",
@@ -1800,7 +1964,8 @@
           "kind": "DWord",
           "expected": 0
         }
-      ]
+      ],
+      "expertOnly": false
     },
     {
       "key": "SearchBox",
@@ -1853,7 +2018,8 @@
           "kind": "DWord",
           "expected": 1
         }
-      ]
+      ],
+      "expertOnly": false
     },
     {
       "key": "ChatIcon",
@@ -1906,7 +2072,8 @@
           "kind": "DWord",
           "expected": 0
         }
-      ]
+      ],
+      "expertOnly": false
     },
     {
       "key": "TaskView",
@@ -1959,7 +2126,8 @@
           "kind": "DWord",
           "expected": 0
         }
-      ]
+      ],
+      "expertOnly": false
     },
     {
       "key": "EndTask",
@@ -2009,7 +2177,8 @@
           "kind": "DWord",
           "expected": 1
         }
-      ]
+      ],
+      "expertOnly": false
     },
     {
       "key": "NetworkThrottle",
@@ -2050,7 +2219,12 @@
           "kind": "DWord",
           "expected": -1
         }
-      ]
+      ],
+      "expertOnly": true,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "TcpAutotuning",
@@ -2083,7 +2257,12 @@
           "arguments": "int tcp show global",
           "outputContains": "disabled"
         }
-      ]
+      ],
+      "expertOnly": true,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "Nagle",
@@ -2136,7 +2315,12 @@
           "kind": "DWord",
           "expected": 1
         }
-      ]
+      ],
+      "expertOnly": true,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "QosReserved",
@@ -2179,7 +2363,12 @@
           "kind": "DWord",
           "expected": 0
         }
-      ]
+      ],
+      "expertOnly": true,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "NetBIOS",
@@ -2218,7 +2407,12 @@
           "kind": "DWord",
           "expected": 2
         }
-      ]
+      ],
+      "expertOnly": true,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "IPv6",
@@ -2258,7 +2452,12 @@
           "kind": "DWord",
           "expected": 255
         }
-      ]
+      ],
+      "expertOnly": true,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "WindowsUpdateP2P",
@@ -2301,7 +2500,12 @@
           "kind": "DWord",
           "expected": 0
         }
-      ]
+      ],
+      "expertOnly": true,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "StorageSense",
@@ -2341,7 +2545,12 @@
           "kind": "DWord",
           "expected": 0
         }
-      ]
+      ],
+      "expertOnly": true,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "Tips",
@@ -2420,7 +2629,12 @@
           "kind": "DWord",
           "expected": 0
         }
-      ]
+      ],
+      "expertOnly": false,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "ConsumerFeatures",
@@ -2460,7 +2674,12 @@
           "kind": "DWord",
           "expected": 1
         }
-      ]
+      ],
+      "expertOnly": false,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "ScheduledDefrag",
@@ -2493,13 +2712,18 @@
           "arguments": "/Query /TN \"\\Microsoft\\Windows\\Defrag\\ScheduledDefrag\" /FO LIST",
           "outputContains": "Disabled"
         }
-      ]
+      ],
+      "expertOnly": true,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "DeliveryOptimization",
       "category": "maint",
       "level": "caution",
-      "requiresReboot": false,
+      "requiresReboot": true,
       "conflictsWith": [],
       "nameKey": "tweak.DeliveryOptimization.name",
       "shortKey": "tweak.DeliveryOptimization.short",
@@ -2526,7 +2750,12 @@
           "serviceName": "DoSvc",
           "expectedStartupType": "Disabled"
         }
-      ]
+      ],
+      "expertOnly": true,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "OneDriveAutoStart",
@@ -2559,7 +2788,12 @@
           "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Run",
           "name": "OneDrive"
         }
-      ]
+      ],
+      "expertOnly": false,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "EdgePreload",
@@ -2614,7 +2848,12 @@
           "kind": "DWord",
           "expected": 0
         }
-      ]
+      ],
+      "expertOnly": false,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "WindowsUpdatePause",
@@ -2652,7 +2891,12 @@
           "key": "SOFTWARE\\Microsoft\\WindowsUpdate\\UX\\Settings",
           "name": "PauseUpdatesExpiryTime"
         }
-      ]
+      ],
+      "expertOnly": true,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "GameMode",
@@ -2695,7 +2939,12 @@
           "kind": "DWord",
           "expected": 1
         }
-      ]
+      ],
+      "expertOnly": false,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "HAGS",
@@ -2736,7 +2985,12 @@
           "kind": "DWord",
           "expected": 2
         }
-      ]
+      ],
+      "expertOnly": true,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "PowerPlan",
@@ -2769,7 +3023,12 @@
           "arguments": "/getactivescheme",
           "outputContains": "8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c"
         }
-      ]
+      ],
+      "expertOnly": true,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "FullscreenOpts",
@@ -2830,7 +3089,12 @@
           "kind": "DWord",
           "expected": 2
         }
-      ]
+      ],
+      "expertOnly": true,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "MPO",
@@ -2870,7 +3134,12 @@
           "kind": "DWord",
           "expected": 5
         }
-      ]
+      ],
+      "expertOnly": true,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     },
     {
       "key": "GamePowerThrottling",
@@ -2910,7 +3179,12 @@
           "kind": "DWord",
           "expected": 1
         }
-      ]
+      ],
+      "expertOnly": true,
+      "compatibility": {
+        "verifiedWindowsBuilds": [],
+        "minWindowsBuild": 19045
+      }
     }
   ]
 }

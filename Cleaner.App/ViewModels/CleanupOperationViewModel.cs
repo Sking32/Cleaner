@@ -9,6 +9,11 @@ namespace Cleaner.App.ViewModels;
 /// </summary>
 public partial class CleanupOperationViewModel : ObservableObject
 {
+    public bool IsEnabled { get; }
+    public bool Recommended { get; }
+    public string Consequence { get; }
+    public string Applicability { get; }
+    public string Reversibility { get; }
     public string Key { get; }
     public string Handler { get; }
     public string Category { get; }
@@ -52,6 +57,10 @@ public partial class CleanupOperationViewModel : ObservableObject
 
     public CleanupOperationViewModel(OperationEntry entry, string name, string description)
     {
+        IsEnabled = entry.Enabled; Recommended = entry.Recommended;
+        Consequence = Loc.T(entry.Enabled ? entry.ConsequenceKey : "cleanup.rule.disabled");
+        Applicability = Loc.T(entry.Enabled ? entry.ApplicabilityKey : "cleanup.rule.disabled");
+        Reversibility = entry.Enabled ? Loc.T(entry.ReversibilityKey) : "";
         Key = entry.Key;
         Handler = entry.Handler ?? "";
         Category = entry.Category ?? "";
@@ -59,6 +68,6 @@ public partial class CleanupOperationViewModel : ObservableObject
         Hint = entry.Hint ?? "";
         Name = name;
         Description = description;
-        IsChecked = entry.DefaultChecked;
+        IsChecked = entry.Enabled && entry.DefaultChecked;
     }
 }

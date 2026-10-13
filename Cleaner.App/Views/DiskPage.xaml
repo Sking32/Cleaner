@@ -24,25 +24,20 @@
             <!-- Управление -->
             <Border Grid.Row="1" Margin="0,20,0,0" Style="{StaticResource CategoryCardStyle}" Padding="18">
                 <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <Grid Grid.Row="0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <ComboBox Grid.Column="0" ItemsSource="{Binding Drives}" SelectedItem="{Binding SelectedDrive, Mode=TwoWay}" DisplayMemberPath="Display" VerticalAlignment="Center" IsEnabled="{Binding CanSelectDrive}" MinHeight="34" />
-                        <ui:Button Grid.Column="1" Margin="10,0,0,0" Padding="20,10" Appearance="Primary" Style="{StaticResource PrimaryButtonStyle}" Icon="{ui:SymbolIcon Play24}" Content="{loc:Loc t.analiz}" ToolTip="{loc:Loc t.proskanirovat_vybrannyy_disk}" Command="{Binding ScanCommand}" />
-                        <ui:Button Grid.Column="2" Margin="8,0,0,0" Padding="20,10" Icon="{ui:SymbolIcon Dismiss24}" Content="{loc:Loc t.otmena}" Command="{Binding CancelCommand}" />
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="164"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                    <controls:DiskGauge Grid.RowSpan="2" Percent="{Binding SelectedDrive.UsedPercent, Mode=OneWay, FallbackValue=NaN, TargetNullValue=NaN}" NoDataText="{loc:Loc analytics.no.data}" Height="104" AutomationProperties.Name="{Binding CapacityText}" VerticalAlignment="Center"/>
+                    <Grid Grid.Column="1" Margin="18,0,0,0">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <ComboBox ItemsSource="{Binding Drives}" SelectedItem="{Binding SelectedDrive, Mode=TwoWay}" DisplayMemberPath="Display" VerticalAlignment="Center" IsEnabled="{Binding CanSelectDrive}" MinHeight="34"/>
+                        <ui:Button Grid.Column="1" Margin="10,0,0,0" Padding="14,8" Appearance="Primary" Style="{StaticResource PrimaryButtonStyle}" Icon="{ui:SymbolIcon Play24}" Content="{loc:Loc t.analiz}" Command="{Binding ScanCommand}"/>
+                        <ui:Button Grid.Column="2" Margin="8,0,0,0" Padding="14,8" Icon="{ui:SymbolIcon Dismiss24}" Content="{loc:Loc t.otmena}" Command="{Binding CancelCommand}"/>
                     </Grid>
-                    <!-- Прогресс / сводка -->
-                    <StackPanel Grid.Row="1" Margin="0,12,0,0">
-                        <ProgressBar Height="6" Margin="0,0,0,10" Minimum="0" Maximum="100" Value="{Binding SelectedDrive.UsedPercent, Mode=OneWay}" />
-                        <TextBlock ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis" Text="{Binding ProgressText}" />
-                        <TextBlock FontSize="12" Foreground="{DynamicResource AccentBrush}" FontWeight="SemiBold" Margin="0,2,0,0" Text="{Binding SummaryText}" />
+                    <StackPanel Grid.Row="1" Grid.Column="1" Margin="18,8,0,0">
+                        <TextBlock Text="{loc:Loc analytics.disk.used}" FontSize="14" FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding CapacityText}" Style="{StaticResource SettingHintStyle}" TextWrapping="Wrap"/>
+                        <TextBlock Text="{Binding ProgressText}" ToolTip="{Binding ProgressText}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Text="{Binding SummaryText}" FontSize="11" Foreground="{DynamicResource AccentBrush}" TextTrimming="CharacterEllipsis"/>
                     </StackPanel>
                 </Grid>
             </Border>
@@ -167,8 +162,8 @@
                                     <TextBlock Text="{loc:Loc t.krupnye_fayly}" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center" />
                                     <ComboBox Width="140" Margin="14,0,0,0" VerticalAlignment="Center" ItemsSource="{Binding FileFilters}" SelectedIndex="{Binding FileFilterIndex, Mode=TwoWay}" />
                                 </StackPanel>
-                                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" MinHeight="200">
-                                    <StackPanel>
+                                <Grid Grid.Row="1">
+                                    <Grid>
                                         <TextBlock Text="{loc:Loc t.top_faylov_poyavitsya_posle_analiza_diska}" FontSize="12" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap">
                                             <TextBlock.Style>
                                                 <Style TargetType="TextBlock">
@@ -181,8 +176,8 @@
                                                 </Style>
                                             </TextBlock.Style>
                                         </TextBlock>
-                                        <ItemsControl ItemsSource="{Binding LargeFiles}">
-                                            <ItemsControl.ItemTemplate>
+                                        <ListBox ItemsSource="{Binding LargeFiles}" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled" VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling">
+                                            <ListBox.ItemTemplate>
                                                 <DataTemplate>
                                                     <Border Style="{StaticResource RowBorderStyle}">
                                                         <Grid>
@@ -200,10 +195,10 @@
                                                         </Grid>
                                                     </Border>
                                                 </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
-                                    </StackPanel>
-                                </ScrollViewer>
+                                            </ListBox.ItemTemplate>
+                                        </ListBox>
+                                    </Grid>
+                                </Grid>
                             </Grid>
                         </Border>
                     </Grid>
@@ -218,8 +213,8 @@
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0" Text="{Binding StatusText}" Foreground="{StaticResource TextPrimaryBrush}" TextWrapping="Wrap" FontSize="13" VerticalAlignment="Center" />
-                    <ui:Button Grid.Column="1" Margin="8,0" Padding="16,10" FontSize="13" Icon="{ui:SymbolIcon DocumentText24}" Content="{loc:Loc t.tenevye_kopii}" ToolTip="{loc:Loc t.pokazat_spisok_tenevyh_kopiy}" Command="{Binding ListShadowsCommand}" />
-                    <ui:Button Grid.Column="2" Padding="16,10" FontSize="13" Icon="{ui:SymbolIcon Delete24}" Content="{loc:Loc t.udalit_starye}" ToolTip="{loc:Loc t.udalit_starye_tenevye_kopii_nuzhny_prava}" Command="{Binding DeleteOldShadowsCommand}" />
+                    <ui:Button Grid.Column="1" Margin="8,0" Padding="16,10" FontSize="13" Icon="{ui:SymbolIcon DocumentText24}" Content="{loc:Loc t.tenevye_kopii}" ToolTip="{loc:Loc t.pokazat_spisok_tenevyh_kopiy}" Command="{Binding ListShadowsCommand}" Visibility="{Binding ExpertMode, Converter={StaticResource BoolToVis}}"/>
+                    <ui:Button Grid.Column="2" Padding="16,10" FontSize="13" Icon="{ui:SymbolIcon Delete24}" Content="{loc:Loc t.udalit_starye}" ToolTip="{loc:Loc compatibility.pending}" Command="{Binding DeleteOldShadowsCommand}" Visibility="{Binding ExpertMode, Converter={StaticResource BoolToVis}}"/>
                 </Grid>
             </Border>
             <ui:ProgressRing Grid.Row="2" Width="32" Height="32" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,4,12,0" IsIndeterminate="True" Foreground="{DynamicResource AccentBrush}" Visibility="{Binding IsScanning, Converter={StaticResource BoolToVis}}" />

@@ -10,14 +10,16 @@ namespace Cleaner.Core.Services.Cleanup.Handlers;
 /// </summary>
 public sealed class FirefoxProfilesHandler : ICleanupHandler
 {
+    private readonly Func<string>? _profilesRoot;
+    public FirefoxProfilesHandler(Func<string>? profilesRoot = null) => _profilesRoot = profilesRoot;
     public string Name => "FirefoxProfiles";
 
     public CleanupOperationResult Run(OperationEntry op, CleanupContext ctx)
     {
         var appData = System.Environment.GetFolderPath(
-            System.Environment.SpecialFolder.ApplicationData);
+            System.Environment.SpecialFolder.LocalApplicationData);
 
-        var profilesRoot = Path.Combine(appData, "Mozilla", "Firefox", "Profiles");
+        var profilesRoot = _profilesRoot?.Invoke() ?? Path.Combine(appData, "Mozilla", "Firefox", "Profiles");
         if (!Directory.Exists(profilesRoot))
             return CleanupOperationResult.Ok(message: "no firefox profiles");
 

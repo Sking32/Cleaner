@@ -63,14 +63,15 @@ public sealed class OptimizeService : IOptimizeService
         IBackupService backup,
         AppliedTweaksStore appliedStore,
         PresetsRepository presets,
-        Func<TweakDefinition, TweakCompatibilityResult>? compatibility = null)
+        Func<TweakDefinition, TweakCompatibilityResult>? compatibility = null,
+        Func<bool>? expertMode = null)
     {
         Tweaks = tweaks ?? throw new ArgumentNullException(nameof(tweaks));
         _interpreter = interpreter ?? throw new ArgumentNullException(nameof(interpreter));
         _backup = backup ?? throw new ArgumentNullException(nameof(backup));
         _appliedStore = appliedStore ?? throw new ArgumentNullException(nameof(appliedStore));
         _presets = presets ?? throw new ArgumentNullException(nameof(presets));
-        _compatibility = compatibility ?? (t => TweakCompatibilityService.Evaluate(t));
+        _compatibility = compatibility ?? (t => TweakCompatibilityService.Evaluate(t, expertMode: expertMode?.Invoke() == true));
     }
 
     // ---------- Apply / Unapply ----------
@@ -136,7 +137,7 @@ public sealed class OptimizeService : IOptimizeService
             }
         }
 
-        var requiresReboot = tweak.RequiresReboot || _presets.IsRebootTweak(tweak.Key);
+        var requiresReboot = tweak.RequiresReboot || _presets.IsRebootTweak(tweak.Key) || tweak.Apply.Any(a => a.Type is "serviceSet" or "restartExplorer");
         _appliedStore.MarkApplied(tweak.Key, requiresReboot);
 
         return new ApplyResult(true);

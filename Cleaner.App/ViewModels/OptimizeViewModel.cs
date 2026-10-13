@@ -39,9 +39,12 @@ public partial class OptimizeViewModel : HelpViewModelBase
         foreach (var category in Categories)
         {
             foreach (var tweak in category.Tweaks)
-                tweak.IsVisible = (!AppliedOnly || tweak.IsApplied) &&
+            {
+                tweak.RefreshAccess();
+                tweak.IsVisible = (UserSettings.GetExpertMode() || tweak.IsApplied || !tweak.RequiresExpertMode) && (!AppliedOnly || tweak.IsApplied) &&
                     (query.Length == 0 || (tweak.Name + " " + tweak.Short + " " + tweak.Description + " " + tweak.Key)
                         .Contains(query, StringComparison.OrdinalIgnoreCase));
+            }
             category.RefreshCounters();
         }
         OnPropertyChanged(nameof(HasNoSearchResults));
@@ -90,6 +93,8 @@ public partial class OptimizeViewModel : HelpViewModelBase
         LoadPresets();
         LoadCategories();
         RefreshAll();
+        UserSettings.Changed += ApplySearch;
+        ApplySearch();
     }
 
     // ------------------------------------------------------------------
@@ -182,11 +187,12 @@ public partial class OptimizeViewModel : HelpViewModelBase
 
     private async Task OnToggleTweakAsync(OptimizeTweakViewModel tweak, bool apply)
     {
+        if (apply && !tweak.IsCompatible) { StatusText = tweak.CompatibilityText; RefreshAll(); return; }
         if (IsBusy) { RefreshAll(); return; }
         IsBusy = true;
         try
         {
-            if (apply && !string.Equals(tweak.Level, "safe", StringComparison.OrdinalIgnoreCase))
+            if (apply && (!string.Equals(tweak.Level, "safe", StringComparison.OrdinalIgnoreCase) || !tweak.IsVerified))
             {
                 if (!await ConfirmTweakAsync(tweak))
                 {
@@ -195,8 +201,7 @@ public partial class OptimizeViewModel : HelpViewModelBase
                     return;
                 }
 
-                StatusText = Loc.T("t.sozdaem_tochku_vosstanovleniya_windows");
-                if (!await SessionRestorePoint.EnsureAsync(Loc.F("t.pered_primeneniem", tweak.Name)))
+                if (tweak.RequiresExpertMode && !await SessionRestorePoint.EnsureAsync(Loc.F("t.pered_primeneniem", tweak.Name)))
                 { RefreshAll(); return; }
             }
 
@@ -275,14 +280,8 @@ public partial class OptimizeViewModel : HelpViewModelBase
 
     private IReadOnlyList<string> ResolvePresetKeys(OptimizePresetViewModel preset)
     {
-        if (preset.Key == "safe" && preset.Keys.Count == 0)
-        {
-            return _tweaks.Tweaks
-                .Where(t => string.Equals(t.Level, "safe", StringComparison.OrdinalIgnoreCase))
-                .Select(t => t.Key)
-                .ToList();
-        }
-        return preset.Keys;
+        return preset.Keys.Where(k => _tweaks.GetByKey(k) is { } definition &&
+            TweakCompatibilityService.Evaluate(definition, expertMode: UserSettings.GetExpertMode()).CanApply).ToList();
     }
 
     // ------------------------------------------------------------------
@@ -294,6 +293,7 @@ public partial class OptimizeViewModel : HelpViewModelBase
         var sb = new System.Text.StringBuilder();
         sb.AppendLine($"«{tweak.Name}»");
         sb.AppendLine(Loc.F("t.uroven_riska", tweak.LevelLabel));
+        if (!tweak.IsVerified) { sb.AppendLine(); sb.AppendLine(tweak.CompatibilityText); }
 
         if (tweak.HasWarn)
         {
@@ -308,8 +308,8 @@ public partial class OptimizeViewModel : HelpViewModelBase
         }
 
         sb.AppendLine();
-        sb.AppendLine(Loc.T("t.pered_izmeneniem_budet_sozdana_tochka_vossta") +
-                      Loc.T("t.izmenenie_mozhno_otklyuchit_etim_zhe_perekly"));
+        if (tweak.RequiresExpertMode) sb.AppendLine(Loc.T("t.pered_izmeneniem_budet_sozdana_tochka_vossta"));
+        sb.AppendLine(Loc.T("t.izmenenie_mozhno_otklyuchit_etim_zhe_perekly"));
         sb.AppendLine();
         sb.Append(Loc.T("t.primenit"));
 
@@ -319,10 +319,12 @@ public partial class OptimizeViewModel : HelpViewModelBase
             string.Equals(tweak.Level, "danger", StringComparison.OrdinalIgnoreCase));
     }
 
-    private static async Task<bool> ConfirmPresetAsync(string presetName, int total, int risky)
+    private async Task<bool> ConfirmPresetAsync(string presetName, IReadOnlyList<string> keys, int risky)
     {
         var sb = new System.Text.StringBuilder();
-        sb.AppendLine(Loc.F("t.preset_budet_primeneno_tvikov", presetName, total));
+        sb.AppendLine(Loc.F("t.preset_budet_primeneno_tvikov", presetName, keys.Count));
+        foreach (var key in keys) sb.AppendLine("• " + FindTweak(key)?.Name);
+        if (keys.Any(k => FindTweak(k)?.IsVerified == false)) { sb.AppendLine(); sb.AppendLine(Loc.T("compatibility.unverified")); }
 
         if (risky > 0)
         {
@@ -362,7 +364,7 @@ public partial class OptimizeViewModel : HelpViewModelBase
         int ok = 0, failed = 0;
         try
         {
-            if (!await ConfirmPresetAsync(preset.Name, keys.Count, riskyCount))
+            if (!await ConfirmPresetAsync(preset.Name, keys, riskyCount))
             {
                 StatusText = Loc.T("t.otmeneno_nichego_ne_izmeneno");
                 return;

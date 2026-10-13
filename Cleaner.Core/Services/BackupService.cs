@@ -34,12 +34,20 @@ public sealed class BackupEntry
     [JsonPropertyName("when")] public string When { get; set; } = "";
     [JsonPropertyName("wasRunning")] public bool? WasRunning { get; set; }
     [JsonPropertyName("keyExisted")] public bool? KeyExisted { get; set; }
+    [JsonPropertyName("expectedExists")] public bool? ExpectedExists { get; set; }
+    [JsonPropertyName("expectedValue")] public JsonElement? ExpectedValue { get; set; }
+    [JsonPropertyName("expectedKind")] public string? ExpectedKind { get; set; }
+    [JsonPropertyName("expectedCommand")] public CommandRestore? ExpectedCommand { get; set; }
+    [JsonPropertyName("expectedServiceStartup")] public string? ExpectedServiceStartup { get; set; }
 
     [JsonIgnore] public bool IsService => Type == "Service";
 }
 
 public interface IBackupService
 {
+    void ExpectRegistry(string backupKey, object? value, RegistryValueKind? kind) { }
+    void ExpectCommand(string backupKey, CommandRestore command) { }
+    void ExpectService(string backupKey, string startup) { }
     void SaveBeforeChange(string backupKey, string hive, string subKey, string name, string category = "General");
     void SaveServiceBeforeChange(string backupKey, string serviceName, string oldStartType, string category = "General", bool? wasRunning = null);
     void SaveRaw(string backupKey, string path, string name, object? oldValue, BackupType type, string category = "General");
@@ -60,10 +68,38 @@ public interface IBackupService
 
 public sealed class BackupService : IBackupService
 {
+    public void ExpectService(string backupKey, string startup)
+    {
+        lock (_lock)
+        {
+            if (!_entries.TryGetValue(backupKey, out var entry)) throw new IOException("Original service state was not saved.");
+            entry.ExpectedServiceStartup = startup; Save();
+        }
+    }
+    public void ExpectCommand(string backupKey, CommandRestore command)
+    {
+        lock (_lock)
+        {
+            if (!_entries.TryGetValue(backupKey, out var entry)) throw new IOException("Original command state was not saved.");
+            entry.ExpectedCommand = command;
+            Save();
+        }
+    }
+    public void ExpectRegistry(string backupKey, object? value, RegistryValueKind? kind)
+    {
+        lock (_lock)
+        {
+            if (!_entries.TryGetValue(backupKey, out var entry)) throw new IOException("Original state was not saved.");
+            entry.ExpectedExists = kind.HasValue; entry.ExpectedKind = kind?.ToString();
+            entry.ExpectedValue = kind.HasValue ? JsonSerializer.SerializeToElement(value is byte[] bytes ? Convert.ToHexString(bytes) : value) : null;
+            Save();
+        }
+    }
     private readonly Dictionary<string, BackupEntry> _entries = new();
     private readonly object _lock = new();
     private readonly IRegistryAccess _registry;
     private readonly ICommandExecutor _commands;
+    private readonly IServiceAccess _services;
 
     public string BackupFilePath { get; }
 
@@ -77,10 +113,11 @@ public sealed class BackupService : IBackupService
         get { lock (_lock) return new Dictionary<string, BackupEntry>(_entries); }
     }
 
-    public BackupService(string? backupFilePath = null, IRegistryAccess? registry = null, ICommandExecutor? commands = null)
+    public BackupService(string? backupFilePath = null, IRegistryAccess? registry = null, ICommandExecutor? commands = null, IServiceAccess? services = null)
     {
         _registry = registry ?? new WindowsRegistryAccess();
         _commands = commands ?? new SystemCommandExecutor();
+        _services = services ?? new WindowsServiceAccess(_registry, _commands);
         if (string.IsNullOrWhiteSpace(backupFilePath))
         {
             var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
@@ -246,23 +283,23 @@ public sealed class BackupService : IBackupService
         {
             if (e.IsService)
             {
-                var startType = e.OldValue?.GetString() ?? "Automatic";
-                if (!System.Text.RegularExpressions.Regex.IsMatch(e.Name, @"^[A-Za-z0-9_.-]+$")) return false;
-                if (!SetServiceStartType(e.Name, startType)) return false;
-                if (e.WasRunning == null) return true;
-                var script = "$ErrorActionPreference='Stop'; $s=Get-Service -Name '" + e.Name + "'; " +
-                    (e.WasRunning.Value
-                        ? "if($s.Status -ne 'Running'){$s.Start()}; $s.WaitForStatus('Running',[TimeSpan]::FromSeconds(20))"
-                        : "if($s.Status -ne 'Stopped'){$s.Stop()}; $s.WaitForStatus('Stopped',[TimeSpan]::FromSeconds(20))");
-                return _commands.Run("powershell.exe", "-NoProfile -NonInteractive -EncodedCommand " +
-                    Convert.ToBase64String(Encoding.Unicode.GetBytes(script)), 30000).Success;
+                if (e.ExpectedServiceStartup == null || e.OldValue?.ValueKind != JsonValueKind.String || !WindowsServiceAccess.ValidName(e.Name)) return false;
+                var original = e.OldValue.Value.GetString();
+                var current = _services.ReadStartup(e.Name);
+                if (original == current) return true;
+                if (e.ExpectedServiceStartup == null || current != e.ExpectedServiceStartup) return false;
+                return original != null && _services.SetStartup(e.Name, original) && _services.ReadStartup(e.Name) == original;
             }
 
             if (e.Type == nameof(BackupType.Command))
             {
                 var restore = e.OldValue?.Deserialize<CommandRestore>();
-                return restore != null && CommandBackup.IsAllowed(restore)
-                    && _commands.Run(restore.FileName, restore.Arguments, 120000).Success;
+                if (restore == null || !CommandBackup.IsAllowed(restore)) return false;
+                var current = CommandBackup.Capture(new() { FileName = restore.FileName, Arguments = restore.Arguments }, _commands);
+                if (SameCommand(current, restore)) return true;
+                if (e.ExpectedCommand == null || !SameCommand(current, e.ExpectedCommand))
+                { CoreLog.Warn("Command recovery conflict or legacy state; backup retained."); return false; }
+                return _commands.Run(restore.FileName, restore.Arguments, 120000).Success;
             }
 
             if (string.IsNullOrWhiteSpace(e.Path)) return false;
@@ -271,6 +308,27 @@ public sealed class BackupService : IBackupService
             if (sep <= 0) return false;
             var hive = e.Path.Substring(0, sep);
             var subKey = e.Path.Substring(sep + 1);
+            var exists = _registry.ValueExists(hive, subKey, e.Name);
+            var currentValue = _registry.GetValue(hive, subKey, e.Name);
+            var currentKind = _registry.GetValueKind(hive, subKey, e.Name);
+            var encoded = JsonSerializer.SerializeToElement(currentValue is byte[] currentBytes ? Convert.ToHexString(currentBytes) : currentValue);
+            var oldMatches = e.Type == nameof(BackupType.Remove) ? !exists : exists && e.OldValue != null && currentKind.HasValue &&
+                MapKind(currentKind.Value).ToString() == e.Type && (e.Type == nameof(BackupType.Binary) ?
+                    currentValue is byte[] originalBytes && originalBytes.SequenceEqual(ParseBinary(e.OldValue.Value)) : JsonElement.DeepEquals(encoded, e.OldValue.Value));
+            if (oldMatches) return true;
+            if (!e.ExpectedExists.HasValue)
+            { CoreLog.Warn("Legacy setting recovery requires manual review; backup retained."); return false; }
+            if (e.ExpectedExists.HasValue)
+            {
+                if (exists != e.ExpectedExists.Value || exists &&
+                    (_registry.GetValueKind(hive, subKey, e.Name)?.ToString() != e.ExpectedKind ||
+                     e.ExpectedValue == null || !JsonElement.DeepEquals(encoded, e.ExpectedValue.Value)))
+                {
+                    // Already restored is safe; an unrelated new value is never overwritten.
+                    CoreLog.Warn("Rollback conflict: setting changed outside Cleaner; backup retained.");
+                    return false;
+                }
+            }
 
             if (e.Type == BackupType.Remove.ToString())
             {
@@ -326,6 +384,8 @@ public sealed class BackupService : IBackupService
     }
 
     // ---------- Clear / Export ----------
+    private static bool SameCommand(CommandRestore first, CommandRestore second) =>
+        first.FileName.Equals(second.FileName, StringComparison.OrdinalIgnoreCase) && first.Arguments.Equals(second.Arguments, StringComparison.OrdinalIgnoreCase);
 
     public void Clear()
     {

@@ -28,6 +28,7 @@ internal sealed class QuarantineManifest
     [JsonPropertyName("createdUtc")] public string CreatedUtc { get; set; } = "";
     [JsonPropertyName("entries")] public List<QuarantineEntry> Entries { get; set; } = new();
     [JsonPropertyName("deletionInProgress")] public bool DeletionInProgress { get; set; }
+    [JsonPropertyName("journalSequence")] public long JournalSequence { get; set; }
 }
 
 /// <summary>Описание сессии карантина (для UI/CLI — «что лежит в карантине»).</summary>
@@ -66,6 +67,9 @@ public readonly record struct QuarantineDeleteResult(
 
 public interface IQuarantineService
 {
+    void Checkpoint() { }
+    QuarantineMoveResult MovePlanned(Cleaner.Core.Services.Cleanup.PlannedFile file, string category)
+        => new(null, "unverifiable", "Verified quarantine is unavailable.");
     string SessionDirectory { get; }
     int Count { get; }
     long TotalSizeBytes { get; }
@@ -83,8 +87,7 @@ public interface IQuarantineService
 
 /// <summary>
 /// Карантин удалённых файлов. Файлы не удаляются сразу, а переносятся
-/// в %LOCALAPPDATA%\Cleaner\Quarantine\&lt;session&gt;\ и живут там N дней
-/// (по умолчанию 24 ч — чистка через <see cref="ClearOldQuarantine"/>).
+/// в %LOCALAPPDATA%\Cleaner\Quarantine\&lt;session&gt;\ до ручного восстановления или удаления.
 /// </summary>
 public sealed partial class QuarantineService : IQuarantineService
 {
@@ -233,7 +236,12 @@ public sealed partial class QuarantineService : IQuarantineService
                 lock (Gates.GetOrAdd(session.Directory, _ => new object()))
                 {
                     var manifest = ReadManifest(session.Directory);
-                    if (manifest.Entries.Count != 0 || Directory.GetFileSystemEntries(session.Directory).Any(p => Path.GetFileName(p) != "manifest.json")) continue;
+                    if (manifest.Entries.Count != 0 || Directory.GetFileSystemEntries(session.Directory).Any(p => Path.GetFileName(p) is not ("manifest.json" or "moves.jsonl"))) continue;
+                    // Persist effective empty state before removing an append journal.
+                    AtomicFile.Write(Path.Combine(session.Directory, "manifest.json"), JsonSerializer.Serialize(manifest, WriteOpts));
+                    var journal = Path.Combine(session.Directory, "moves.jsonl");
+                    RejectLinks(journal);
+                    if (File.Exists(journal)) File.Delete(journal);
                     File.Delete(Path.Combine(session.Directory, "manifest.json"));
                     Directory.Delete(session.Directory, recursive: false);
                     removed++;
@@ -387,7 +395,7 @@ public sealed partial class QuarantineService : IQuarantineService
             if (!cancellationToken.IsCancellationRequested && failed == 0 && _manifest.Entries.Count == 0)
             {
                 // Unknown files survive, even if no manifest entries remain.
-                if (Directory.GetFileSystemEntries(SessionDirectory).All(p => Path.GetFileName(p) == "manifest.json"))
+                if (Directory.GetFileSystemEntries(SessionDirectory).All(p => Path.GetFileName(p) is "manifest.json" or "moves.jsonl"))
                 {
                     try
                     {
@@ -423,7 +431,7 @@ public sealed partial class QuarantineService : IQuarantineService
             if (cancellationToken.IsCancellationRequested)
                 return new(0, 0, Array.Empty<string>()) { Canceled = true };
             if (_manifest.Entries.Any(e => e.Pending || e.RestorePath != null)) throw new IOException("Recover pending moves before deleting this session.");
-            var known = _manifest.Entries.Select(e => e.StoredName).Append("manifest.json").ToHashSet(StringComparer.OrdinalIgnoreCase);
+            var known = _manifest.Entries.Select(e => e.StoredName).Append("manifest.json").Append("moves.jsonl").ToHashSet(StringComparer.OrdinalIgnoreCase);
             if (Directory.GetFileSystemEntries(SessionDirectory).Any(p => !known.Contains(Path.GetFileName(p))))
                 throw new IOException("Session contains unrecorded files; manual recovery required.");
             // Persist deletion intent. Missing entries after a crash can then be retried
@@ -554,6 +562,7 @@ public sealed partial class QuarantineService : IQuarantineService
     {
         RejectLinks(_manifestPath);
         AtomicFile.Write(_manifestPath, JsonSerializer.Serialize(_manifest, WriteOpts));
+        FinishCheckpoint();
     }
 
     private static string? RestoreOne(string sessionDirectory, QuarantineEntry entry, CancellationToken cancellationToken = default)
@@ -571,7 +580,7 @@ public sealed partial class QuarantineService : IQuarantineService
                     ? null : $"stored item missing: {entry.StoredName}";
             var target = Path.GetFullPath(entry.RestorePath ?? entry.OriginalPath);
             RejectLinks(target);
-            if (!new SafetyService(freshMinutes: 0).Check(target).IsSafe)
+            if (!new SafetyService(freshMinutes: 0, protectPersonalFolders: false).CheckForCleanup(target, entry.Category).IsSafe)
                 return "Restoring protected system paths requires manual recovery.";
             var parent = Path.GetDirectoryName(target);
             if (!string.IsNullOrEmpty(parent)) Directory.CreateDirectory(parent);
@@ -595,7 +604,10 @@ public sealed partial class QuarantineService : IQuarantineService
     private void Reload()
     {
         RejectLinks(SessionDirectory);
-        if (File.Exists(_manifestPath)) _manifest = ReadManifest(SessionDirectory);
+        RejectLinks(_manifestPath);
+        RejectLinks(JournalPath);
+        if (SameCheckpoint()) return;
+        if (File.Exists(_manifestPath)) { _manifest = ReadManifest(SessionDirectory); RememberCheckpoint(); }
         else
         {
             _manifest = new QuarantineManifest { SessionId = Path.GetFileName(SessionDirectory), CreatedUtc = DateTime.UtcNow.ToString("o") };
@@ -612,12 +624,14 @@ public sealed partial class QuarantineService : IQuarantineService
         var manifest = JsonSerializer.Deserialize<QuarantineManifest>(File.ReadAllText(Path.Combine(directory, "manifest.json")), ReadOpts)
             ?? throw new IOException("Empty quarantine manifest.");
         ValidateManifest(manifest);
+        ReplayJournal(directory, manifest);
+        ValidateManifest(manifest);
         return manifest;
     }
 
     private static void ValidateManifest(QuarantineManifest manifest)
     {
-        if (manifest.SchemaVersion != 1 || manifest.Entries == null) throw new IOException("Unsupported quarantine manifest.");
+        if (manifest.SchemaVersion != 1 || manifest.Entries == null || manifest.JournalSequence < 0) throw new IOException("Unsupported quarantine manifest.");
         var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var entry in manifest.Entries)
         {
@@ -625,6 +639,7 @@ public sealed partial class QuarantineService : IQuarantineService
                 || entry.StoredName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0
                 || entry.StoredName is "." or ".." || entry.StoredName.EndsWith('.') || entry.StoredName.EndsWith(' ')
                 || entry.StoredName.Equals("manifest.json", StringComparison.OrdinalIgnoreCase)
+                || entry.StoredName.Equals("moves.jsonl", StringComparison.OrdinalIgnoreCase)
                 || !names.Add(entry.StoredName) || !Path.IsPathFullyQualified(entry.OriginalPath)
                 || Path.GetPathRoot(entry.OriginalPath) == entry.OriginalPath || entry.SizeBytes < 0)
                 throw new IOException("Invalid quarantine entry; recovery data preserved.");

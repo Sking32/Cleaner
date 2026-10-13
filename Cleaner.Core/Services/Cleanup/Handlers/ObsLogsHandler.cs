@@ -11,11 +11,13 @@ namespace Cleaner.Core.Services.Cleanup.Handlers;
 /// </summary>
 public sealed class ObsLogsHandler : ICleanupHandler
 {
+    private readonly Func<string> _appData;
+    public ObsLogsHandler(Func<string>? appData = null) => _appData = appData ?? (() => Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData));
     public string Name => "ObsLogs";
 
     public CleanupOperationResult Run(OperationEntry op, CleanupContext ctx)
     {
-        var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        var appData = _appData();
         var logsDir = Path.Combine(appData, "obs-studio", "logs");
 
         if (!Directory.Exists(logsDir))

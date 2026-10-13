@@ -2,6 +2,150 @@
   "schemaVersion": 1,
   "releases": [
     {
+      "version": "1.1.0-beta.7.1",
+      "date": "2026-10-14",
+      "text": {
+        "ru": {
+          "title": "Привычные пресеты и быстрый выбор",
+          "summary": "Возвращены названия Мягкая, Стандартная и Глубокая. Все и Ничего меняют только галочки; очистка по-прежнему требует анализа и подтверждения.",
+          "added": [
+            "Кнопки Все и Ничего для доступных категорий текущего режима."
+          ],
+          "changed": [
+            "Восстановлены названия трёх основных пресетов; игровой профиль и пересмотренный состав категорий сохранены.",
+            "Обновлены подсказки пресетов на русском и английском."
+          ],
+          "fixed": [
+            "Проверка обновлений распознаёт версии с дополнительным номером исправления, например beta.7.1.",
+            "Изменение пресета и массовый выбор недоступны во время операции."
+          ]
+        },
+        "en": {
+          "title": "Familiar presets and quick selection",
+          "summary": "Restored Soft, Standard and Deep names. All and None only change checkboxes; cleanup still requires analysis and confirmation.",
+          "added": [
+            "All and None buttons for available categories in the current mode."
+          ],
+          "changed": [
+            "Restored the three main preset names; the gaming profile and reviewed category selections are preserved.",
+            "Updated preset tooltips in Russian and English."
+          ],
+          "fixed": [
+            "Update checks recognize hotfix versions such as beta.7.1.",
+            "Preset changes and bulk selection are disabled during an operation."
+          ]
+        }
+      }
+    },
+    {
+      "version": "1.1.0-beta.7",
+      "date": "2026-10-14",
+      "text": {
+        "ru": {
+          "title": "Полный каталог и осознанный экспертный режим",
+          "summary": "Больше доступных категорий, пересмотренные пресеты и отдельное предупреждение для системных действий. Непроверенные твики доступны, но совместимость не обещается.",
+          "added": [
+            "Очистка старых журналов Cleaner в настройках, без удаления данных восстановления.",
+            "Экспертный доступ к системным действиям, службам и непроверенным твикам с предупреждениями."
+          ],
+          "changed": [
+            "45 операций в обычном режиме; 11 системных операций в экспертном. Пресеты исключают шейдеры, готовые загрузки, несинхронизированные документы и необратимые системные действия.",
+            "Ручная очистка TEMP любого возраста/расширения с проверкой идентичности; автоочистка сохраняет 24 часа.",
+            "OneDrive: только старые журналы; Spotify: онлайн-кэш; Downloads: только старые незавершённые загрузки.",
+            "Тип запуска служб сохраняется для отката; запущенные службы принудительно не останавливаются."
+          ],
+          "fixed": [
+            "Системные операции теперь включены в план исполнения и отражаются в отчёте.",
+            "Сброс Store без параметра установки; Windows.old обслуживается штатным cleanmgr."
+          ],
+          "notes": [
+            "Бета: реальные системные операции не испытаны на всей матрице Windows. Точка восстановления тоже занимает место.",
+            "Критические службы, системные деревья, ссылки, исключения и компоненты запущенного Cleaner защищены. Карантин не освобождает место на том же диске."
+          ]
+        },
+        "en": {
+          "title": "Full catalog and informed expert mode",
+          "summary": "More available categories, revised presets and explicit warnings for system actions. Unverified tweaks are available without claiming tested compatibility.",
+          "added": [
+            "Older Cleaner log cleanup in Settings, preserving recovery data.",
+            "Expert access to system actions, services and unverified tweaks with warnings."
+          ],
+          "changed": [
+            "45 normal-mode operations; 11 expert system operations. Presets exclude shaders, completed downloads, unsynced documents and irreversible system actions.",
+            "Manual TEMP cleanup of any age/extension with identity checks; automatic cleanup retains 24 hours.",
+            "OneDrive: older logs only; Spotify: online cache; Downloads: older partial downloads only.",
+            "Service startup types are captured for rollback; running services are not force-stopped."
+          ],
+          "fixed": [
+            "System operations are captured in the execution plan and reflected in reports.",
+            "Store reset without the install parameter; Windows.old is serviced by native cleanmgr."
+          ],
+          "notes": [
+            "Beta: native system actions have not been tested across the full Windows matrix. Restore points also use disk space.",
+            "Critical services, system trees, links, exclusions and running Cleaner components remain protected. Same-drive quarantine does not free space."
+          ]
+        }
+      }
+    },
+    {
+      "version": "1.1.0-beta.6",
+      "date": "2026-10-14",
+      "text": {
+        "ru": {
+          "title": "Очистка по плану и визуальная аналитика",
+          "summary": "Простой режим, полный план файлов перед очисткой, понятные последствия и три графика. Бета: системные действия без подтверждённой совместимости заблокированы.",
+          "added": [
+            "Простой режим по умолчанию и отдельный игровой профиль; расширенные категории открываются в настройках.",
+            "Полукруг заполнения накопителя с точными объёмами и состоянием «Нет данных».",
+            "График категорий найденных файлов с переходом к деталям; история последних 10 очисток с отдельными объёмами удаления и карантина.",
+            "Предпросмотр диагностического экспорта со скрытыми личными путями по умолчанию.",
+            "Поиск файлов внутри сессии карантина по имени, исходному пути и категории; фильтр незавершённых перемещений.",
+            "Проверка новых выпусков по кнопке и переход к официальной странице GitHub."
+          ],
+          "changed": [
+            "Очистка использует полный план: файлы, появившиеся после анализа, не захватываются. Изменившиеся, занятые и непроверяемые файлы пропускаются.",
+            "Создание и изменение временных файлов должны быть не менее 24 часов назад. В рекомендуемой очистке остаётся только временная папка пользователя.",
+            "Prefetch, шейдеры, облачные данные, сессии, загрузки и диагностические дампы исключены из рекомендуемой очистки; сохраняются пароли, настройки и игровые данные.",
+            "Карантин записывает последовательный журнал перемещений; повреждённые записи блокируют дальнейшие изменения до восстановления.",
+            "Автоочистка откладывается, пока активное окно занимает весь экран. Разрушительные операции выполняются последовательно."
+          ],
+          "fixed": [
+            "Повторная проверка идентичности файла и разрешённого каталога перед действием; исключения применяются повторно.",
+            "Служебные каталоги single-file приложений .NET исключены из очистки Temp; отказ проверки отдельного файла не блокирует остальные проверенные файлы.",
+            "Откат новых записей реестра учитывает сторонние изменения; старые записи без достаточных данных сохраняются для ручной проверки.",
+            "Карантин не показывается как освобождённое место. Старые записи с неизвестным способом очистки исключены из графика.",
+            "Непроверенные твики, управление службами и удаление теневых копий заблокированы. Для карантина на другом диске файл остаётся на месте."
+          ]
+        },
+        "en": {
+          "title": "Scoped cleanup and visual analytics",
+          "summary": "Simple mode, a complete file plan before cleanup, clear consequences and three charts. Beta: system actions without validated compatibility are blocked.",
+          "added": [
+            "Simple mode by default and a dedicated gaming profile; advanced categories are available in Settings.",
+            "Drive occupancy semicircle with exact capacity values and a No data state.",
+            "Clickable cleanup category bars and the last 10 cleanups with separate deleted and quarantined sizes.",
+            "Diagnostic export preview with personal paths hidden by default.",
+            "Search quarantine session files by name, original path or category and filter interrupted moves.",
+            "On-demand release check and a link to the official GitHub releases page."
+          ],
+          "changed": [
+            "Cleanup uses the complete approved plan and never picks up files created after analysis. Changed, busy and unverifiable files are skipped.",
+            "Temporary files require both creation and modification age of at least 24 hours. Recommended cleanup targets only the user temp folder.",
+            "Prefetch, shaders, cloud data, sessions, Downloads and diagnostic dumps are excluded from recommended cleanup; passwords, settings and game data are preserved.",
+            "Quarantine uses a sequential move journal; damaged records block mutations until recovery.",
+            "Automatic cleanup waits while the foreground window fills the screen. Destructive operations remain sequential."
+          ],
+          "fixed": [
+            "File identity and approved path scope are checked again before mutation, together with exclusions.",
+            "Single-file .NET runtime directories are excluded from Temp cleanup; a refused file validation does not block other verified files.",
+            "New registry recovery records detect changes by other programs; legacy records without enough state are retained for manual review.",
+            "Quarantined size is never reported as reclaimed space. Unknown legacy cleanup methods are excluded from the chart.",
+            "Unvalidated tweaks, service control and shadow copy deletion are blocked. Files remain untouched when quarantine is on another drive."
+          ]
+        }
+      }
+    },
+    {
       "version": "1.1.0-beta.5",
       "date": "2026-10-13",
       "text": {

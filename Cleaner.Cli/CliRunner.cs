@@ -63,7 +63,7 @@ public sealed class CliRunner
         IQuarantineService quarantine;
         try
         {
-            safety = new SafetyService(freshMinutes: 5);
+            safety = new SafetyService(freshMinutes: 5, extraForbidden: new[] { Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Cleaner") });
             whitelist = new WhitelistService();
             quarantine = new QuarantineService();
         }
@@ -84,7 +84,7 @@ public sealed class CliRunner
             safety, whitelist, quarantine,
             progress: progress,
             cancellationToken: cancellation.Token,
-            dryRun: opts.DryRun);
+            dryRun: true, capturePlan: true, activity: new ApplicationActivity(), expertMode: opts.ExpertMode);
 
         var runner = new CleanupRunner(cleanup, presets, operations);
         CleanupSessionResult result;
@@ -104,6 +104,13 @@ public sealed class CliRunner
                     _out.Line($"Running {opts.Operations.Count} operation(s){(opts.DryRun ? " (dry-run)" : "")}...");
 
                 result = runner.Run(opts.Operations, ctx);
+            }
+            if (!opts.DryRun)
+            {
+                if (result.Plan?.CanApply != true) throw new InvalidOperationException("Analysis incomplete; cleanup blocked.");
+                var applyContext = new CleanupContext(safety, whitelist, quarantine, progress, cancellation.Token,
+                    plan: result.Plan, activity: new ApplicationActivity(), expertMode: opts.ExpertMode);
+                result = runner.Run(result.Plan.OperationKeys, applyContext);
             }
         }
         catch (Exception ex)
@@ -204,6 +211,7 @@ public sealed class CliRunner
         _out.Important("  --list-operations              print all operation keys and exit");
         _out.Important("  --dry-run                      do not modify anything (preview)");
         _out.Important("  --apply                        execute changes; without this flag preview is the default");
+        _out.Important("  --expert                       explicitly allow system-affecting cleanup (no automatic restore point in CLI)");
         _out.Important("");
         _out.Important("Output:");
         _out.Important("  --json                         JSON to stdout");

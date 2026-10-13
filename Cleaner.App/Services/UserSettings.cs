@@ -13,6 +13,9 @@ namespace Cleaner.App.Services;
 /// </summary>
 public sealed class CleanupHistoryEntry
 {
+    [System.Text.Json.Serialization.JsonIgnore]
+    public bool IsChartEligible => Report?.DryRun == false && Report.Result != null &&
+        Kind is "applied" or "automatic" && (FilesDeleted > 0 || FilesQuarantined > 0) && !string.IsNullOrWhiteSpace(Report.AppVersion);
     public static CleanupHistoryEntry FromReport(Cleaner.Core.Services.Cleanup.CleanupReport report, string kind, string? error = null)
     {
         var r = report.Result;
@@ -45,6 +48,18 @@ public static class UserSettings
     private static AppSettingsStore Store = new(Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Cleaner", "settings.json"));
     public static event Action? Changed;
+    public static event Action? DiskChanged;
+    public static void NotifyDiskChanged() => DiskChanged?.Invoke();
+    public static bool GetExpertMode() => Load().ExpertMode;
+    public static bool SetExpertMode(bool enabled)
+    {
+        lock (Gate)
+        {
+            var previous = Load().ExpertMode; Load().ExpertMode = enabled;
+            if (!Store.Save()) { Load().ExpertMode = previous; return false; }
+        }
+        Changed?.Invoke(); return true;
+    }
     public static event Action? HintsReset;
     public static string? LastSaveError => Store.LastError;
     public static bool GetAutoCleanupEnabled() => Load().AutoCleanupEnabled;
@@ -183,7 +198,7 @@ public static class UserSettings
         {
             var list = Load().History;
             list.Insert(0, entry);
-            if (list.Count > 50) list.RemoveRange(50, list.Count - 50);
+            Load().History = HistoryRetention.Prune(list);
         }
         Save();
     }

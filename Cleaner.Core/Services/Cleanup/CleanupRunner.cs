@@ -63,9 +63,14 @@ public sealed class CleanupRunner : ICleanupRunner
 
         using var linkedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, ctx.CancellationToken);
         ctx = new CleanupContext(ctx.Safety, ctx.Whitelist, ctx.Quarantine, ctx.Progress,
-            linkedCancellation.Token, ctx.DryRun, ctx.Commands, ctx.Registry, ctx.FileMode, ctx.MinimumFileAge);
+            linkedCancellation.Token, ctx.DryRun, ctx.Commands, ctx.Registry, ctx.FileMode, ctx.MinimumFileAge, ctx.CapturePlan, ctx.Plan, ctx.Activity, ctx.FileVerifier, ctx.ExpertMode);
 
         var keys = operationKeys.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        if (ctx.Plan != null)
+        {
+            if (!keys.SequenceEqual(ctx.Plan.OperationKeys, StringComparer.OrdinalIgnoreCase)) throw new InvalidOperationException("Selection changed after analysis.");
+            return PlannedCleanup.Run(ctx.Plan, ctx, _operations, _cleanup);
+        }
         var outcomes = new List<OperationOutcome>(keys.Count);
 
         long totalBytes = 0;
@@ -127,6 +132,7 @@ public sealed class CleanupRunner : ICleanupRunner
 
         return new CleanupSessionResult
         {
+            Plan = ctx.CapturePlan ? new CleanupPlan(ctx.PlannedFiles, keys, ctx.FileMode, !canceled && failed == 0, ctx.PlannedActions) : null,
             BytesFreed = totalBytes,
             PreviewBytes = previewBytes,
             BytesQuarantined = quarantinedBytes,

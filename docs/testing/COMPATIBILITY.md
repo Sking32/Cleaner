@@ -1,68 +1,88 @@
-# Совместимость каталога твиков
+# Совместимость Cleaner 1.1.0-beta.7.1 / Compatibility
 
-Таблица отражает только ограничения и метки риска в tweaks.json. Реальный эффект, редакции Windows и аппаратная применимость требуют проверки в виртуальной машине. Метка «Низкий риск» не гарантирует безопасность или ускорение. Проверенных сборок Windows пока нет.
+## Целевые системы / Target platforms
 
-| Ключ | Раздел | Риск | Минимальный build | Проверенные build | Перезагрузка | Действий применения |
+| Система / platform | Архитектура | Реальные испытания beta.7.1 / real validation |
+|---|---|---|
+| Windows 10 22H2 | x64 | Не выполнены / pending |
+| Windows 11 24H2 | x64 | Не выполнены / pending |
+| Windows 11 25H2 | x64 | Не выполнены / pending |
+| Windows 11 26H2 | x64 | Не выполнены / pending |
+| ARM64, Insider | — | Вне выпуска / outside release |
+
+В beta.7.1 отсутствие испытаний больше не блокирует действие само по себе: пользователь видит «Не проверено». Обычный режим показывает менее рискованные операции, экспертный добавляет системные. Явные ограничения build и защита критических служб действуют в обоих режимах. Доступность не подтверждает совместимость или полезность действия. Настройки разных редакций Windows могут игнорироваться системой.
+
+Beta.7 no longer blocks an action solely because it is unverified: the UI labels it accordingly. Simple mode exposes lower-risk operations; expert mode adds system actions. Explicit build limits and critical service protection apply in both modes. Availability does not prove compatibility or benefit; some editions may ignore a setting.
+
+Для подтверждения каждой строки нужны согласованные испытания в VM: build/редакция, RU/EN, DPI, очистка и восстановление, фактический эффект твиков и откат, прерывание, миграция старых настроек и журналов. Изолированные тесты и рендеры WPF этого не заменяют.
+
+Validate each platform in an authorized VM: record build/edition, language, DPI, cleanup and recovery, actual tweak effects and rollback, interruptions and migrations. Isolated tests and WPF renders are insufficient to mark a Windows build validated.
+
+## Каталог твиков / Tweak catalog
+
+Таблица отражает метаданные, а не результаты реального испытания. «safe» не означает нулевой риск или гарантированное ускорение. / This is catalog metadata, not real-system validation. “safe” does not mean zero risk or guaranteed performance gains.
+
+| Ключ / key | Режим / mode | Риск / risk | Min build | Max build | Проверенные build / verified | Перезапуск / restart |
 |---|---|---|---|---|---|---|
-| VisualFx | perf | safe | Не задан | Нет | Нет | 2 |
-| Transparency | perf | safe | Не задан | Нет | Нет | 1 |
-| StartupDelay | perf | safe | Не задан | Нет | Нет | 2 |
-| MenuDelay | perf | safe | Не задан | Нет | Нет | 1 |
-| BackgroundApps | perf | caution | Не задан | Нет | Нет | 2 |
-| SysMain | perf | caution | Не задан | Нет | Да | 1 |
-| Prefetch | perf | caution | Не задан | Нет | Да | 2 |
-| AutoMaintenance | perf | caution | Не задан | Нет | Нет | 1 |
-| DefenderScanLimit | perf | caution | Не задан | Нет | Нет | 1 |
-| WerSvc | perf | caution | Не задан | Нет | Нет | 1 |
-| FastStartup | perf | caution | Не задан | Нет | Да | 1 |
-| ReservedStorage | perf | caution | Не задан | Нет | Да | 1 |
-| EventLogSize | perf | caution | Не задан | Нет | Нет | 2 |
-| SearchIndexing | perf | caution | Не задан | Нет | Да | 1 |
-| PowerThrottling | perf | caution | Не задан | Нет | Да | 1 |
-| Telemetry | privacy | caution | Не задан | Нет | Нет | 3 |
-| AdvertisingId | privacy | safe | Не задан | Нет | Нет | 1 |
-| ActivityHistory | privacy | safe | Не задан | Нет | Нет | 2 |
-| Cortana | privacy | caution | Не задан | Нет | Нет | 1 |
-| XboxGameBar | privacy | safe | Не задан | Нет | Нет | 2 |
-| BingSearch | privacy | safe | Не задан | Нет | Нет | 2 |
-| LockScreenAds | privacy | safe | Не задан | Нет | Нет | 2 |
-| Copilot | privacy | safe | Не задан | Нет | Нет | 1 |
-| Recall | privacy | safe | Не задан | Нет | Нет | 1 |
-| Feedback | privacy | safe | Не задан | Нет | Нет | 2 |
-| Location | privacy | caution | Не задан | Нет | Нет | 2 |
-| Camera | privacy | caution | Не задан | Нет | Нет | 1 |
-| Microphone | privacy | caution | Не задан | Нет | Нет | 1 |
-| DiagnosticData | privacy | caution | Не задан | Нет | Нет | 2 |
-| InkingTyping | privacy | safe | Не задан | Нет | Нет | 2 |
-| SpeechRecognition | privacy | caution | Не задан | Нет | Нет | 2 |
-| UpdateP2P | privacy | caution | Не задан | Нет | Нет | 1 |
-| ClassicContext | win11 | safe | 22000 | Нет | Да | 2 |
-| Widgets | win11 | safe | 22000 | Нет | Да | 3 |
-| SearchHighlights | win11 | safe | 22000 | Нет | Нет | 1 |
-| StartRecommendations | win11 | safe | 22000 | Нет | Нет | 2 |
-| TaskbarAlign | win11 | safe | 22000 | Нет | Да | 2 |
-| SearchBox | win11 | safe | 22000 | Нет | Да | 2 |
-| ChatIcon | win11 | safe | 22000 | Нет | Да | 2 |
-| TaskView | win11 | safe | 22000 | Нет | Да | 2 |
-| EndTask | win11 | safe | 22000 | Нет | Да | 2 |
-| NetworkThrottle | network | caution | Не задан | Нет | Нет | 1 |
-| TcpAutotuning | network | caution | Не задан | Нет | Да | 1 |
-| Nagle | network | caution | Не задан | Нет | Да | 2 |
-| QosReserved | network | caution | Не задан | Нет | Нет | 1 |
-| NetBIOS | network | caution | Не задан | Нет | Да | 1 |
-| IPv6 | network | danger | Не задан | Нет | Да | 1 |
-| WindowsUpdateP2P | network | caution | Не задан | Нет | Нет | 1 |
-| StorageSense | maint | caution | Не задан | Нет | Нет | 1 |
-| Tips | maint | safe | Не задан | Нет | Нет | 3 |
-| ConsumerFeatures | maint | safe | Не задан | Нет | Нет | 1 |
-| ScheduledDefrag | maint | caution | Не задан | Нет | Нет | 1 |
-| DeliveryOptimization | maint | caution | Не задан | Нет | Нет | 1 |
-| OneDriveAutoStart | maint | safe | Не задан | Нет | Нет | 1 |
-| EdgePreload | maint | safe | Не задан | Нет | Нет | 2 |
-| WindowsUpdatePause | maint | caution | Не задан | Нет | Нет | 1 |
-| GameMode | games | safe | Не задан | Нет | Нет | 1 |
-| HAGS | games | caution | Не задан | Нет | Да | 1 |
-| PowerPlan | games | caution | Не задан | Нет | Да | 1 |
-| FullscreenOpts | games | caution | Не задан | Нет | Нет | 2 |
-| MPO | games | caution | Не задан | Нет | Да | 1 |
-| GamePowerThrottling | games | caution | Не задан | Нет | Да | 1 |
+| VisualFx | Обычный / simple | safe | 19045 | — | Нет / none | Нет / no |
+| Transparency | Обычный / simple | safe | 19045 | — | Нет / none | Нет / no |
+| StartupDelay | Обычный / simple | safe | 19045 | — | Нет / none | Нет / no |
+| MenuDelay | Обычный / simple | safe | 19045 | — | Нет / none | Нет / no |
+| BackgroundApps | Экспертный / expert | caution | 19045 | — | Нет / none | Нет / no |
+| SysMain | Экспертный / expert | caution | 19045 | — | Нет / none | Да / yes |
+| Prefetch | Экспертный / expert | caution | 19045 | — | Нет / none | Да / yes |
+| AutoMaintenance | Экспертный / expert | caution | 19045 | — | Нет / none | Нет / no |
+| DefenderScanLimit | Экспертный / expert | caution | 19045 | — | Нет / none | Нет / no |
+| WerSvc | Экспертный / expert | caution | 19045 | — | Нет / none | Да / yes |
+| FastStartup | Экспертный / expert | caution | 19045 | — | Нет / none | Да / yes |
+| ReservedStorage | Экспертный / expert | caution | 19045 | — | Нет / none | Да / yes |
+| EventLogSize | Экспертный / expert | caution | 19045 | — | Нет / none | Нет / no |
+| SearchIndexing | Экспертный / expert | caution | 19045 | — | Нет / none | Да / yes |
+| PowerThrottling | Экспертный / expert | caution | 19045 | — | Нет / none | Да / yes |
+| Telemetry | Экспертный / expert | caution | 19045 | — | Нет / none | Да / yes |
+| AdvertisingId | Обычный / simple | safe | 19045 | — | Нет / none | Нет / no |
+| ActivityHistory | Обычный / simple | safe | 19045 | — | Нет / none | Нет / no |
+| Cortana | Экспертный / expert | caution | 19045 | — | Нет / none | Нет / no |
+| XboxGameBar | Обычный / simple | safe | 19045 | — | Нет / none | Нет / no |
+| BingSearch | Обычный / simple | safe | 19045 | — | Нет / none | Нет / no |
+| LockScreenAds | Обычный / simple | safe | 19045 | — | Нет / none | Нет / no |
+| Copilot | Обычный / simple | safe | 19045 | — | Нет / none | Нет / no |
+| Recall | Обычный / simple | safe | 26100 | — | Нет / none | Нет / no |
+| Feedback | Обычный / simple | safe | 19045 | — | Нет / none | Нет / no |
+| Location | Экспертный / expert | caution | 19045 | — | Нет / none | Нет / no |
+| Camera | Экспертный / expert | caution | 19045 | — | Нет / none | Нет / no |
+| Microphone | Экспертный / expert | caution | 19045 | — | Нет / none | Нет / no |
+| DiagnosticData | Экспертный / expert | caution | 19045 | — | Нет / none | Нет / no |
+| InkingTyping | Обычный / simple | safe | 19045 | — | Нет / none | Нет / no |
+| SpeechRecognition | Экспертный / expert | caution | 19045 | — | Нет / none | Нет / no |
+| UpdateP2P | Экспертный / expert | caution | 19045 | — | Нет / none | Нет / no |
+| ClassicContext | Обычный / simple | safe | 22000 | — | Нет / none | Да / yes |
+| Widgets | Обычный / simple | safe | 22000 | — | Нет / none | Да / yes |
+| SearchHighlights | Обычный / simple | safe | 22000 | — | Нет / none | Нет / no |
+| StartRecommendations | Обычный / simple | safe | 22000 | — | Нет / none | Нет / no |
+| TaskbarAlign | Обычный / simple | safe | 22000 | — | Нет / none | Да / yes |
+| SearchBox | Обычный / simple | safe | 22000 | — | Нет / none | Да / yes |
+| ChatIcon | Обычный / simple | safe | 22000 | — | Нет / none | Да / yes |
+| TaskView | Обычный / simple | safe | 22000 | — | Нет / none | Да / yes |
+| EndTask | Обычный / simple | safe | 22000 | — | Нет / none | Да / yes |
+| NetworkThrottle | Экспертный / expert | caution | 19045 | — | Нет / none | Нет / no |
+| TcpAutotuning | Экспертный / expert | caution | 19045 | — | Нет / none | Да / yes |
+| Nagle | Экспертный / expert | caution | 19045 | — | Нет / none | Да / yes |
+| QosReserved | Экспертный / expert | caution | 19045 | — | Нет / none | Нет / no |
+| NetBIOS | Экспертный / expert | caution | 19045 | — | Нет / none | Да / yes |
+| IPv6 | Экспертный / expert | danger | 19045 | — | Нет / none | Да / yes |
+| WindowsUpdateP2P | Экспертный / expert | caution | 19045 | — | Нет / none | Нет / no |
+| StorageSense | Экспертный / expert | caution | 19045 | — | Нет / none | Нет / no |
+| Tips | Обычный / simple | safe | 19045 | — | Нет / none | Нет / no |
+| ConsumerFeatures | Обычный / simple | safe | 19045 | — | Нет / none | Нет / no |
+| ScheduledDefrag | Экспертный / expert | caution | 19045 | — | Нет / none | Нет / no |
+| DeliveryOptimization | Экспертный / expert | caution | 19045 | — | Нет / none | Да / yes |
+| OneDriveAutoStart | Обычный / simple | safe | 19045 | — | Нет / none | Нет / no |
+| EdgePreload | Обычный / simple | safe | 19045 | — | Нет / none | Нет / no |
+| WindowsUpdatePause | Экспертный / expert | caution | 19045 | — | Нет / none | Нет / no |
+| GameMode | Обычный / simple | safe | 19045 | — | Нет / none | Нет / no |
+| HAGS | Экспертный / expert | caution | 19045 | — | Нет / none | Да / yes |
+| PowerPlan | Экспертный / expert | caution | 19045 | — | Нет / none | Да / yes |
+| FullscreenOpts | Экспертный / expert | caution | 19045 | — | Нет / none | Нет / no |
+| MPO | Экспертный / expert | caution | 19045 | — | Нет / none | Да / yes |
+| GamePowerThrottling | Экспертный / expert | caution | 19045 | — | Нет / none | Да / yes |

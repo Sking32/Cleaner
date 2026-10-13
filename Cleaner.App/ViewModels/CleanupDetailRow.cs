@@ -5,8 +5,10 @@ using System.Globalization;
 
 namespace Cleaner.App.ViewModels;
 
-public sealed class CleanupDetailRow
+public sealed partial class CleanupDetailRow : CommunityToolkit.Mvvm.ComponentModel.ObservableObject
 {
+    [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty] private bool _isHighlighted;
+    public string Key => Outcome.Key;
     public OperationOutcome Outcome { get; }
     public string Name { get; }
     public string MethodText { get; }
@@ -27,7 +29,7 @@ public sealed class CleanupDetailRow
         SizeText = preview && outcome.PreviewBytes == 0 && !IsQuarantined(handler) ? Loc.T("preview.unknown.size") : FormatBytes(preview ? outcome.PreviewBytes : outcome.BytesQuarantined + outcome.BytesFreed);
         StatusText = Loc.T(outcome.Canceled ? "history.kind.canceled" : !outcome.Success ? "history.kind.failed" : preview ? "history.kind.preview" : "history.kind.applied");
         var lines = new List<string>();
-        if (!string.IsNullOrWhiteSpace(outcome.Message)) lines.Add(outcome.Message);
+        if (!string.IsNullOrWhiteSpace(outcome.Message)) lines.Add(Loc.T(outcome.Message));
         lines.AddRange(outcome.Errors ?? Array.Empty<string>());
         if (session != null)
         {

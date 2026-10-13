@@ -63,6 +63,13 @@ public sealed class CleanupService : ICleanupService
     {
         if (op == null) return CleanupOperationResult.Fail("operation is null");
         if (ctx == null) return CleanupOperationResult.Fail("context is null");
+        if (!op.Enabled) return CleanupOperationResult.Fail("cleanup.rule.disabled");
+        if (op.ExpertOnly && !ctx.ExpertMode) return CleanupOperationResult.Fail("compatibility.expert_required");
+        if (ctx.Activity.IsBusy(op.Key))
+        {
+            ctx.RecordSkip(op.Key, "", "application_running");
+            return new CleanupOperationResult { Success = true, FilesSkipped = 1, Message = "application_running" };
+        }
 
         if (string.IsNullOrWhiteSpace(op.Handler))
             return CleanupOperationResult.Fail($"{op.Key}: handler is empty");
@@ -72,7 +79,11 @@ public sealed class CleanupService : ICleanupService
 
         try
         {
-            return handler.Run(op, ctx) ?? CleanupOperationResult.Fail($"{op.Key}: handler returned null");
+            ctx.ConfigureRule(op);
+            if (ctx.CapturePlan) ctx.ApproveRoots(op.Key, PathExpander.ExpandAll(op.Paths));
+            var result = handler.Run(op, ctx) ?? CleanupOperationResult.Fail($"{op.Key}: handler returned null");
+            if (ctx.CapturePlan && result.Success && !IsFileHandler(op.Handler!)) ctx.RecordAction(op);
+            return result;
         }
         catch (OperationCanceledException) { throw; }
         catch (Exception ex)
@@ -82,6 +93,8 @@ public sealed class CleanupService : ICleanupService
     }
 
     // ------------------------------------------------------------------
+    public static bool IsFileHandler(string handler) => handler is "PathCleanup" or "MultiPathCleanup" or "PathCleanupRecursive"
+        or "BrowserProfiles" or "FirefoxProfiles" or "ObsLogs" or "JumpLists" or "SmartDownloads" or "ActivityHistory" or "ThumbnailCache";
 
     private void RegisterDefaults()
     {

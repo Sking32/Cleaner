@@ -29,7 +29,7 @@ public sealed class PathCleanupHandler : ICleanupHandler
             if (ctx.IsCancellationRequested) break;
 
             var path = rawPath;
-            var pathCheck = ctx.Safety.Check(path);
+            var pathCheck = ctx.CheckSafety(path, op.Key);
             if (!pathCheck.IsSafe || ctx.Whitelist.IsWhitelisted(path))
             { ctx.RecordSkip(op.Key, path, !pathCheck.IsSafe ? "safety" : "whitelist"); skipped++; continue; }
             if (!Directory.Exists(path) && !File.Exists(path))
@@ -45,8 +45,8 @@ public sealed class PathCleanupHandler : ICleanupHandler
                 continue;
             }
 
-            string[] entries;
-            try { entries = Directory.GetFileSystemEntries(path); }
+            IEnumerable<string> entries;
+            try { entries = Directory.EnumerateFileSystemEntries(path); }
             catch (Exception ex) { errors.Add(path + ": " + ex.Message); skipped++; continue; }
             foreach (var entry in entries)
             {
@@ -97,7 +97,8 @@ public sealed class PathCleanupHandler : ICleanupHandler
         CleanupContext ctx,
         List<string> errors)
     {
-        var check = ctx.Safety.Check(path);
+        if (!ctx.MatchesRule(opKey, path)) return (0, 0, 0);
+        var check = ctx.CheckSafety(path, opKey);
         if (!check.IsSafe)
         {
             ctx.RecordSkip(opKey, path, "safety");
@@ -113,9 +114,10 @@ public sealed class PathCleanupHandler : ICleanupHandler
         try
         {
             if (!File.Exists(path)) { ctx.RecordSkip(opKey, path, "missing"); return (0, 0, 1); }
-            if (ctx.MinimumFileAge > TimeSpan.Zero &&
-                (DateTime.UtcNow - File.GetLastWriteTimeUtc(path) < ctx.MinimumFileAge ||
-                 DateTime.UtcNow - File.GetCreationTimeUtc(path) < ctx.MinimumFileAge))
+            var age = ctx.MinimumAgeFor(opKey);
+            if (age > TimeSpan.Zero &&
+                (DateTime.UtcNow - File.GetLastWriteTimeUtc(path) < age ||
+                 DateTime.UtcNow - File.GetCreationTimeUtc(path) < age))
             { ctx.RecordSkip(opKey, path, "too_recent"); return (0, 0, 1); }
         }
         catch (Exception ex) { ctx.RecordSkip(opKey, path, FileFailure.Classify(ex), ex.Message); return (0, 0, 1); }
@@ -124,7 +126,8 @@ public sealed class PathCleanupHandler : ICleanupHandler
 
         if (ctx.DryRun)
         {
-            ctx.RecordPreviewFile(opKey, path, size);
+            if (!ctx.TryRecordPreviewFile(opKey, path, size)) return (0, 0, 1);
+            if (ctx.CapturePlan) size = ctx.PlannedFiles[^1].Identity.Length;
             ctx.Report(opKey, "PathCleanup", path, 0, 0, "preview");
             return (size, 0, 0);
         }
@@ -135,7 +138,7 @@ public sealed class PathCleanupHandler : ICleanupHandler
             if (ctx.FileMode == CleanupFileMode.PermanentDelete)
             {
                 // No forced unlock, ACL changes, recursive delete or quarantine fallback.
-                if (!ctx.Safety.Check(path).IsSafe || ctx.Whitelist.IsWhitelisted(path))
+                if (!ctx.CheckSafety(path, opKey).IsSafe || ctx.Whitelist.IsWhitelisted(path))
                 { ctx.RecordSkip(opKey, path, "safety"); return (0, 0, 1); }
                 File.Delete(path);
                 ctx.Report(opKey, "PathCleanup", path, 1, size, "deleted");
@@ -161,54 +164,41 @@ public sealed class PathCleanupHandler : ICleanupHandler
     }
 
     internal static (long bytes, int deleted, int skipped) ProcessDirectory(
-        string directory,
-        string opKey,
-        CleanupContext ctx,
-        List<string> errors,
-        bool deleteSelf = true)
+        string directory, string opKey, CleanupContext ctx, List<string> errors, bool deleteSelf = true)
     {
-        long totalBytes = 0;
-        int totalDeleted = 0, totalSkipped = 0;
-
-        // Безопасность всей папки
-        var dirCheck = ctx.Safety.Check(directory);
-        if (!dirCheck.IsSafe || ctx.Whitelist.IsWhitelisted(directory))
+        long bytes = 0; int deleted = 0, skipped = 0;
+        var pending = new Stack<(string Path, bool Visited, bool DeleteSelf)>();
+        pending.Push((directory, false, deleteSelf));
+        while (pending.Count > 0 && !ctx.IsCancellationRequested)
         {
-            ctx.RecordSkip(opKey, directory, !dirCheck.IsSafe ? "safety" : "whitelist");
-            // Внутрь не лезем.
-            return (0, 0, 1);
-        }
-
-        string[] children;
-        try { children = Directory.GetFileSystemEntries(directory); }
-        catch (Exception ex) { errors.Add(directory + ": " + ex.Message); return (0, 0, 1); }
-        foreach (var child in children)
-        {
-            if (ctx.IsCancellationRequested) break;
-
-            if (Directory.Exists(child))
+            var item = pending.Pop();
+            var check = ctx.CheckSafety(item.Path, opKey);
+            if (!check.IsSafe || ctx.Whitelist.IsWhitelisted(item.Path))
+            { ctx.RecordSkip(opKey, item.Path, !check.IsSafe ? "safety" : "whitelist"); skipped++; continue; }
+            if (item.Visited)
             {
-                var sub = ProcessDirectory(child, opKey, ctx, errors, deleteSelf: true);
-                totalBytes += sub.bytes;
-                totalDeleted += sub.deleted;
-                totalSkipped += sub.skipped;
+                if (item.DeleteSelf && !ctx.DryRun && ctx.MinimumFileAge == TimeSpan.Zero)
+                    try { Directory.Delete(item.Path, recursive: false); } catch (IOException) { } catch (UnauthorizedAccessException) { }
+                continue;
             }
-            else
+            pending.Push((item.Path, true, item.DeleteSelf));
+            try
             {
-                var f = ProcessSingleFile(child, opKey, ctx, errors);
-                totalBytes += f.bytes;
-                totalDeleted += f.deleted;
-                totalSkipped += f.skipped;
+                foreach (var child in Directory.EnumerateFileSystemEntries(item.Path))
+                {
+                    if (ctx.IsCancellationRequested) break;
+                    if (Directory.Exists(child)) pending.Push((child, false, true));
+                    else
+                    {
+                        var file = ProcessSingleFile(child, opKey, ctx, errors);
+                        bytes += file.bytes; deleted += file.deleted; skipped += file.skipped;
+                    }
+                }
             }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            { errors.Add(item.Path + ": " + ex.Message); skipped++; }
         }
-
-        if (deleteSelf && !ctx.DryRun && !ctx.IsCancellationRequested && ctx.MinimumFileAge == TimeSpan.Zero)
-        {
-            try { Directory.Delete(directory, recursive: false); }
-            catch { /* папка непустая из-за скипов — ок */ }
-        }
-
-        return (totalBytes, totalDeleted, totalSkipped);
+        return (bytes, deleted, skipped);
     }
 
     internal static long TryGetFileSize(string path)

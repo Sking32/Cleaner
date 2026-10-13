@@ -34,6 +34,8 @@ public partial class HistoryViewModel : ObservableObject
     private readonly Func<IReadOnlyList<CleanupHistoryEntry>> _load;
     public ObservableCollection<HistoryItem> Entries { get; } = new();
     public ObservableCollection<HistoryItem> FilteredEntries { get; } = new();
+    public ObservableCollection<HistoryChartItem> ChartItems { get; } = new();
+    public bool HasNoChart => ChartItems.Count == 0;
     [ObservableProperty] private HistoryItem? _selectedEntry;
     [ObservableProperty] private string _searchText = "";
     [ObservableProperty] private string _statusText = "";
@@ -49,6 +51,12 @@ public partial class HistoryViewModel : ObservableObject
         var selectedId = SelectedEntry?.Entry.Id;
         Entries.Clear();
         foreach (var entry in _load()) Entries.Add(new HistoryItem(entry));
+        ChartItems.Clear();
+        var completed = Entries.Select(e => e.Entry).Where(e => e.IsChartEligible)
+            .OrderByDescending(e => e.Time).Take(10).ToArray();
+        var maximum = completed.Select(e => Math.Max(e.BytesFreed, e.BytesQuarantined)).DefaultIfEmpty(1).Max();
+        foreach (var item in completed) ChartItems.Add(new(item, maximum));
+        OnPropertyChanged(nameof(HasNoChart));
         Filter();
         SelectedEntry = FilteredEntries.FirstOrDefault(e => e.Entry.Id == selectedId) ?? FilteredEntries.FirstOrDefault();
     }
@@ -63,7 +71,7 @@ public partial class HistoryViewModel : ObservableObject
     private bool CanExport() => HasSelection;
     [RelayCommand(CanExecute = nameof(CanExport))] private void Export()
     {
-        try { var path = ReportExport.ChoosePath("Cleaner-history"); if (path == null || SelectedEntry == null) return; SelectedEntry.ExportReport.Save(path); StatusText = Loc.F("report.saved", path); }
+        try { if (SelectedEntry == null) return; var path = DiagnosticExportPreview.Show(SelectedEntry.ExportReport, "Cleaner-history"); if (path == null) return; StatusText = Loc.F("report.saved", path); }
         catch (Exception ex) { StatusText = Loc.T("t.oshibka") + ex.Message; }
     }
     private bool CanOpenSession() => SelectedEntry?.HasSession == true;

@@ -26,7 +26,7 @@ public sealed class RecoveryRegressionTests : IDisposable
         File.WriteAllText(Local("tweaks.json"), JsonSerializer.Serialize(new { schemaVersion = 1, tweaks = new[] { tweak } }));
         File.WriteAllText(Local("presets.json"), """{"schemaVersion":1}""");
         return new(new TweakRepository(_root), new ActionInterpreter(backup, _registry, _commands), backup,
-            new AppliedTweaksStore(Local("applied.json")), new PresetsRepository(_root));
+            new AppliedTweaksStore(Local("applied.json")), new PresetsRepository(_root), _ => new(true, true, "compatibility.verified"));
     }
     private static TweakAction Set(string name, int value) => new()
     { Type = "regSet", Hive = "HKCU", Key = Key, Name = name, Kind = "DWord", Value = JsonSerializer.SerializeToElement(value), CreateKeyIfMissing = true };
@@ -94,7 +94,7 @@ public sealed class RecoveryRegressionTests : IDisposable
             Arguments = "/setactive 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c" });
         Assert.True(optimize.Apply("fixture").Success);
         Assert.Equal((1, 0), optimize.RollbackAll());
-        Assert.Contains(_commands.Calls, c => c.Arguments == "/setactive " + original);
+        Assert.DoesNotContain(_commands.Calls, c => c.Arguments == "/setactive " + original); // Already original: no redundant mutation.
     }
 
     [Fact]
@@ -135,8 +135,9 @@ public sealed class RecoveryRegressionTests : IDisposable
         var backup = Backup();
         var optimize = Optimize(backup, definition.Apply.ToArray());
         Assert.True(optimize.Apply("fixture").Success);
+        Assert.Contains(backup.Entries.Values, e => e.Type == nameof(BackupType.Command) && e.OldValue!.Value.Deserialize<CommandRestore>() is { } saved && saved.FileName == file && saved.Arguments == expected);
         Assert.True(optimize.Unapply("fixture").Success);
-        Assert.Contains(_commands.Calls, c => c.File == file && c.Arguments == expected);
+        Assert.Empty(backup.Keys);
     }
 
     [Theory]
@@ -156,15 +157,12 @@ public sealed class RecoveryRegressionTests : IDisposable
     }
 
     [Fact]
-    public void ServiceBackupRestoresDelayedStartupAndRunningStateThroughDoubles()
+    public void LegacyServiceBackupIsRetainedWithoutUnsafeSystemCommands()
     {
         var backup = Backup();
         backup.SaveServiceBeforeChange("fixture_svc_Test", "FixtureService", "AutomaticDelayed", "test", wasRunning: true);
-        Assert.True(backup.RestoreByKey("fixture_svc_Test"));
-        Assert.Contains(_commands.Calls, c => c.File == "sc.exe" && c.Arguments.EndsWith("start= delayed-auto"));
-        var ps = _commands.Calls.Single(c => c.File == "powershell.exe");
-        var script = Encoding.Unicode.GetString(Convert.FromBase64String(ps.Arguments[(ps.Arguments.LastIndexOf(' ') + 1)..]));
-        Assert.Contains("WaitForStatus('Running'", script);
+        Assert.False(backup.RestoreByKey("fixture_svc_Test"));
+        Assert.Single(backup.Keys); Assert.Empty(_commands.Calls);
     }
 
     [Fact]
@@ -202,6 +200,7 @@ public sealed class RecoveryRegressionTests : IDisposable
         var backup = Backup();
         backup.SaveRaw("binary", "HKCU\\" + Key, "bytes", new byte[] { 0xAA, 0xBB }, BackupType.Binary);
         backup.SaveRaw("expand", "HKCU\\" + Key, "expand", @"%TEMP%\x", BackupType.ExpandString);
+        backup.ExpectRegistry("expand", null, null);
         Assert.NotNull(backup.ExportRegToFile(Local("export.reg")));
         Assert.Contains("hex:aa,bb", File.ReadAllText(Local("export.reg")).ToLowerInvariant());
         Assert.True(backup.RestoreByKey("expand"));
@@ -294,8 +293,11 @@ public sealed class RecoveryRegressionTests : IDisposable
         _commands.Respond = (_, _) => { cts.Cancel(); throw new OperationCanceledException(cts.Token); };
         var ctx = new CleanupContext(new SafetyService(0), new WhitelistService(Local("wl.json")), new QuarantineService(Local("q")),
             cancellationToken: cts.Token, commands: _commands);
-        var runner = new CleanupRunner(new CleanupService(new OperationsRepository()), new PresetsRepository());
-        Assert.True(runner.Run(new[] { "dns" }, ctx).Canceled);
+        var data = Local("command-data"); Directory.CreateDirectory(data);
+        File.WriteAllText(Path.Combine(data, "operations.json"), JsonSerializer.Serialize(new { schemaVersion = 1,
+            entries = new[] { new OperationEntry { Key = "fixture", Handler = "Command", Command = "ipconfig /flushdns" } } }));
+        var runner = new CleanupRunner(new CleanupService(new OperationsRepository(data)), new PresetsRepository());
+        Assert.True(runner.Run(new[] { "fixture" }, ctx).Canceled);
     }
 
     [Theory]

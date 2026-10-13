@@ -20,6 +20,7 @@ public partial class OptimizeTweakViewModel : ObservableObject
 {
     private readonly ToggleTweakDelegate _toggle;
     private bool _suppressToggle;
+    private readonly TweakDefinition _definition;
 
     public string Key { get; }
     public string Category { get; }
@@ -33,9 +34,20 @@ public partial class OptimizeTweakViewModel : ObservableObject
 
     public bool HasWarn => !string.IsNullOrWhiteSpace(Warn);
     public bool HasShort => !string.IsNullOrWhiteSpace(Short);
-    public bool IsCompatible { get; }
-    public string CompatibilityText { get; }
-    public string CompatibilityLabel { get; }
+    public bool RequiresExpertMode => Cleaner.Core.Services.TweakCompatibilityService.RequiresExpert(_definition);
+    public bool IsCompatible { get; private set; }
+    public string CompatibilityText { get; private set; } = "";
+    public string CompatibilityLabel { get; private set; } = "";
+    public bool IsVerified { get; private set; }
+    public void RefreshAccess()
+    {
+        var result = Cleaner.Core.Services.TweakCompatibilityService.Evaluate(_definition, expertMode: Cleaner.App.Services.UserSettings.GetExpertMode());
+        IsCompatible = result.CanApply; IsVerified = result.Verified;
+        CompatibilityText = Loc.T(result.MessageKey);
+        CompatibilityLabel = Loc.T(!result.CanApply ? "compatibility.label.unsupported" : result.Verified ? "compatibility.label.verified" : "compatibility.label.unverified");
+        OnPropertyChanged(nameof(IsCompatible)); OnPropertyChanged(nameof(IsVerified)); OnPropertyChanged(nameof(CompatibilityText));
+        OnPropertyChanged(nameof(CompatibilityLabel)); OnPropertyChanged(nameof(CanToggle));
+    }
 
     /// <summary>Полная метка уровня — для тултипа.</summary>
     public string LevelLabel => Level switch
@@ -95,6 +107,7 @@ public partial class OptimizeTweakViewModel : ObservableObject
         ToggleTweakDelegate toggle)
     {
         Key = def.Key;
+        _definition = def;
         Category = def.Category;
         Level = def.Level;
         RequiresReboot = def.RequiresReboot;
@@ -102,11 +115,7 @@ public partial class OptimizeTweakViewModel : ObservableObject
         Short = shortText;
         Description = description;
         Warn = warn;
-        var compatibility = Cleaner.Core.Services.TweakCompatibilityService.Evaluate(def);
-        IsCompatible = compatibility.CanApply;
-        CompatibilityText = Loc.T(compatibility.MessageKey);
-        CompatibilityLabel = Loc.T(!compatibility.CanApply ? "compatibility.label.unsupported"
-            : compatibility.Verified ? "compatibility.label.verified" : "compatibility.label.unverified");
+        RefreshAccess();
         _toggle = toggle ?? throw new ArgumentNullException(nameof(toggle));
     }
 

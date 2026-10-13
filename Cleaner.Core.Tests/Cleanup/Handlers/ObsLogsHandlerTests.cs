@@ -39,7 +39,7 @@ public class ObsLogsHandlerTests : IDisposable
             new WhitelistService(Path.Combine(_root, "wl.json")),
             new QuarantineService(q), dryRun: true, commands: new FakeCommands());
 
-        var handler = new ObsLogsHandler();
+        var handler = new ObsLogsHandler(() => _root);
         var op = new OperationEntry
         {
             Kind = "operation",
