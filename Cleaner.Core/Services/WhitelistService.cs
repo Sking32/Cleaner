@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -41,7 +41,7 @@ public interface IWhitelistService
 /// Хранится в %LOCALAPPDATA%\Cleaner\whitelist.json в виде массива строк.
 ///
 /// Поддерживаются правила трёх видов:
-///   1) Полный путь (case-insensitive):  C:\Users\Sking\Documents\important.docx
+///   1) Полный путь (case-insensitive):  C:\Users\Example\Documents\important.docx
 ///   2) Glob с * и ?:                     *.log,  temp_??.tmp,  C:\Projects\**
 ///   3) Regex с префиксом re:             re:^.*\.bak$
 /// </summary>
@@ -130,13 +130,15 @@ public sealed class WhitelistService : IWhitelistService
     {
         if (string.IsNullOrWhiteSpace(rule)) return false;
         var trimmed = rule.Trim();
+        if (trimmed.StartsWith(RegexPrefix, StringComparison.OrdinalIgnoreCase))
+            _ = new Regex(trimmed[RegexPrefix.Length..], RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100));
 
         lock (_lock)
         {
             if (_rules.Contains(trimmed, StringComparer.OrdinalIgnoreCase))
                 return false;
             _rules.Add(trimmed);
-            Save();
+            try { Save(); } catch { _rules.Remove(trimmed); throw; }
             return true;
         }
     }
@@ -149,8 +151,9 @@ public sealed class WhitelistService : IWhitelistService
         {
             var idx = _rules.FindIndex(r => string.Equals(r, rule, StringComparison.OrdinalIgnoreCase));
             if (idx < 0) return false;
+            var removed = _rules[idx];
             _rules.RemoveAt(idx);
-            Save();
+            try { Save(); } catch { _rules.Insert(idx, removed); throw; }
             return true;
         }
     }
@@ -159,8 +162,9 @@ public sealed class WhitelistService : IWhitelistService
     {
         lock (_lock)
         {
+            var saved = _rules.ToArray();
             _rules.Clear();
-            Save();
+            try { Save(); } catch { _rules.AddRange(saved); throw; }
         }
     }
 
@@ -186,7 +190,8 @@ public sealed class WhitelistService : IWhitelistService
                     RegexOptions.IgnoreCase | RegexOptions.CultureInvariant,
                     TimeSpan.FromMilliseconds(100));
             }
-            catch { return false; }
+            catch (RegexMatchTimeoutException) { return true; }
+            catch (ArgumentException) { return true; } // Preserve files when an existing rule cannot be evaluated.
         }
 
         // 2) Glob (есть * или ?)
@@ -204,7 +209,8 @@ public sealed class WhitelistService : IWhitelistService
         // 3) Точный путь
         var normalizedRule = NormalizePath(r);
         if (normalizedRule.Length == 0) return false;
-        return string.Equals(normalizedRule, normalizedPath, StringComparison.OrdinalIgnoreCase);
+        return string.Equals(normalizedRule, normalizedPath, StringComparison.OrdinalIgnoreCase)
+            || normalizedPath.StartsWith(normalizedRule + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
     }
 
     private static Regex GlobToRegex(string glob)
@@ -254,10 +260,11 @@ public sealed class WhitelistService : IWhitelistService
         {
             if (!File.Exists(FilePath)) return;
             var json = File.ReadAllText(FilePath);
-            if (string.IsNullOrWhiteSpace(json)) return;
+            if (string.IsNullOrWhiteSpace(json)) throw new InvalidDataException("Empty exclusions file.");
 
             var doc = JsonSerializer.Deserialize<WhitelistDocument>(json, ReadOpts);
-            if (doc?.Rules == null) return;
+            if (doc?.Rules == null || doc.SchemaVersion != 1 || doc.Rules.Any(string.IsNullOrWhiteSpace))
+                throw new InvalidDataException("Invalid exclusions or unsupported schema.");
 
             lock (_lock)
             {
@@ -269,25 +276,11 @@ public sealed class WhitelistService : IWhitelistService
                 }
             }
         }
-        catch { }
+        catch (Exception logEx) { throw new IOException("Cannot read cleanup exclusions; cleanup is blocked.", logEx); }
     }
 
     private void Save()
     {
-        try
-        {
-            var doc = new WhitelistDocument
-            {
-                SchemaVersion = 1,
-                Rules = _rules.ToList()
-            };
-            var json = JsonSerializer.Serialize(doc, WriteOpts);
-
-            var tmp = FilePath + ".tmp";
-            File.WriteAllText(tmp, json);
-            File.Copy(tmp, FilePath, overwrite: true);
-            File.Delete(tmp);
-        }
-        catch { }
+        AtomicFile.Write(FilePath, JsonSerializer.Serialize(new WhitelistDocument { Rules = _rules.ToList() }, WriteOpts));
     }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Cleaner.Core.Data;
@@ -29,6 +29,9 @@ public sealed class PathCleanupHandler : ICleanupHandler
             if (ctx.IsCancellationRequested) break;
 
             var path = rawPath;
+            var pathCheck = ctx.Safety.Check(path);
+            if (!pathCheck.IsSafe || ctx.Whitelist.IsWhitelisted(path))
+            { ctx.RecordSkip(op.Key, path, !pathCheck.IsSafe ? "safety" : "whitelist"); skipped++; continue; }
             if (!Directory.Exists(path) && !File.Exists(path))
                 continue;
 
@@ -42,7 +45,10 @@ public sealed class PathCleanupHandler : ICleanupHandler
                 continue;
             }
 
-            foreach (var entry in EnumerateSafeChildren(path))
+            string[] entries;
+            try { entries = Directory.GetFileSystemEntries(path); }
+            catch (Exception ex) { errors.Add(path + ": " + ex.Message); skipped++; continue; }
+            foreach (var entry in entries)
             {
                 if (ctx.IsCancellationRequested) break;
 
@@ -68,8 +74,8 @@ public sealed class PathCleanupHandler : ICleanupHandler
         return new CleanupOperationResult
         {
             Success = errors.Count == 0,
-            BytesFreed = bytes,
-            FilesDeleted = deleted,
+            BytesFreed = 0, PreviewBytes = ctx.DryRun ? bytes : 0, BytesQuarantined = ctx.DryRun ? 0 : bytes,
+            FilesDeleted = 0, FilesQuarantined = deleted,
             FilesSkipped = skipped,
             Errors = errors
         };
@@ -81,14 +87,8 @@ public sealed class PathCleanupHandler : ICleanupHandler
 
     internal static IEnumerable<string> EnumerateSafeChildren(string directory)
     {
-        IEnumerable<string> items;
-        try { items = Directory.EnumerateFileSystemEntries(directory); }
-        catch { yield break; }
-
-        foreach (var item in items)
-        {
-            yield return item;
-        }
+        // Materialize inside the caller's exception boundary: enumeration is lazy.
+        return Directory.GetFileSystemEntries(directory);
     }
 
     internal static (long bytes, int deleted, int skipped) ProcessSingleFile(
@@ -100,10 +100,12 @@ public sealed class PathCleanupHandler : ICleanupHandler
         var check = ctx.Safety.Check(path);
         if (!check.IsSafe)
         {
+            ctx.RecordSkip(opKey, path, "safety");
             return (0, 0, 1);
         }
         if (ctx.Whitelist.IsWhitelisted(path))
         {
+            ctx.RecordSkip(opKey, path, "whitelist");
             return (0, 0, 1);
         }
 
@@ -111,29 +113,25 @@ public sealed class PathCleanupHandler : ICleanupHandler
 
         if (ctx.DryRun)
         {
+            ctx.RecordPreviewFile(opKey, path, size);
             ctx.Report(opKey, "PathCleanup", path, 0, 0, "preview");
             return (size, 0, 0);
         }
 
-        var entry = ctx.Quarantine.MoveToQuarantine(path, "Cleanup");
+        QuarantineEntry? entry;
+        try { entry = ctx.Quarantine.MoveToQuarantine(path, "Cleanup"); }
+        catch (Exception ex) { errors.Add(path + ": " + ex.Message); ctx.RecordSkip(opKey, path, "quarantine_failed"); return (0, 0, 1); }
         if (entry != null)
         {
             ctx.Report(opKey, "PathCleanup", path, 0, 0, "quarantine");
             return (size, 1, 0);
         }
 
-        // Fallback: пробуем удалить напрямую (если карантин не смог — например, файл на другом томе).
-        try
-        {
-            File.SetAttributes(path, FileAttributes.Normal);
-            File.Delete(path);
-            return (size, 1, 0);
-        }
-        catch (Exception ex)
-        {
-            errors.Add($"{path}: {ex.Message}");
-            return (0, 0, 1);
-        }
+        // Карантин не смог принять файл (занят, нет доступа, нет места).
+        // Безопасный выбор — пропустить его, а не удалять безвозвратно.
+        errors.Add(path + ": cannot move to quarantine");
+        ctx.RecordSkip(opKey, path, "quarantine_failed");
+        return (0, 0, 1);
     }
 
     internal static (long bytes, int deleted, int skipped) ProcessDirectory(
@@ -148,13 +146,17 @@ public sealed class PathCleanupHandler : ICleanupHandler
 
         // Безопасность всей папки
         var dirCheck = ctx.Safety.Check(directory);
-        if (!dirCheck.IsSafe)
+        if (!dirCheck.IsSafe || ctx.Whitelist.IsWhitelisted(directory))
         {
+            ctx.RecordSkip(opKey, directory, !dirCheck.IsSafe ? "safety" : "whitelist");
             // Внутрь не лезем.
             return (0, 0, 1);
         }
 
-        foreach (var child in EnumerateSafeChildren(directory))
+        string[] children;
+        try { children = Directory.GetFileSystemEntries(directory); }
+        catch (Exception ex) { errors.Add(directory + ": " + ex.Message); return (0, 0, 1); }
+        foreach (var child in children)
         {
             if (ctx.IsCancellationRequested) break;
 
@@ -174,7 +176,7 @@ public sealed class PathCleanupHandler : ICleanupHandler
             }
         }
 
-        if (deleteSelf && !ctx.DryRun)
+        if (deleteSelf && !ctx.DryRun && !ctx.IsCancellationRequested)
         {
             try { Directory.Delete(directory, recursive: false); }
             catch { /* папка непустая из-за скипов — ок */ }

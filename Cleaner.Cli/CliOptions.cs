@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -18,7 +18,8 @@ public sealed class CliOptions
     public string? Preset { get; init; }
     public IReadOnlyList<string> Operations { get; init; } = Array.Empty<string>();
 
-    public bool DryRun { get; init; }
+    public bool DryRun { get; init; } = true;
+    private string? ParseError { get; init; }
     public bool Silent { get; init; }
     public bool Quiet { get; init; }
     public bool Json { get; init; }
@@ -28,6 +29,7 @@ public sealed class CliOptions
 
     public string? LogPath { get; init; }
     public string? WebhookUrl { get; init; }
+    public string? ReportPath { get; init; }
 
     /// <summary>Позиционные аргументы (для merge-tools).</summary>
     public IReadOnlyList<string> Positional { get; init; } = Array.Empty<string>();
@@ -35,12 +37,19 @@ public sealed class CliOptions
     /// <summary>Валидация после парсинга.</summary>
     public string? Validate()
     {
+        if (ParseError != null) return ParseError;
+        var mergeCount = (MergeTweaks ? 1 : 0) + (MergeStrings ? 1 : 0) + (MergeOperations ? 1 : 0);
+        if (mergeCount > 1) return "choose exactly one merge tool";
         if (MergeTweaks || MergeStrings || MergeOperations)
         {
+            if (Preset != null || Operations.Count > 0 || ShowHelp || ListOperations || !DryRun || LogPath != null || WebhookUrl != null || ReportPath != null)
+                return "merge tools cannot be mixed with runtime options";
             if (Positional.Count != 2)
                 return "merge-tools require exactly 2 positional arguments";
             return null;
         }
+        if (Positional.Count > 0) return "unexpected positional arguments";
+        if (ReportPath != null && (ShowHelp || ListOperations)) return "--report requires a cleanup run";
 
         if (Preset != null && Operations.Count > 0)
             return "--preset and --operations cannot be used together";
@@ -60,16 +69,22 @@ public sealed class CliOptions
 
         string? preset = null;
         var operations = new List<string>();
-        bool dryRun = false, silent = false, quiet = false, json = false;
+        bool dryRun = false, apply = false, silent = false, quiet = false, json = false;
+        string? parseError = null;
         bool noRelaunch = false, help = false, listOps = false;
         bool mergeTweaks = false, mergeStrings = false, mergeOps = false;
-        string? logPath = null, webhookUrl = null;
+        string? logPath = null, webhookUrl = null, reportPath = null;
         var positional = new List<string>();
 
         for (int i = 0; i < args.Length; i++)
         {
             var a = args[i];
             if (string.IsNullOrWhiteSpace(a)) continue;
+            if (a is "--preset" or "--operations" or "--ops" or "--log" or "--webhook" or "--report")
+            {
+                if (i + 1 >= args.Length || string.IsNullOrWhiteSpace(args[i + 1]) || args[i + 1].StartsWith("--"))
+                { parseError ??= "missing value for " + a; continue; }
+            }
 
             switch (a)
             {
@@ -96,6 +111,7 @@ public sealed class CliOptions
                     break;
 
                 case "--dry-run": dryRun = true; break;
+                case "--apply": apply = true; break;
                 case "--silent": silent = true; break;
                 case "--quiet": quiet = true; break;
                 case "--json": json = true; break;
@@ -112,12 +128,14 @@ public sealed class CliOptions
                 case "--webhook":
                     if (i + 1 < args.Length) webhookUrl = args[++i];
                     break;
+                case "--report":
+                    if (i + 1 < args.Length) reportPath = args[++i];
+                    break;
 
                 default:
                     if (a.StartsWith("--", StringComparison.Ordinal))
                     {
-                        // Неизвестный флаг — молча игнорируем,
-                        // чтобы не пугать пользователя лишними ошибками.
+                        parseError ??= "unknown option: " + a;
                     }
                     else
                     {
@@ -134,7 +152,8 @@ public sealed class CliOptions
             MergeOperations = mergeOps,
             Preset = string.IsNullOrWhiteSpace(preset) ? null : preset,
             Operations = operations,
-            DryRun = dryRun,
+            DryRun = !apply,
+            ParseError = dryRun && apply ? "--apply and --dry-run cannot be combined" : parseError,
             Silent = silent,
             Quiet = quiet,
             Json = json,
@@ -143,6 +162,7 @@ public sealed class CliOptions
             ListOperations = listOps,
             LogPath = string.IsNullOrWhiteSpace(logPath) ? null : logPath,
             WebhookUrl = string.IsNullOrWhiteSpace(webhookUrl) ? null : webhookUrl,
+            ReportPath = string.IsNullOrWhiteSpace(reportPath) ? null : reportPath,
             Positional = positional
         };
     }

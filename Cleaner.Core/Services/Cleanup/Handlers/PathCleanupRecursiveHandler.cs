@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using Cleaner.Core.Data;
 
@@ -39,8 +39,8 @@ public sealed class PathCleanupRecursiveHandler : ICleanupHandler
         return new CleanupOperationResult
         {
             Success = errors.Count == 0,
-            BytesFreed = bytes,
-            FilesDeleted = deleted,
+            BytesFreed = 0, PreviewBytes = ctx.DryRun ? bytes : 0, BytesQuarantined = ctx.DryRun ? 0 : bytes,
+            FilesDeleted = 0, FilesQuarantined = deleted,
             FilesSkipped = skipped,
             Errors = errors
         };
@@ -56,7 +56,12 @@ public sealed class PathCleanupRecursiveHandler : ICleanupHandler
         long bytes = 0;
         int deleted = 0, skipped = 0;
 
-        foreach (var child in PathCleanupHandler.EnumerateSafeChildren(directory))
+        if (!ctx.Safety.Check(directory).IsSafe || ctx.Whitelist.IsWhitelisted(directory)) return (0, 0, 1);
+
+        string[] children;
+        try { children = Directory.GetFileSystemEntries(directory); }
+        catch (System.Exception ex) { errors.Add(directory + ": " + ex.Message); return (0, 0, 1); }
+        foreach (var child in children)
         {
             if (ctx.IsCancellationRequested) break;
 
@@ -72,7 +77,7 @@ public sealed class PathCleanupRecursiveHandler : ICleanupHandler
                 var sub = Walk(child, opKey, ctx, skip, errors);
                 bytes += sub.bytes; deleted += sub.deleted; skipped += sub.skipped;
 
-                if (!ctx.DryRun)
+                if (!ctx.DryRun && !ctx.IsCancellationRequested && ctx.Safety.Check(child).IsSafe && !ctx.Whitelist.IsWhitelisted(child))
                 {
                     try { Directory.Delete(child, recursive: false); } catch { }
                 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Cleaner.Core.Data;
 using Cleaner.Core.Registry;
 
@@ -21,7 +21,7 @@ public sealed class RegCleanKeyHandler : ICleanupHandler
         if (string.IsNullOrEmpty(hive) || string.IsNullOrEmpty(subKey))
             return CleanupOperationResult.Fail($"invalid registry path: {op.RegistryKey}");
 
-        if (!RegistryHelper.KeyExists(hive, subKey))
+        if (!ctx.Registry.KeyExists(hive, subKey))
             return CleanupOperationResult.Ok(message: "key not found");
 
         if (ctx.DryRun)
@@ -32,13 +32,13 @@ public sealed class RegCleanKeyHandler : ICleanupHandler
 
         try
         {
-            var names = RegistryHelper.GetValueNames(hive, subKey);
+            var names = ctx.Registry.GetValueNames(hive, subKey);
             int deleted = 0;
             foreach (var name in names)
             {
                 if (ctx.IsCancellationRequested) break;
                 if (string.IsNullOrEmpty(name)) continue;   // (Default) не трогаем
-                if (RegistryHelper.DeleteValue(hive, subKey, name)) deleted++;
+                if (ctx.Registry.DeleteValue(hive, subKey, name)) deleted++;
             }
 
             ctx.Report(op.Key, Name, op.RegistryKey, deleted, 0, "done");

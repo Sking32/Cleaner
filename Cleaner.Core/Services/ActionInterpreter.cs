@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -25,10 +25,14 @@ public interface IActionInterpreter
 public sealed class ActionInterpreter : IActionInterpreter
 {
     private readonly IBackupService _backup;
+    private readonly IRegistryAccess _registry;
+    private readonly ICommandExecutor _commands;
 
-    public ActionInterpreter(IBackupService backup)
+    public ActionInterpreter(IBackupService backup, IRegistryAccess? registry = null, ICommandExecutor? commands = null)
     {
         _backup = backup ?? throw new ArgumentNullException(nameof(backup));
+        _registry = registry ?? new WindowsRegistryAccess();
+        _commands = commands ?? new SystemCommandExecutor();
     }
 
     // ============================================================
@@ -52,7 +56,7 @@ public sealed class ActionInterpreter : IActionInterpreter
                 "regRemoveAllSubKeys" => RegRemoveAllSubKeys(action, tweakKey, category),
                 "regSetDynamicDate" => RegSetDynamicDate(action, tweakKey, category),
                 "serviceSet" => ServiceSet(action, tweakKey, category),
-                "commandRun" => CommandRun(action),
+                "commandRun" => CommandRun(action, tweakKey, category),
                 "restartExplorer" => RestartExplorer(),
                 _ => new ActionExecResult(false, $"unknown action type: {action.Type}")
             };
@@ -99,11 +103,11 @@ public sealed class ActionInterpreter : IActionInterpreter
     {
         RequireHiveKey(a);
 
-        _backup.SaveBeforeChange(tweakKey, a.Hive!, a.Key!, a.Name ?? "", category);
+        _backup.SaveBeforeChange(RegistryBackupKey(tweakKey, a.Hive!, a.Key!, a.Name ?? ""), a.Hive!, a.Key!, a.Name ?? "", category);
 
         var kind = ParseKind(a.Kind);
         var value = ConvertJsonValue(a.Value, kind);
-        RegistryHelper.SetValue(a.Hive!, a.Key!, a.Name ?? "", value, kind, a.CreateKeyIfMissing);
+        _registry.SetValue(a.Hive!, a.Key!, a.Name ?? "", value, kind, a.CreateKeyIfMissing);
         return new ActionExecResult(true);
     }
 
@@ -111,16 +115,16 @@ public sealed class ActionInterpreter : IActionInterpreter
     {
         RequireHiveKey(a);
 
-        _backup.SaveBeforeChange(tweakKey, a.Hive!, a.Key!, a.Name ?? "", category);
-        RegistryHelper.DeleteValue(a.Hive!, a.Key!, a.Name ?? "");
+        _backup.SaveBeforeChange(RegistryBackupKey(tweakKey, a.Hive!, a.Key!, a.Name ?? ""), a.Hive!, a.Key!, a.Name ?? "", category);
+        _registry.DeleteValue(a.Hive!, a.Key!, a.Name ?? "");
         return new ActionExecResult(true);
     }
 
     private ActionExecResult RegRemoveWithBackup(TweakAction a, string tweakKey, string category)
     {
         RequireHiveKey(a);
-        _backup.SaveBeforeChange(tweakKey, a.Hive!, a.Key!, a.Name ?? "", category);
-        RegistryHelper.DeleteValue(a.Hive!, a.Key!, a.Name ?? "");
+        _backup.SaveBeforeChange(RegistryBackupKey(tweakKey, a.Hive!, a.Key!, a.Name ?? ""), a.Hive!, a.Key!, a.Name ?? "", category);
+        _registry.DeleteValue(a.Hive!, a.Key!, a.Name ?? "");
         return new ActionExecResult(true);
     }
 
@@ -137,8 +141,7 @@ public sealed class ActionInterpreter : IActionInterpreter
     {
         RequireHiveKey(a);
         // Для ClassicContext. Бэкап ветки не сохраняем — это редкий edge case.
-        RegistryHelper.DeleteKey(a.Hive!, a.Key!, recursive: true);
-        return new ActionExecResult(true);
+        return new ActionExecResult(false, "Deleting registry trees without a complete snapshot is not supported; use rollback.");
     }
 
     private ActionExecResult RegSetAllSubKeys(TweakAction a, string tweakKey, string category)
@@ -147,12 +150,12 @@ public sealed class ActionInterpreter : IActionInterpreter
         var kind = ParseKind(a.Kind);
         var value = ConvertJsonValue(a.Value, kind);
 
-        var subs = RegistryHelper.GetSubKeyNames(a.Hive!, a.Key!);
+        var subs = _registry.GetSubKeyNames(a.Hive!, a.Key!);
         foreach (var sub in subs)
         {
             var full = $"{a.Key}\\{sub}";
-            _backup.SaveBeforeChange($"{tweakKey}_{sub}", a.Hive!, full, a.Name ?? "", category);
-            RegistryHelper.SetValue(a.Hive!, full, a.Name ?? "", value, kind, createKeyIfMissing: false);
+            _backup.SaveBeforeChange(RegistryBackupKey(tweakKey, a.Hive!, full, a.Name ?? ""), a.Hive!, full, a.Name ?? "", category);
+            _registry.SetValue(a.Hive!, full, a.Name ?? "", value, kind, createKeyIfMissing: false);
         }
         return new ActionExecResult(true);
     }
@@ -160,12 +163,12 @@ public sealed class ActionInterpreter : IActionInterpreter
     private ActionExecResult RegRemoveAllSubKeys(TweakAction a, string tweakKey, string category)
     {
         RequireHiveKey(a);
-        var subs = RegistryHelper.GetSubKeyNames(a.Hive!, a.Key!);
+        var subs = _registry.GetSubKeyNames(a.Hive!, a.Key!);
         foreach (var sub in subs)
         {
             var full = $"{a.Key}\\{sub}";
-            _backup.SaveBeforeChange($"{tweakKey}_{sub}", a.Hive!, full, a.Name ?? "", category);
-            RegistryHelper.DeleteValue(a.Hive!, full, a.Name ?? "");
+            _backup.SaveBeforeChange(RegistryBackupKey(tweakKey, a.Hive!, full, a.Name ?? ""), a.Hive!, full, a.Name ?? "", category);
+            _registry.DeleteValue(a.Hive!, full, a.Name ?? "");
         }
         return new ActionExecResult(true);
     }
@@ -177,8 +180,8 @@ public sealed class ActionInterpreter : IActionInterpreter
         var format = string.IsNullOrEmpty(a.Format) ? "yyyy-MM-ddTHH:mm:ssZ" : a.Format!;
         var dateStr = DateTime.UtcNow.AddDays(days).ToString(format, CultureInfo.InvariantCulture);
 
-        _backup.SaveBeforeChange(tweakKey, a.Hive!, a.Key!, a.Name ?? "", category);
-        RegistryHelper.SetValue(a.Hive!, a.Key!, a.Name ?? "", dateStr, RegistryValueKind.String, a.CreateKeyIfMissing);
+        _backup.SaveBeforeChange(RegistryBackupKey(tweakKey, a.Hive!, a.Key!, a.Name ?? ""), a.Hive!, a.Key!, a.Name ?? "", category);
+        _registry.SetValue(a.Hive!, a.Key!, a.Name ?? "", dateStr, RegistryValueKind.String, a.CreateKeyIfMissing);
         return new ActionExecResult(true);
     }
 
@@ -190,22 +193,29 @@ public sealed class ActionInterpreter : IActionInterpreter
             return new ActionExecResult(false, $"service not found: {a.ServiceName}");
 
         var current = ServiceHelper.GetStartType(a.ServiceName!);
-        if (current != null)
-            _backup.SaveServiceBeforeChange($"svc_{a.ServiceName}", a.ServiceName!, current, category);
+        var status = ServiceHelper.GetStatus(a.ServiceName!);
+        if (current == null || status is not ("Running" or "Stopped"))
+            return new ActionExecResult(false, "Cannot capture a stable original service configuration.");
+        if (current == "Automatic" && _registry.GetValue("HKLM", @"SYSTEM\CurrentControlSet\Services\" + a.ServiceName, "DelayedAutoStart") is int delayed && delayed == 1)
+            current = "AutomaticDelayed";
+        _backup.SaveServiceBeforeChange($"{tweakKey}_svc_{a.ServiceName}", a.ServiceName!, current, category, status == "Running");
 
-        if (a.StopFirst)
-            ServiceHelper.Stop(a.ServiceName!);
+        if (a.StopFirst && !ServiceHelper.StopAndWait(a.ServiceName!))
+            return new ActionExecResult(false, "Cannot stop service safely.");
 
         var ok = ServiceHelper.SetStartType(a.ServiceName!, a.StartupType ?? "Automatic");
         return ok ? new ActionExecResult(true) : new ActionExecResult(false, "sc.exe config failed");
     }
 
-    private ActionExecResult CommandRun(TweakAction a)
+    private ActionExecResult CommandRun(TweakAction a, string tweakKey, string category)
     {
         if (string.IsNullOrEmpty(a.FileName))
             return new ActionExecResult(false, "fileName is required");
 
-        var result = CommandRunner.Run(a.FileName!, a.Arguments, timeoutMs: 120000);
+        var backupKey = tweakKey + "_cmd_" + Fingerprint((a.FileName + "|" + a.Arguments).ToLowerInvariant());
+        if (!_backup.Keys.Contains(backupKey))
+            _backup.SaveRaw(backupKey, "", "", CommandBackup.Capture(a, _commands), BackupType.Command, category);
+        var result = _commands.Run(a.FileName!, a.Arguments, timeoutMs: 120000);
         return result.Success
             ? new ActionExecResult(true)
             : new ActionExecResult(false, $"exit={result.ExitCode}: {result.StdErr.Trim()}");
@@ -225,7 +235,7 @@ public sealed class ActionInterpreter : IActionInterpreter
     {
         RequireHiveKey(a);
 
-        var raw = RegistryHelper.GetValue(a.Hive!, a.Key!, a.Name ?? "");
+        var raw = _registry.GetValue(a.Hive!, a.Key!, a.Name ?? "");
         if (raw == null) return new StateCheckResult(false, "value not found");
 
         // lessOrEqualInt — особый случай (MenuShowDelay, ScanAvgCPULoadFactor)
@@ -274,7 +284,7 @@ public sealed class ActionInterpreter : IActionInterpreter
     private StateCheckResult RegKeyExists(TweakAction a)
     {
         RequireHiveKey(a);
-        return RegistryHelper.KeyExists(a.Hive!, a.Key!)
+        return _registry.KeyExists(a.Hive!, a.Key!)
             ? new StateCheckResult(true)
             : new StateCheckResult(false, "key not found");
     }
@@ -282,7 +292,7 @@ public sealed class ActionInterpreter : IActionInterpreter
     private StateCheckResult RegNotExists(TweakAction a)
     {
         RequireHiveKey(a);
-        var exists = RegistryHelper.ValueExists(a.Hive!, a.Key!, a.Name ?? "");
+        var exists = _registry.ValueExists(a.Hive!, a.Key!, a.Name ?? "");
         return !exists
             ? new StateCheckResult(true)
             : new StateCheckResult(false, "value still exists");
@@ -295,13 +305,14 @@ public sealed class ActionInterpreter : IActionInterpreter
 
         var expectedJson = a.Expected.Value;
         var kind = ParseKind(a.Kind);
-        var subs = RegistryHelper.GetSubKeyNames(a.Hive!, a.Key!);
+        var subs = _registry.GetSubKeyNames(a.Hive!, a.Key!);
+        if (subs.Count == 0) return new StateCheckResult(false, "no subkeys");
 
         foreach (var sub in subs)
         {
             var full = $"{a.Key}\\{sub}";
-            var raw = RegistryHelper.GetValue(a.Hive!, full, a.Name ?? "");
-            if (raw == null) continue;
+            var raw = _registry.GetValue(a.Hive!, full, a.Name ?? "");
+            if (raw == null) return new StateCheckResult(false, "value missing in subkey");
 
             bool match = kind switch
             {
@@ -309,15 +320,15 @@ public sealed class ActionInterpreter : IActionInterpreter
                     Convert.ToInt32(raw, CultureInfo.InvariantCulture) == expectedJson.GetInt32(),
                 _ => false
             };
-            if (match) return new StateCheckResult(true);
+            if (!match) return new StateCheckResult(false, "subkey mismatch");
         }
-        return new StateCheckResult(false, "no matching subkey");
+        return new StateCheckResult(true);
     }
 
     private StateCheckResult RegGetDateInFuture(TweakAction a)
     {
         RequireHiveKey(a);
-        var raw = RegistryHelper.GetValue(a.Hive!, a.Key!, a.Name ?? "") as string;
+        var raw = _registry.GetValue(a.Hive!, a.Key!, a.Name ?? "") as string;
         if (string.IsNullOrEmpty(raw)) return new StateCheckResult(false, "value not found");
 
         if (DateTime.TryParse(raw, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out var dt))
@@ -349,7 +360,8 @@ public sealed class ActionInterpreter : IActionInterpreter
         if (string.IsNullOrEmpty(a.OutputContains))
             return new StateCheckResult(false, "outputContains is required");
 
-        var result = CommandRunner.Run(a.FileName!, a.Arguments, timeoutMs: 30000);
+        var result = _commands.Run(a.FileName!, a.Arguments, timeoutMs: 30000);
+        if (!result.Success) return new StateCheckResult(false, result.Combined);
         var needle = a.OutputContains!;
         var hay = result.Combined;
 
@@ -376,7 +388,8 @@ public sealed class ActionInterpreter : IActionInterpreter
         "EXPANDSTRING" => RegistryValueKind.ExpandString,
         "MULTISTRING" => RegistryValueKind.MultiString,
         "BINARY" => RegistryValueKind.Binary,
-        _ => RegistryValueKind.DWord
+        null or "" => RegistryValueKind.DWord,
+        _ => throw new ArgumentException("Unknown registry value kind: " + kind)
     };
 
     public static object ConvertJsonValue(JsonElement? element, RegistryValueKind kind)
@@ -421,4 +434,16 @@ public sealed class ActionInterpreter : IActionInterpreter
         }
         catch { return false; }
     }
+    private string RegistryBackupKey(string tweak, string hive, string key, string name)
+    {
+        // Keep usable legacy snapshots for their original target, never reuse them for another value.
+        if (_backup.Entries.TryGetValue(tweak, out var legacy)
+            && string.Equals(legacy.Path, hive + "\\" + key, StringComparison.OrdinalIgnoreCase)
+            && string.Equals(legacy.Name, name, StringComparison.OrdinalIgnoreCase)) return tweak;
+        return tweak + "_reg_" + Fingerprint((hive + "\\" + key + "|" + name).ToLowerInvariant());
+    }
+
+    private static string Fingerprint(string text) => Convert.ToHexString(
+        System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(text)));
+
 }

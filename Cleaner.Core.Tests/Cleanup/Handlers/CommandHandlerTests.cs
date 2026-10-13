@@ -1,4 +1,4 @@
-﻿using Cleaner.Core.Data;
+using Cleaner.Core.Data;
 using Cleaner.Core.Services;
 using Cleaner.Core.Services.Cleanup;
 using Cleaner.Core.Services.Cleanup.Handlers;
@@ -29,7 +29,8 @@ public class CommandHandlerTests
     {
         var (exe, args) = CommandHandler.SplitCommand("Clear-RecycleBin");
         Assert.Equal("powershell.exe", exe);
-        Assert.Contains("Clear-RecycleBin", args);
+        var encoded = args[(args.LastIndexOf(' ') + 1)..];
+        Assert.Contains("Clear-RecycleBin", System.Text.Encoding.Unicode.GetString(Convert.FromBase64String(encoded)));
     }
 
     [Fact]
@@ -126,6 +127,6 @@ public class CommandHandlerTests
             new SafetyService(freshMinutes: 5),
             new WhitelistService(System.IO.Path.Combine(tmp, "wl.json")),
             new QuarantineService(System.IO.Path.Combine(tmp, "q")),
-            dryRun: dryRun);
+            dryRun: dryRun, commands: new FakeCommands());
     }
 }

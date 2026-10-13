@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Cleaner.Core.Data;
 
 namespace Cleaner.Core.Services.Cleanup.Handlers;
@@ -21,10 +21,10 @@ public sealed class ToggleHibernationHandler : ICleanupHandler
 
         try
         {
-            var result = CommandRunner.Run(
+            var result = ctx.Commands.Run(
                 "powercfg.exe",
                 "/h off",
-                timeoutMs: 60_000);
+                timeoutMs: 60_000, cancellationToken: ctx.CancellationToken);
 
             ctx.Report(op.Key, Name, "powercfg.exe", 0, 0,
                 result.Success ? "done" : "failed");
@@ -34,6 +34,7 @@ public sealed class ToggleHibernationHandler : ICleanupHandler
                 : CleanupOperationResult.Fail(
                     $"powercfg exit={result.ExitCode}: {result.StdErr.Trim()}".Trim());
         }
+        catch (OperationCanceledException) { throw; }
         catch (Exception ex)
         {
             return CleanupOperationResult.Fail($"powercfg: {ex.Message}");

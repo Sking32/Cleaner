@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -9,6 +9,9 @@ public sealed class CleanupOperationResult
 {
     public bool Success { get; init; }
     public long BytesFreed { get; init; }
+    public long PreviewBytes { get; init; }
+    public long BytesQuarantined { get; init; }
+    public int FilesQuarantined { get; init; }
     public int FilesDeleted { get; init; }
     public int FilesSkipped { get; init; }
     public IReadOnlyList<string> Errors { get; init; } = Array.Empty<string>();

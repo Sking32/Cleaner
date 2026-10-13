@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Threading;
 using Cleaner.Core.Data;
@@ -31,8 +31,13 @@ public class CleanupRunnerTests : IDisposable
         _safety = new SafetyService(freshMinutes: 5);
         _whitelist = new WhitelistService(Path.Combine(_root, "wl.json"));
         _quarantine = new QuarantineService(Path.Combine(_root, "q"));
-        _cleanup = new CleanupService(new OperationsRepository());
-        _runner = new CleanupRunner(_cleanup, new PresetsRepository());
+        var data = System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Data", "operations.json")))!;
+        foreach (var entry in data["entries"]!.AsArray())
+            if (entry!["paths"] is System.Text.Json.Nodes.JsonArray)
+                entry["paths"] = new System.Text.Json.Nodes.JsonArray(_tempDir);
+        File.WriteAllText(Path.Combine(_root, "operations.json"), data.ToJsonString());
+        _cleanup = new CleanupService(new OperationsRepository(_root));
+        _runner = new CleanupRunner(_cleanup, new PresetsRepository(), new OperationsRepository(_root));
     }
 
     public void Dispose()
@@ -41,7 +46,7 @@ public class CleanupRunnerTests : IDisposable
     }
 
     private CleanupContext Ctx(CancellationToken ct = default, bool dryRun = false)
-        => new(_safety, _whitelist, _quarantine, cancellationToken: ct, dryRun: dryRun);
+        => new(_safety, _whitelist, _quarantine, cancellationToken: ct, dryRun: dryRun, commands: new FakeCommands());
 
     [Fact]
     public void Empty_List_Returns_Zero()
@@ -54,8 +59,7 @@ public class CleanupRunnerTests : IDisposable
     [Fact]
     public void Unknown_Preset_Returns_Zero()
     {
-        var r = _runner.RunPreset("no-such-preset", Ctx());
-        Assert.Equal(0, r.OperationsRun);
+        Assert.Throws<ArgumentException>(() => _runner.RunPreset("no-such-preset", Ctx()));
     }
 
     [Fact]
@@ -110,11 +114,10 @@ public class CleanupRunnerTests : IDisposable
     [Fact]
     public void Runs_Soft_Preset()
     {
-        // soft: temp_user, temp_sys, dns, recycle, wer_user — часть требует реальных путей.
-        // В dry-run не должно быть падений из-за отсутствия путей.
+        // Gentle preset uses only file operations. Fixture paths replace catalog paths.
         var r = _runner.RunPreset("soft", Ctx(dryRun: true));
 
-        Assert.Equal(5, r.OperationsRun);
+        Assert.Equal(new PresetsRepository().CleanupPresets["soft"].Keys.Count, r.OperationsRun);
         Assert.Equal(0, r.OperationsFailed);
     }
 

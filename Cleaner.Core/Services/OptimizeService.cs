@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Cleaner.Core.Data;
@@ -49,6 +49,8 @@ public sealed class OptimizeService : IOptimizeService
     private readonly IBackupService _backup;
     private readonly AppliedTweaksStore _appliedStore;
     private readonly PresetsRepository _presets;
+    private readonly object _operationLock = new();
+    private readonly Func<TweakDefinition, TweakCompatibilityResult> _compatibility;
 
     public TweakRepository Tweaks { get; }
 
@@ -60,27 +62,78 @@ public sealed class OptimizeService : IOptimizeService
         IActionInterpreter interpreter,
         IBackupService backup,
         AppliedTweaksStore appliedStore,
-        PresetsRepository presets)
+        PresetsRepository presets,
+        Func<TweakDefinition, TweakCompatibilityResult>? compatibility = null)
     {
         Tweaks = tweaks ?? throw new ArgumentNullException(nameof(tweaks));
         _interpreter = interpreter ?? throw new ArgumentNullException(nameof(interpreter));
         _backup = backup ?? throw new ArgumentNullException(nameof(backup));
         _appliedStore = appliedStore ?? throw new ArgumentNullException(nameof(appliedStore));
         _presets = presets ?? throw new ArgumentNullException(nameof(presets));
+        _compatibility = compatibility ?? (t => TweakCompatibilityService.Evaluate(t));
     }
 
     // ---------- Apply / Unapply ----------
 
     public ApplyResult Apply(string tweakKey)
     {
+        lock (_operationLock)
+        {
+            try { return ApplyCore(tweakKey); }
+            catch (Exception ex)
+            {
+                // Persistence failures must not leave a successful-looking partial application.
+                var rollback = Rollback(tweakKey);
+                return new(false, ex.Message + (rollback.Success ? " (restored)" : "; recovery: " + rollback.Error));
+            }
+        }
+    }
+
+    private ApplyResult ApplyCore(string tweakKey)
+    {
         var tweak = Tweaks.GetByKey(tweakKey);
         if (tweak == null) return new ApplyResult(false, $"tweak not found: {tweakKey}");
+        if (tweak.Apply.Count == 0) return new(false, "Tweak has no apply actions.");
+
+        var wasApplied = _appliedStore.IsApplied(tweak.Key);
+        if (wasApplied) return new ApplyResult(true);
+        var compatibility = _compatibility(tweak);
+        if (!compatibility.CanApply) return new(false, compatibility.MessageKey);
+        if (_backup.Keys.Any(k => k == tweakKey || k.StartsWith(tweakKey + "_", StringComparison.Ordinal)))
+            return new(false, "Pending recovery data exists. Roll back this tweak before applying it again.");
+        var overlap = _appliedStore.GetAppliedKeys().FirstOrDefault(key =>
+        {
+            var other = Tweaks.GetByKey(key);
+            return other != null && tweak.Apply.Any(a => other.Apply.Any(b => SameTarget(a, b)));
+        });
+        if (overlap != null) return new(false, "Setting is already controlled by tweak: " + overlap);
+        var conflicts = _presets.FindConflicts(_appliedStore.GetAppliedKeys().Append(tweak.Key)).ToList();
+        if (conflicts.Count > 0) return new(false, "Conflicting tweaks: " + string.Join(", ", conflicts.Select(c => c.A + "/" + c.B)));
 
         foreach (var action in tweak.Apply)
         {
             var r = _interpreter.Execute(action, tweak.Key, tweak.Category);
             if (!r.Success)
-                return new ApplyResult(false, $"[{action.Type}] {r.Error}");
+            {
+                var error = $"[{action.Type}] {r.Error}";
+                CoreLog.Warn($"Твик {tweak.Key}: ошибка применения: {error}");
+
+                // Не оставляем систему в «полуприменённом» состоянии.
+                if (!wasApplied)
+                {
+                    try
+                    {
+                        var rb = Rollback(tweak.Key);
+                        error += rb.Success ? " (изменения отменены)" : "; recovery: " + rb.Error;
+                    }
+                    catch (Exception rbEx)
+                    {
+                        CoreLog.Warn($"Твик {tweak.Key}: откат после ошибки не удался", rbEx);
+                    }
+                }
+
+                return new ApplyResult(false, error);
+            }
         }
 
         var requiresReboot = tweak.RequiresReboot || _presets.IsRebootTweak(tweak.Key);
@@ -91,23 +144,22 @@ public sealed class OptimizeService : IOptimizeService
 
     public ApplyResult Unapply(string tweakKey)
     {
-        var tweak = Tweaks.GetByKey(tweakKey);
-        if (tweak == null) return new ApplyResult(false, $"tweak not found: {tweakKey}");
-
-        foreach (var action in tweak.Unapply)
-        {
-            var r = _interpreter.Execute(action, tweak.Key, tweak.Category);
-            if (!r.Success)
-                return new ApplyResult(false, $"[{action.Type}] {r.Error}");
-        }
-
-        _appliedStore.MarkUnapplied(tweak.Key);
-        return new ApplyResult(true);
+        var result = Rollback(tweakKey);
+        return new(result.Success, result.Error);
     }
 
     // ---------- Rollback ----------
 
     public RollbackResult Rollback(string tweakKey)
+    {
+        lock (_operationLock)
+        {
+            try { return RollbackCore(tweakKey); }
+            catch (Exception ex) { return new(false, ex.Message); }
+        }
+    }
+
+    private RollbackResult RollbackCore(string tweakKey)
     {
         var tweak = Tweaks.GetByKey(tweakKey);
         if (tweak == null) return new RollbackResult(false, $"tweak not found: {tweakKey}");
@@ -118,6 +170,9 @@ public sealed class OptimizeService : IOptimizeService
         //   - svc_<serviceName> (для serviceSet)
         var candidates = new List<string>();
         var snapshot = _backup.Entries;
+        if (snapshot.ContainsKey(tweakKey) && tweak.Apply.Count(a =>
+                a.Type is "regSet" or "regRemove" or "regRemoveWithBackup" or "regSetDynamicDate") > 1)
+            return new(false, "Legacy backup is incomplete. Original values cannot be reconstructed automatically; manual recovery required.");
         foreach (var k in snapshot.Keys)
         {
             if (k == tweakKey
@@ -136,17 +191,20 @@ public sealed class OptimizeService : IOptimizeService
         }
 
         if (candidates.Count == 0)
-            return new RollbackResult(false, "nothing to roll back for this tweak");
+            return _appliedStore.IsApplied(tweakKey)
+                ? new(false, "Original state backup is missing; manual recovery required.")
+                : new(true);
 
         var failed = 0;
-        foreach (var key in candidates)
+        foreach (var key in candidates.AsEnumerable().Reverse())
         {
-            if (!_backup.RestoreByKey(key)) failed++;
+            if (!_backup.RestoreByKey(key, retainBackup: true)) failed++;
         }
 
         if (failed == 0)
         {
-            _appliedStore.MarkUnapplied(tweak.Key);
+            _appliedStore.MarkUnapplied(tweak.Key, tweak.RequiresReboot || _presets.IsRebootTweak(tweak.Key));
+            _backup.RemoveEntries(candidates);
             return new RollbackResult(true);
         }
         return new RollbackResult(false, $"failed to restore {failed} entries");
@@ -154,10 +212,23 @@ public sealed class OptimizeService : IOptimizeService
 
     public (int Restored, int Failed) RollbackAll()
     {
-        var (restored, failed) = _backup.RestoreAll();
-        if (failed == 0)
-            _appliedStore.ClearAll();
-        return (restored, failed);
+        lock (_operationLock)
+        {
+            int restored = 0, failed = 0;
+            var considered = new HashSet<string>(StringComparer.Ordinal);
+            // Includes failed applications with recoverable entries, but never clears un-restored marks.
+            foreach (var tweak in Tweaks.Tweaks)
+            {
+                var keys = _backup.Keys.Where(k => k == tweak.Key || k.StartsWith(tweak.Key + "_", StringComparison.Ordinal) ||
+                    tweak.Apply.Any(a => a.Type == "serviceSet" && k == "svc_" + a.ServiceName)).ToArray();
+                if (!_appliedStore.IsApplied(tweak.Key) && keys.Length == 0) continue;
+                considered.UnionWith(keys);
+                if (Rollback(tweak.Key).Success) restored++; else failed++;
+            }
+            // Recovery entries for removed/unknown definitions need manual recovery.
+            failed += _backup.Keys.Count(k => !considered.Contains(k));
+            return (restored, failed);
+        }
     }
 
     // ---------- State ----------
@@ -181,4 +252,12 @@ public sealed class OptimizeService : IOptimizeService
     public bool IsPendingReboot(string tweakKey) => _appliedStore.IsPendingReboot(tweakKey);
 
     public void ClearAllRebootPending() => _appliedStore.ClearAllRebootPending();
+
+    private static bool SameTarget(TweakAction a, TweakAction b)
+        => a.Type.StartsWith("reg", StringComparison.Ordinal) && b.Type.StartsWith("reg", StringComparison.Ordinal)
+            && string.Equals(a.Hive, b.Hive, StringComparison.OrdinalIgnoreCase)
+            && string.Equals(a.Key, b.Key, StringComparison.OrdinalIgnoreCase)
+            && string.Equals(a.Name, b.Name, StringComparison.OrdinalIgnoreCase)
+            || a.Type == "serviceSet" && b.Type == "serviceSet"
+                && string.Equals(a.ServiceName, b.ServiceName, StringComparison.OrdinalIgnoreCase);
 }

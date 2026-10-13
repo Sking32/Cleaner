@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -27,9 +27,36 @@ public sealed class CliRunner
 
     public int Run(CliOptions opts)
     {
+        var validation = opts.Validate();
+        if (validation != null) { _out.Important(validation); return 64; }
         if (opts.ShowHelp) { PrintHelp(); return 0; }
 
-        if (opts.ListOperations) { PrintOperations(); return 0; }
+        if (opts.ListOperations) return PrintOperations();
+
+        CleanupService cleanup;
+        PresetsRepository presets;
+        OperationsRepository operations;
+        try
+        {
+            presets = new PresetsRepository();
+            operations = new OperationsRepository();
+            if (opts.Preset != null && !presets.CleanupPresets.ContainsKey(opts.Preset))
+            { _out.Important("unknown preset: " + opts.Preset); return 64; }
+            var keys = opts.Preset != null ? presets.CleanupPresets[opts.Preset].Keys : opts.Operations;
+            var unknown = keys.Where(k => !operations.Operations.Any(o => string.Equals(o.Key, k, StringComparison.OrdinalIgnoreCase))).ToArray();
+            if (unknown.Length > 0) { _out.Important("unknown operations: " + string.Join(", ", unknown)); return 64; }
+            cleanup = new CleanupService(operations);
+        }
+        catch (Exception ex) { _out.Important("data load failed: " + ex.Message); return 2; }
+        using var cancellation = new CancellationTokenSource();
+        CleanerStateLease lease;
+        try { lease = new CleanerStateLease(); }
+        catch (Exception ex) { _out.Important(ex.Message); return 2; }
+        using var stateLease = lease;
+        ConsoleCancelEventHandler cancel = (_, e) => { e.Cancel = true; cancellation.Cancel(); };
+        Console.CancelKeyPress += cancel;
+        try
+        {
 
         ISafetyService safety;
         IWhitelistService whitelist;
@@ -46,7 +73,7 @@ public sealed class CliRunner
             return 2;
         }
 
-        var progress = new Progress<CleanupProgress>(p =>
+        var progress = new InlineProgress<CleanupProgress>(p =>
         {
             if (opts.Quiet || opts.Silent || opts.Json) return;
             if (p.CurrentPath != null)
@@ -56,22 +83,10 @@ public sealed class CliRunner
         var ctx = new CleanupContext(
             safety, whitelist, quarantine,
             progress: progress,
+            cancellationToken: cancellation.Token,
             dryRun: opts.DryRun);
 
-        CleanupService cleanup;
-        PresetsRepository presets;
-        try
-        {
-            presets = new PresetsRepository();
-            cleanup = new CleanupService(new OperationsRepository());
-        }
-        catch (Exception ex)
-        {
-            _out.Important($"data load failed: {ex.Message}");
-            return 2;
-        }
-
-        var runner = new CleanupRunner(cleanup, presets);
+        var runner = new CleanupRunner(cleanup, presets, operations);
         CleanupSessionResult result;
 
         try
@@ -97,6 +112,14 @@ public sealed class CliRunner
             return 3;
         }
 
+        string? reportError = null;
+        if (opts.ReportPath != null)
+        {
+            try { new CleanupReport { DryRun = opts.DryRun, Result = result,
+                QuarantineDirectory = opts.DryRun ? null : quarantine.SessionDirectory }.Save(opts.ReportPath); }
+            catch (Exception ex) { reportError = ex.Message; }
+        }
+
         if (opts.Json)
         {
             _out.WriteJson(new
@@ -105,7 +128,13 @@ public sealed class CliRunner
                 operations = opts.Operations,
                 dryRun = opts.DryRun,
                 canceled = result.Canceled,
+                reportError,
+                skipDetails = result.SkipDetails,
+                omittedSkipDetails = result.OmittedSkipDetails,
                 bytesFreed = result.BytesFreed,
+                previewBytes = result.PreviewBytes,
+                bytesQuarantined = result.BytesQuarantined,
+                filesQuarantined = result.FilesQuarantined,
                 filesDeleted = result.FilesDeleted,
                 filesSkipped = result.FilesSkipped,
                 operationsRun = result.OperationsRun,
@@ -115,7 +144,12 @@ public sealed class CliRunner
                 {
                     key = o.Key,
                     success = o.Success,
+                    canceled = o.Canceled,
+                    message = o.Message,
                     bytesFreed = o.BytesFreed,
+                    previewBytes = o.PreviewBytes,
+                    bytesQuarantined = o.BytesQuarantined,
+                    filesQuarantined = o.FilesQuarantined,
                     filesDeleted = o.FilesDeleted,
                     filesSkipped = o.FilesSkipped,
                     errors = o.Errors
@@ -125,7 +159,9 @@ public sealed class CliRunner
         else if (!opts.Quiet)
         {
             _out.Line();
-            _out.Line($"Total: {FormatBytes(result.BytesFreed)} " +
+            _out.Line($"Preview: {FormatBytes(result.PreviewBytes)} | quarantined: {FormatBytes(result.BytesQuarantined)} " +
+                      $"| freed: {FormatBytes(result.BytesFreed)} " +
+                      $"| moved: {result.FilesQuarantined} " +
                       $"| deleted: {result.FilesDeleted} " +
                       $"| skipped: {result.FilesSkipped} " +
                       $"| failed ops: {result.OperationsFailed} " +
@@ -146,7 +182,14 @@ public sealed class CliRunner
         }
 
         if (result.Canceled) return 130;
+        if (reportError != null)
+        {
+            if (!opts.Json) _out.Important("Report could not be saved: " + reportError);
+            return 2;
+        }
         return result.OperationsFailed == 0 ? 0 : 1;
+        }
+        finally { Console.CancelKeyPress -= cancel; }
     }
 
     // ------------------------------------------------------------------
@@ -160,16 +203,18 @@ public sealed class CliRunner
         _out.Important("  --operations <a,b,c>           run specific operations");
         _out.Important("  --list-operations              print all operation keys and exit");
         _out.Important("  --dry-run                      do not modify anything (preview)");
+        _out.Important("  --apply                        execute changes; without this flag preview is the default");
         _out.Important("");
         _out.Important("Output:");
         _out.Important("  --json                         JSON to stdout");
         _out.Important("  --silent                       only final line");
         _out.Important("  --quiet                        no output, only exit code");
         _out.Important("  --log <path>                   append output to file");
+        _out.Important("  --report <path>                save a local JSON report (may contain private paths)");
         _out.Important("  --webhook <url>                POST JSON result to url");
         _out.Important("");
         _out.Important("Other:");
-        _out.Important("  --no-relaunch                  do not relaunch Explorer");
+        _out.Important("  --no-relaunch                  compatibility flag; cleanup never relaunches Explorer");
         _out.Important("  --help                         this help");
         _out.Important("");
         _out.Important("Tools:");
@@ -178,20 +223,21 @@ public sealed class CliRunner
         _out.Important("  --merge-operations <meta.json>     <actions.json>");
     }
 
-    private void PrintOperations()
+    private int PrintOperations()
     {
         OperationsRepository ops;
         try { ops = new OperationsRepository(); }
         catch (Exception ex)
         {
             _out.Important($"cannot load operations: {ex.Message}");
-            return;
+            return 2;
         }
 
         foreach (var op in ops.Operations)
         {
             _out.Important($"{op.Key,-22} {op.Handler,-24} [{op.Level}] {op.Category}");
         }
+        return 0;
     }
 
     /// <summary>
@@ -209,4 +255,9 @@ public sealed class CliRunner
         while (v >= 1024 && u < units.Length - 1) { v /= 1024; u++; }
         return $"{v.ToString("F2", CultureInfo.InvariantCulture)} {units[u]}";
     }
+}
+
+internal sealed class InlineProgress<T>(Action<T> report) : IProgress<T>
+{
+    public void Report(T value) => report(value);
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -29,6 +29,9 @@ public static class WebhookNotifier
                 source,
                 when = DateTime.UtcNow.ToString("o"),
                 bytesFreed = result.BytesFreed,
+                previewBytes = result.PreviewBytes,
+                bytesQuarantined = result.BytesQuarantined,
+                filesQuarantined = result.FilesQuarantined,
                 filesDeleted = result.FilesDeleted,
                 filesSkipped = result.FilesSkipped,
                 operationsRun = result.OperationsRun,

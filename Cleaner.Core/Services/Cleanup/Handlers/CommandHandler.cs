@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Cleaner.Core.Data;
 
 namespace Cleaner.Core.Services.Cleanup.Handlers;
@@ -32,7 +32,7 @@ public sealed class CommandHandler : ICleanupHandler
 
         try
         {
-            var result = CommandRunner.Run(fileName, arguments, timeoutMs: 600_000);
+            var result = ctx.Commands.Run(fileName, arguments, timeoutMs: 600_000, cancellationToken: ctx.CancellationToken);
             ctx.Report(op.Key, Name, cmd, 0, 0, result.Success ? "done" : "failed");
 
             if (result.Success)
@@ -41,6 +41,7 @@ public sealed class CommandHandler : ICleanupHandler
             return CleanupOperationResult.Fail(
                 $"exit={result.ExitCode}: {result.StdErr.Trim()}".Trim());
         }
+        catch (OperationCanceledException) { throw; }
         catch (Exception ex)
         {
             return CleanupOperationResult.Fail($"{cmd}: {ex.Message}");
@@ -60,11 +61,18 @@ public sealed class CommandHandler : ICleanupHandler
         if (trimmed.Length == 0) return ("cmd.exe", "/c echo nothing");
 
         // PowerShell-глаголы: Clear-, Delete-, Remove-, Optimize-, Get-, Set-, New-, etc.
-        if (LooksLikePowerShell(trimmed))
+        if (LooksLikePowerShell(trimmed) && !trimmed.StartsWith("powershell", StringComparison.OrdinalIgnoreCase) && !trimmed.StartsWith("pwsh", StringComparison.OrdinalIgnoreCase))
         {
-            var escaped = trimmed.Replace("\"", "\\\"");
+            var encoded = Convert.ToBase64String(System.Text.Encoding.Unicode.GetBytes("$ErrorActionPreference='Stop'; " + trimmed));
             return ("powershell.exe",
-                    $"-NoProfile -NonInteractive -ExecutionPolicy Bypass -Command \"{escaped}\"");
+                    $"-NoProfile -NonInteractive -EncodedCommand {encoded}");
+        }
+
+        if (trimmed.StartsWith('"'))
+        {
+            var close = trimmed.IndexOf('"', 1);
+            if (close < 0) throw new ArgumentException("Unclosed executable quote.");
+            return (trimmed.Substring(1, close - 1), trimmed[(close + 1)..].Trim());
         }
 
         // Иначе: первый токен — exe, остальное — args.

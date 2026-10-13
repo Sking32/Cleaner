@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using Cleaner.Core.Data;
 using Cleaner.Core.Services;
@@ -37,7 +37,7 @@ public class ObsLogsHandlerTests : IDisposable
         var ctx = new CleanupContext(
             new SafetyService(freshMinutes: 5),
             new WhitelistService(Path.Combine(_root, "wl.json")),
-            new QuarantineService(q));
+            new QuarantineService(q), dryRun: true, commands: new FakeCommands());
 
         var handler = new ObsLogsHandler();
         var op = new OperationEntry

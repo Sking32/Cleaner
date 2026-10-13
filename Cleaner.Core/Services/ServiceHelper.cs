@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.ServiceProcess;
 
@@ -11,6 +12,21 @@ namespace Cleaner.Core.Services;
 /// </summary>
 public static class ServiceHelper
 {
+    /// <summary>
+    /// Службы, остановка или отключение которых может сломать Windows
+    /// (сбой входа в систему, отказ сети, зависание оболочки, синий экран).
+    /// </summary>
+    private static readonly HashSet<string> ProtectedServices = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "RpcSs", "RpcEptMapper", "DcomLaunch", "LSM", "SamSs", "Winmgmt", "EventLog",
+        "PlugPlay", "Power", "ProfSvc", "gpsvc", "BrokerInfrastructure", "CoreMessaging",
+        "SystemEventsBroker", "Schedule", "UserManager", "StateRepository", "nsi", "BFE",
+        "mpssvc", "Themes", "TimeBrokerSvc", "KeyIso", "CryptSvc", "Wcmsvc", "DispBrokerDesktopSvc"
+    };
+
+    public static bool IsProtected(string serviceName)
+        => !string.IsNullOrWhiteSpace(serviceName) && ProtectedServices.Contains(serviceName.Trim());
+
     public static bool Exists(string serviceName)
     {
         try
@@ -54,39 +70,49 @@ public static class ServiceHelper
 
     public static bool SetStartType(string serviceName, string startType)
     {
+        if (IsProtected(serviceName) &&
+            string.Equals(startType, "Disabled", StringComparison.OrdinalIgnoreCase))
+        {
+            CoreLog.Warn($"Отключение защищённой службы запрещено: {serviceName}");
+            return false;
+        }
+
         var scArg = startType?.ToLowerInvariant() switch
         {
             "automatic" or "auto" => "auto",
+            "automaticdelayed" => "delayed-auto",
             "manual" => "demand",
             "disabled" => "disabled",
-            _ => "auto"
+            "boot" => "boot",
+            "system" => "system",
+            _ => throw new ArgumentException("Unknown service start type")
         };
         return RunSc($"config \"{serviceName}\" start= {scArg}");
     }
 
     public static bool Start(string serviceName) => RunSc($"start \"{serviceName}\"");
-    public static bool Stop(string serviceName) => RunSc($"stop \"{serviceName}\"");
+    public static bool StopAndWait(string serviceName) => GetStatus(serviceName) == "Stopped" || Stop(serviceName) && Wait(serviceName, ServiceControllerStatus.Stopped);
+    public static bool StartAndWait(string serviceName) => GetStatus(serviceName) == "Running" || Start(serviceName) && Wait(serviceName, ServiceControllerStatus.Running);
+    private static bool Wait(string name, ServiceControllerStatus status)
+    {
+        try { using var service = new ServiceController(name); service.WaitForStatus(status, TimeSpan.FromSeconds(20)); return true; }
+        catch (Exception ex) { CoreLog.Warn("Service state transition failed: " + name, ex); return false; }
+    }
+    public static bool Stop(string serviceName)
+    {
+        if (IsProtected(serviceName))
+        {
+            CoreLog.Warn($"Остановка защищённой службы запрещена: {serviceName}");
+            return false;
+        }
+        return RunSc($"stop \"{serviceName}\"");
+    }
 
     // ---------- internals ----------
 
     private static bool RunSc(string arguments)
     {
-        try
-        {
-            var psi = new ProcessStartInfo
-            {
-                FileName = "sc.exe",
-                Arguments = arguments,
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true
-            };
-            using var p = Process.Start(psi);
-            if (p == null) return false;
-            p.WaitForExit(15000);
-            return p.ExitCode == 0;
-        }
-        catch { return false; }
+        // CommandRunner читает stdout/stderr и убивает процесс по таймауту.
+        return CommandRunner.Run("sc.exe", arguments, timeoutMs: 15000).Success;
     }
 }

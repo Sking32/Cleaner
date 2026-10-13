@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Cleaner.Core.Data;
 using Cleaner.Core.Registry;
 
@@ -17,7 +17,7 @@ public sealed class RegCleanRunMRUHandler : ICleanupHandler
 
     public CleanupOperationResult Run(OperationEntry op, CleanupContext ctx)
     {
-        if (!RegistryHelper.KeyExists(Hive, SubKey))
+        if (!ctx.Registry.KeyExists(Hive, SubKey))
             return CleanupOperationResult.Ok(message: "no RunMRU");
 
         if (ctx.DryRun)
@@ -28,13 +28,13 @@ public sealed class RegCleanRunMRUHandler : ICleanupHandler
 
         try
         {
-            var names = RegistryHelper.GetValueNames(Hive, SubKey);
+            var names = ctx.Registry.GetValueNames(Hive, SubKey);
             int deleted = 0;
             foreach (var name in names)
             {
                 if (ctx.IsCancellationRequested) break;
                 if (string.IsNullOrEmpty(name)) continue;   // (Default) оставляем
-                if (RegistryHelper.DeleteValue(Hive, SubKey, name)) deleted++;
+                if (ctx.Registry.DeleteValue(Hive, SubKey, name)) deleted++;
             }
 
             ctx.Report(op.Key, Name, SubKey, deleted, 0, "done");

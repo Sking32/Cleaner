@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -41,14 +41,19 @@ public sealed class OperationsRepository
 
         var doc = JsonSerializer.Deserialize<OperationsDocument>(File.ReadAllText(path), JsonOptions)
             ?? throw new InvalidOperationException($"Failed to deserialize {path}");
-        Entries = doc.Entries;
+        if (doc.SchemaVersion != 1 || doc.Entries == null ||
+            doc.Entries.Any(e => e == null || string.IsNullOrWhiteSpace(e.Key) || e.Kind is not ("section" or "operation") ||
+                e.Paths == null || e.SkipSubdirs == null || e.IsOperation && string.IsNullOrWhiteSpace(e.Handler)) ||
+            doc.Entries.GroupBy(e => e.Key, StringComparer.OrdinalIgnoreCase).Any(g => g.Count() > 1))
+            throw new InvalidDataException("Invalid operation definitions or unsupported schema: " + path);
+        Entries = doc.Entries.AsReadOnly();
     }
 
     public IEnumerable<OperationEntry> Sections => Entries.Where(e => e.IsSection);
     public IEnumerable<OperationEntry> Operations => Entries.Where(e => e.IsOperation);
 
     public OperationEntry? GetByKey(string key)
-        => Entries.FirstOrDefault(e => e.Key == key);
+        => Entries.FirstOrDefault(e => string.Equals(e.Key, key, StringComparison.OrdinalIgnoreCase));
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,7 +10,9 @@ public enum SafetyVerdict
     Safe,
     Forbidden,
     ReparsePoint,
-    TooFresh
+    TooFresh,
+    /// <summary>Не удалось проверить файл (нет доступа, ошибка ввода-вывода) — трогать нельзя.</summary>
+    Unverifiable
 }
 
 public sealed record SafetyResult(SafetyVerdict Verdict, string? Reason = null)
@@ -27,6 +29,7 @@ public interface ISafetyService
 
 public sealed class SafetyService : ISafetyService
 {
+    private readonly IReadOnlyList<string> _forbiddenTrees;
     public int FreshMinutes { get; }
     public IReadOnlyCollection<string> ForbiddenPaths { get; }
 
@@ -59,6 +62,10 @@ public sealed class SafetyService : ISafetyService
             localAppData,
             appData
         };
+        var windows = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
+        list.AddRange(new[] { Path.GetPathRoot(windows) ?? "", windows, Environment.SystemDirectory,
+            Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
+            Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86) });
 
         if (extraForbidden != null) list.AddRange(extraForbidden);
 
@@ -67,6 +74,10 @@ public sealed class SafetyService : ISafetyService
             .Select(Normalize)
             .Distinct()
             .ToArray();
+        _forbiddenTrees = new[] { Environment.SystemDirectory,
+            Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
+            Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86) }
+            .Concat(extraForbidden ?? Array.Empty<string>()).Where(p => !string.IsNullOrWhiteSpace(p)).Select(Normalize).ToArray();
     }
 
     public SafetyResult Check(string path)
@@ -75,6 +86,15 @@ public sealed class SafetyService : ISafetyService
             return new SafetyResult(SafetyVerdict.Forbidden, "empty path");
 
         var normalized = Normalize(path);
+        try
+        {
+            var root = Path.GetPathRoot(path);
+            if (!string.IsNullOrEmpty(root) && normalized == Normalize(root))
+                return new SafetyResult(SafetyVerdict.Forbidden, "drive or share root");
+        }
+        catch (Exception ex) { return new SafetyResult(SafetyVerdict.Unverifiable, ex.Message); }
+        if (_forbiddenTrees.Any(root => normalized == root || normalized.StartsWith(root + "\\", StringComparison.OrdinalIgnoreCase)))
+            return new SafetyResult(SafetyVerdict.Forbidden, "protected system or excluded tree");
 
         foreach (var f in ForbiddenPaths)
         {
@@ -82,43 +102,74 @@ public sealed class SafetyService : ISafetyService
                 return new SafetyResult(SafetyVerdict.Forbidden, $"forbidden path: {f}");
         }
 
-        if (IsReparsePoint(path))
-            return new SafetyResult(SafetyVerdict.ReparsePoint, "reparse point (symlink/junction)");
+        try
+        {
+            var ancestor = Path.GetFullPath(path);
+            while (!string.IsNullOrEmpty(ancestor))
+            {
+                try
+                {
+                    if ((File.GetAttributes(ancestor) & FileAttributes.ReparsePoint) != 0)
+                        return new SafetyResult(SafetyVerdict.ReparsePoint, "reparse point in path");
+                }
+                catch (FileNotFoundException) { }
+                catch (DirectoryNotFoundException) { }
+                ancestor = Path.GetDirectoryName(ancestor);
+            }
+            var attrs = File.GetAttributes(path);
+            if ((attrs & FileAttributes.ReparsePoint) != 0)
+                return new SafetyResult(SafetyVerdict.ReparsePoint, "reparse point (symlink/junction)");
 
-        if (IsTooFresh(path))
-            return new SafetyResult(SafetyVerdict.TooFresh, $"created < {FreshMinutes} min ago");
+            if (IsTooFresh(path))
+                return new SafetyResult(SafetyVerdict.TooFresh, $"created < {FreshMinutes} min ago");
 
-        return new SafetyResult(SafetyVerdict.Safe);
+            return new SafetyResult(SafetyVerdict.Safe);
+        }
+        catch (Exception ex) when (ex is FileNotFoundException or DirectoryNotFoundException)
+        {
+            // Объекта уже нет — удалять нечего, опасности нет.
+            return new SafetyResult(SafetyVerdict.Safe);
+        }
+        catch (Exception ex)
+        {
+            // Не смогли проверить — при сомнении не трогаем.
+            return new SafetyResult(SafetyVerdict.Unverifiable, $"cannot verify: {ex.GetType().Name}");
+        }
     }
 
+    /// <summary>
+    /// Приводит путь к каноническому виду для сравнения: убирает префикс \\?\,
+    /// разворачивает "..", "." и "/" через Path.GetFullPath, срезает хвостовой слэш,
+    /// приводит к нижнему регистру.
+    /// </summary>
     internal static string Normalize(string path)
     {
         if (string.IsNullOrWhiteSpace(path)) return "";
-        var p = path.Trim().TrimEnd('\\', '/');
-        return p.ToLowerInvariant();
-    }
 
-    private static bool IsReparsePoint(string path)
-    {
-        try
+        var p = path.Trim();
+
+        if (p.StartsWith(@"\\?\", StringComparison.Ordinal))
+            p = p.Substring(4);
+
+        // "C:" без слэша — это текущая папка на диске, а не корень; не разворачиваем.
+        var isBareDrive = p.Length == 2 && p[1] == ':';
+        if (!isBareDrive)
         {
-            var attrs = File.GetAttributes(path);
-            return (attrs & FileAttributes.ReparsePoint) != 0;
+            try { p = Path.GetFullPath(p); }
+            catch { /* оставляем как есть */ }
         }
-        catch { return false; }
+
+        p = p.TrimEnd('\\', '/');
+        return p.ToLowerInvariant();
     }
 
     private bool IsTooFresh(string path)
     {
-        try
-        {
-            DateTime created = Directory.Exists(path)
-                ? Directory.GetCreationTimeUtc(path)
-                : File.GetCreationTimeUtc(path);
+        DateTime created = Directory.Exists(path)
+            ? Directory.GetCreationTimeUtc(path)
+            : File.GetCreationTimeUtc(path);
 
-            if (created == DateTime.MinValue) return false;
-            return (DateTime.UtcNow - created).TotalMinutes < FreshMinutes;
-        }
-        catch { return false; }
+        if (created == DateTime.MinValue) return false;
+        return (DateTime.UtcNow - created).TotalMinutes < FreshMinutes;
     }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Cleaner.Core.Data;
@@ -33,8 +33,12 @@ public sealed class FontCacheHandler : ICleanupHandler
             Path.Combine(local, "FontCache")
         };
 
-        bool stopped = ServiceHelper.Exists(ServiceName);
-        if (stopped) ServiceHelper.Stop(ServiceName);
+        bool wasRunning = ServiceHelper.GetStatus(ServiceName) == "Running";
+        if (wasRunning && !ServiceHelper.StopAndWait(ServiceName))
+        {
+            ServiceHelper.StartAndWait(ServiceName);
+            return CleanupOperationResult.Fail("Cannot stop FontCache safely.");
+        }
 
         long bytes = 0;
         int deleted = 0, skipped = 0;
@@ -61,7 +65,7 @@ public sealed class FontCacheHandler : ICleanupHandler
         }
         finally
         {
-            if (stopped) ServiceHelper.Start(ServiceName);
+            if (wasRunning && !ServiceHelper.StartAndWait(ServiceName)) errors.Add("Cannot restore FontCache running state.");
         }
 
         ctx.Report(op.Key, Name, null, deleted + skipped, bytes, "done");
@@ -69,8 +73,8 @@ public sealed class FontCacheHandler : ICleanupHandler
         return new CleanupOperationResult
         {
             Success = errors.Count == 0,
-            BytesFreed = bytes,
-            FilesDeleted = deleted,
+            BytesFreed = 0, PreviewBytes = ctx.DryRun ? bytes : 0, BytesQuarantined = ctx.DryRun ? 0 : bytes,
+            FilesDeleted = 0, FilesQuarantined = deleted,
             FilesSkipped = skipped,
             Errors = errors
         };

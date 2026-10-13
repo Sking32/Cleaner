@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Text.Json;
 using Cleaner.Core.Services;
@@ -171,9 +171,11 @@ public class QuarantineServiceTests : IDisposable
         var q = new QuarantineService(_sessionDir);
         q.MoveToQuarantine(src, "temp");
 
-        q.RestoreAll();
+        var result = q.RestoreAll();
+        Assert.True(result.Failed == 0, string.Join(Environment.NewLine, result.Errors));
 
-        Assert.False(Directory.Exists(_sessionDir));
+        Assert.False(Directory.Exists(_sessionDir), Directory.Exists(_sessionDir)
+            ? string.Join(Environment.NewLine, Directory.GetFileSystemEntries(_sessionDir)) : null);
     }
 
     [Fact]

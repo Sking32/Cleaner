@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using Cleaner.Core.Services;
 using Xunit;
@@ -171,10 +171,10 @@ public class WhitelistServiceTests : IDisposable
     }
 
     [Fact]
-    public void Invalid_Regex_Does_Not_Throw_And_Does_Not_Match()
+    public void Invalid_Regex_Is_Rejected_BeforeSaving()
     {
         var svc = NewSvc();
-        svc.Add(@"re:([unclosed");
+        Assert.ThrowsAny<ArgumentException>(() => svc.Add(@"re:([unclosed"));
 
         // Не должно бросить
         Assert.False(svc.IsWhitelisted(Path.Combine(_root, "whatever.txt")));

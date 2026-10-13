@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -14,6 +14,13 @@ using Cleaner.Cli;
 var options = new JsonSerializerOptions { WriteIndented = true };
 
 var parsed = CliOptions.Parse(args);
+var error = parsed.Validate();
+if (error != null)
+{
+    Console.Error.WriteLine(error);
+    Environment.ExitCode = 64;
+    return;
+}
 
 // --- merge-tools (совместимость с прошлым поведением) ---
 if (parsed.MergeTweaks && parsed.Positional.Count == 2)
@@ -32,17 +39,6 @@ if (parsed.MergeOperations && parsed.Positional.Count == 2)
     return;
 }
 
-// --- validation ---
-var error = parsed.Validate();
-if (error != null)
-{
-    Console.Error.WriteLine(error);
-    Console.Error.WriteLine();
-    new CliRunner(new OutputWriter(Console.Out, null, quiet: false)).PrintHelp();
-    Environment.ExitCode = 64;   // EX_USAGE
-    return;
-}
-
 // --- runtime ---
 using var writer = new OutputWriter(Console.Out, parsed.LogPath, parsed.Quiet);
 var runner = new CliRunner(writer);
@@ -55,8 +51,8 @@ Environment.ExitCode = exitCode;
 
 void MergeTweaks(string tweaksPath, string actionsPath)
 {
-    if (!File.Exists(tweaksPath)) { Console.Error.WriteLine($"Not found: {tweaksPath}"); return; }
-    if (!File.Exists(actionsPath)) { Console.Error.WriteLine($"Not found: {actionsPath}"); return; }
+    if (!File.Exists(tweaksPath)) { Console.Error.WriteLine($"Not found: {tweaksPath}"); Environment.ExitCode = 1; return; }
+    if (!File.Exists(actionsPath)) { Console.Error.WriteLine($"Not found: {actionsPath}"); Environment.ExitCode = 1; return; }
 
     var root = JsonNode.Parse(File.ReadAllText(tweaksPath))!;
     var actionsRoot = JsonNode.Parse(File.ReadAllText(actionsPath))!;
@@ -77,15 +73,15 @@ void MergeTweaks(string tweaksPath, string actionsPath)
         count++;
     }
 
-    File.WriteAllText(tweaksPath, root.ToJsonString(options));
+    Cleaner.Core.Services.AtomicFile.Write(tweaksPath, root.ToJsonString(options));
     Console.WriteLine();
     Console.WriteLine($"Merged {count} tweaks into {tweaksPath}");
 }
 
 void MergeStrings(string targetPath, string sourcePath)
 {
-    if (!File.Exists(targetPath)) { Console.Error.WriteLine($"Not found: {targetPath}"); return; }
-    if (!File.Exists(sourcePath)) { Console.Error.WriteLine($"Not found: {sourcePath}"); return; }
+    if (!File.Exists(targetPath)) { Console.Error.WriteLine($"Not found: {targetPath}"); Environment.ExitCode = 1; return; }
+    if (!File.Exists(sourcePath)) { Console.Error.WriteLine($"Not found: {sourcePath}"); Environment.ExitCode = 1; return; }
 
     var target = JsonNode.Parse(File.ReadAllText(targetPath))!.AsObject();
     var source = JsonNode.Parse(File.ReadAllText(sourcePath))!.AsObject();
@@ -110,14 +106,14 @@ void MergeStrings(string targetPath, string sourcePath)
         }
     }
 
-    File.WriteAllText(targetPath, target.ToJsonString(options));
+    Cleaner.Core.Services.AtomicFile.Write(targetPath, target.ToJsonString(options));
     Console.WriteLine($"Added: {added}, updated: {updated}, total keys: {target.Count}");
 }
 
 void MergeOperations(string metaPath, string actionsPath)
 {
-    if (!File.Exists(metaPath)) { Console.Error.WriteLine($"Not found: {metaPath}"); return; }
-    if (!File.Exists(actionsPath)) { Console.Error.WriteLine($"Not found: {actionsPath}"); return; }
+    if (!File.Exists(metaPath)) { Console.Error.WriteLine($"Not found: {metaPath}"); Environment.ExitCode = 1; return; }
+    if (!File.Exists(actionsPath)) { Console.Error.WriteLine($"Not found: {actionsPath}"); Environment.ExitCode = 1; return; }
 
     var meta = JsonNode.Parse(File.ReadAllText(metaPath))!;
     var entries = meta["entries"]!.AsArray();
@@ -141,7 +137,7 @@ void MergeOperations(string metaPath, string actionsPath)
         count++;
     }
 
-    File.WriteAllText(metaPath, meta.ToJsonString(options));
+    Cleaner.Core.Services.AtomicFile.Write(metaPath, meta.ToJsonString(options));
     Console.WriteLine();
     Console.WriteLine($"Merged {count} operations, skipped {skipped} (no actions provided)");
 }

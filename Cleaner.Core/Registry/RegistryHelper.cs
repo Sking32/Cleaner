@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Win32;
@@ -46,7 +46,7 @@ public static class RegistryHelper
         using var baseKey = OpenBaseKey(ParseHive(hive));
         using var key = baseKey.OpenSubKey(subKey, writable: false);
         if (key == null) return null;
-        return key.GetValue(NormalizeName(name));
+        return key.GetValue(NormalizeName(name), null, RegistryValueOptions.DoNotExpandEnvironmentNames);
     }
 
     /// <summary>Получить kind значения, или null, если значения нет.</summary>
@@ -56,7 +56,7 @@ public static class RegistryHelper
         using var key = baseKey.OpenSubKey(subKey, writable: false);
         if (key == null) return null;
         try { return key.GetValueKind(NormalizeName(name)); }
-        catch { return null; }
+        catch (System.IO.IOException) when (!key.GetValueNames().Contains(NormalizeName(name), StringComparer.OrdinalIgnoreCase)) { return null; }
     }
 
     public static void SetValue(

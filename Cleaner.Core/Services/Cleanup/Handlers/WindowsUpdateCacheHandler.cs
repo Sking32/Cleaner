@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Cleaner.Core.Data;
@@ -31,8 +31,16 @@ public sealed class WindowsUpdateCacheHandler : ICleanupHandler
         var stopped = new List<string>();
         foreach (var svc in Services)
         {
-            if (ServiceHelper.Exists(svc) && ServiceHelper.Stop(svc))
+            if (ServiceHelper.GetStatus(svc) == "Running")
+            {
+                if (!ServiceHelper.StopAndWait(svc))
+                {
+                    ServiceHelper.StartAndWait(svc);
+                    foreach (var previous in stopped) ServiceHelper.StartAndWait(previous);
+                    return CleanupOperationResult.Fail("Cannot stop service safely: " + svc);
+                }
                 stopped.Add(svc);
+            }
         }
 
         long bytes = 0;
@@ -51,7 +59,7 @@ public sealed class WindowsUpdateCacheHandler : ICleanupHandler
         finally
         {
             foreach (var svc in stopped)
-                ServiceHelper.Start(svc);
+                if (!ServiceHelper.StartAndWait(svc)) errors.Add("Cannot restore service running state: " + svc);
         }
 
         ctx.Report(op.Key, Name, dir, deleted + skipped, bytes, "done");
@@ -59,8 +67,8 @@ public sealed class WindowsUpdateCacheHandler : ICleanupHandler
         return new CleanupOperationResult
         {
             Success = errors.Count == 0,
-            BytesFreed = bytes,
-            FilesDeleted = deleted,
+            BytesFreed = 0, PreviewBytes = ctx.DryRun ? bytes : 0, BytesQuarantined = ctx.DryRun ? 0 : bytes,
+            FilesDeleted = 0, FilesQuarantined = deleted,
             FilesSkipped = skipped,
             Errors = errors
         };

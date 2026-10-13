@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using Cleaner.Core.Data;
 using Cleaner.Core.Services;
@@ -52,6 +52,6 @@ public class ActivityHistoryHandlerTests : IDisposable
         var r = handler.Run(op, ctx);
 
         Assert.True(r.Success, string.Join("; ", r.Errors));
-        Assert.Equal(0, r.FilesDeleted);
+        Assert.Equal(0, r.FilesQuarantined);
     }
 }

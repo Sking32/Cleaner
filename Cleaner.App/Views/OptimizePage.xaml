@@ -1,12 +1,179 @@
-﻿<Page x:Class="Cleaner.App.Views.OptimizePage"
-      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      Title="Оптимизация">
-    <Grid Margin="24">
-        <StackPanel>
-            <TextBlock Text="Оптимизация" FontSize="24" FontWeight="SemiBold" />
-            <TextBlock Text="Здесь будет список 62 твиков по категориям."
-                       Margin="0,8,0,0" Opacity="0.75" />
-        </StackPanel>
+<Page xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml" xmlns:loc="clr-namespace:Cleaner.App.Localization" xmlns:vm="clr-namespace:Cleaner.App.ViewModels" x:Class="Cleaner.App.Views.OptimizePage" mc:Ignorable="d" d:DataContext="{d:DesignInstance Type=vm:OptimizeViewModel}" Title="{loc:Loc t.optimizaciya}" Foreground="{StaticResource TextPrimaryBrush}" Background="{DynamicResource BgBaseBrush}">
+    <Page.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </Page.Resources>
+    <Grid>
+        <Grid Margin="24,20,24,18">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <StackPanel Grid.Row="0">
+                <Grid>
+                    <StackPanel Margin="0,0,46,0">
+                        <TextBlock Text="{loc:Loc t.optimizaciya}" Style="{StaticResource PageTitleStyle}"/>
+                        <TextBlock Text="{Binding SubtitleText}" Style="{StaticResource PageSubtitleStyle}" Margin="0,6,0,0"/>
+                    </StackPanel>
+                    <ui:Button HorizontalAlignment="Right" VerticalAlignment="Top" Appearance="Transparent" Icon="{ui:SymbolIcon QuestionCircle24}" Command="{Binding ToggleHelpCommand}" ToolTip="{loc:Loc help.show}"/>
+                </Grid>
+                <ui:InfoBar Margin="0,16,0,0" Severity="Informational" Title="{loc:Loc help.optimize.title}" Message="{loc:Loc help.optimize.msg}" IsClosable="True" IsOpen="{Binding ShowHelp, Mode=TwoWay}"/>
+            </StackPanel>
+            <Grid Grid.Row="1" Margin="0,12,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="{loc:Loc t.preset_3}" Foreground="{StaticResource TextMutedBrush}" FontSize="11" FontWeight="SemiBold" Margin="4,0,0,8"/>
+                    <ListBox ItemsSource="{Binding Presets}" SelectedItem="{Binding SelectedPreset, Mode=TwoWay}" Background="Transparent" BorderThickness="0" Padding="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ListBox.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ListBox.ItemsPanel>
+                        <ListBox.ItemContainerStyle>
+                            <StaticResource ResourceKey="PresetChipStyle"/>
+                        </ListBox.ItemContainerStyle>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="13"/>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </StackPanel>
+                <ui:Button Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Bottom" Padding="8" Width="36" Height="36" FontSize="12" Icon="{ui:SymbolIcon Dismiss24}" AutomationProperties.Name="{loc:Loc t.sbrosit_vybor}" Command="{Binding ClearPresetCommand}" IsEnabled="{Binding HasSelectedPreset}" ToolTip="{loc:Loc t.sbrosit_vybor}"/>
+            </Grid>
+            <StackPanel Grid.Row="2" Margin="0,10,0,0">
+                <Grid Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <ui:TextBox PlaceholderText="{loc:Loc design.search.tweaks}" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"/>
+                    <CheckBox Grid.Column="1" Content="{loc:Loc design.applied.only}" IsChecked="{Binding AppliedOnly, Mode=TwoWay}" VerticalAlignment="Center" Margin="16,0,0,0"/>
+                </Grid>
+                <TextBlock Text="{loc:Loc design.no.results}" Style="{StaticResource SettingHintStyle}" Visibility="{Binding HasNoSearchResults, Converter={StaticResource BoolToVis}}" Margin="0,0,0,8"/>
+                <Border Padding="12,8" CornerRadius="8" Background="#2060CDFF" BorderBrush="#4060CDFF" BorderThickness="1" Visibility="{Binding HasPresetNote, Converter={StaticResource BoolToVis}}">
+                    <TextBlock Text="{Binding PresetNoteText}" FontSize="12" TextWrapping="Wrap" Foreground="{StaticResource TextPrimaryBrush}"/>
+                </Border>
+                <Border Margin="0,6,0,0" Padding="12,8" CornerRadius="8" Background="#208D6E00" BorderBrush="#408D6E00" BorderThickness="1" Visibility="{Binding HasConflict, Converter={StaticResource BoolToVis}}">
+                    <TextBlock Text="{Binding ConflictText}" FontSize="12" TextWrapping="Wrap" Foreground="#F5C842"/>
+                </Border>
+            </StackPanel>
+            <ScrollViewer Grid.Row="3" Margin="0,8,0,0" MinHeight="100" VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding Categories}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Style="{StaticResource CategoryCardStyle}" Margin="0,0,0,6" Visibility="{Binding HasVisibleTweaks, Converter={StaticResource BoolToVis}}">
+                                <Expander Style="{StaticResource CompactCategoryStyle}" IsExpanded="True" AutomationProperties.Name="{Binding Name}">
+                                    <Expander.Header>
+                                        <StackPanel Orientation="Horizontal">
+                                            <ui:SymbolIcon Symbol="{Binding IconSymbol}" FontSize="16" Margin="0,0,10,0"/>
+                                            <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{Binding CountText}" Foreground="{StaticResource TextMutedBrush}" FontSize="12" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                        </StackPanel>
+                                    </Expander.Header>
+                                    <ItemsControl ItemsSource="{Binding Tweaks}" Margin="4,2,4,6">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Style="{StaticResource CompactRowStyle}" Visibility="{Binding IsVisible, Converter={StaticResource BoolToVis}}">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <Border Grid.Column="0" Width="22" Height="22" CornerRadius="11" VerticalAlignment="Top" Margin="0,3,10,0" ToolTip="{Binding LevelHint}">
+                                                            <Border.Style>
+                                                                <Style TargetType="Border">
+                                                                    <Setter Property="Background" Value="#3A3A3A"/>
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding Level}" Value="safe">
+                                                                            <Setter Property="Background" Value="#1B5E20"/>
+                                                                        </DataTrigger>
+                                                                        <DataTrigger Binding="{Binding Level}" Value="caution">
+                                                                            <Setter Property="Background" Value="#8D6E00"/>
+                                                                        </DataTrigger>
+                                                                        <DataTrigger Binding="{Binding Level}" Value="danger">
+                                                                            <Setter Property="Background" Value="#8B1A1A"/>
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </Border.Style>
+                                                            <TextBlock Text="{Binding LevelShort}" Foreground="White" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        </Border>
+                                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,12,0">
+                                                            <Expander Style="{StaticResource CompactExpanderStyle}" Margin="0" FontSize="11" AutomationProperties.Name="{Binding Name}" ToolTip="{loc:Loc design.details}">
+                                                                <Expander.Header>
+                                                                    <StackPanel>
+                                                                        <Grid>
+                                                                            <Grid.ColumnDefinitions>
+                                                                                <ColumnDefinition Width="*"/>
+                                                                                <ColumnDefinition Width="Auto"/>
+                                                                                <ColumnDefinition Width="Auto"/>
+                                                                            </Grid.ColumnDefinitions>
+                                                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}" TextWrapping="Wrap"/>
+                                                                            <Border Grid.Column="1" Background="{StaticResource CautionBrush}" CornerRadius="4" Padding="6,1" Margin="8,0,0,0" VerticalAlignment="Center" ToolTip="{loc:Loc t.tvik_trebuet_perezagruzki}" Visibility="{Binding RequiresReboot, Converter={StaticResource BoolToVis}}">
+                                                                                <TextBlock Text="{loc:Loc design.reboot}" FontSize="9" FontWeight="Bold" Foreground="White"/>
+                                                                            </Border>
+                                                                            <TextBlock Grid.Column="2" Text="{Binding CompatibilityLabel}" ToolTip="{Binding CompatibilityText}" FontSize="10" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                                                        </Grid>
+                                                                        <TextBlock HorizontalAlignment="Left" Text="{Binding Short}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" MaxWidth="640" Margin="0,2,0,0"/>
+                                                                    </StackPanel>
+                                                                </Expander.Header>
+                                                                <StackPanel>
+                                                                    <TextBlock Text="{Binding Description}" TextWrapping="Wrap" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,8,12,8"/>
+                                                                    <TextBlock Text="{Binding CompatibilityText}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap" Margin="0,0,12,8"/>
+                                                                </StackPanel>
+                                                            </Expander>
+                                                            <TextBlock HorizontalAlignment="Left" Text="{Binding Warn}" FontSize="11" Foreground="{StaticResource CautionBrush}" TextWrapping="Wrap" MaxWidth="640" Margin="0,3,0,0" Visibility="{Binding HasWarn, Converter={StaticResource BoolToVis}}"/>
+                                                            <TextBlock Text="{Binding LastError}" TextWrapping="Wrap" ToolTip="{Binding LastError}" Foreground="{StaticResource CautionBrush}" MaxWidth="640" Margin="0,3,0,0" Visibility="{Binding HasError, Converter={StaticResource BoolToVis}}"/>
+                                                            <TextBlock Text="{Binding CompatibilityText}" ToolTip="{Binding CompatibilityText}" FontSize="11" Foreground="{StaticResource CautionBrush}" Margin="0,2,0,0" TextWrapping="Wrap">
+                                                                <TextBlock.Style>
+                                                                    <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding IsCompatible}" Value="False">
+                                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </TextBlock.Style>
+                                                            </TextBlock>
+                                                        </StackPanel>
+                                                        <ui:ToggleSwitch Grid.Column="2" VerticalAlignment="Center" IsChecked="{Binding IsApplied, Mode=TwoWay}" IsEnabled="{Binding CanToggle}" OnContent="" OffContent=""/>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </Expander>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+            <Border Grid.Row="4" Margin="0,10,0,0" Padding="12,8" CornerRadius="12" Background="{StaticResource CardBgBrush}" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                        <TextBlock HorizontalAlignment="Left" Text="{Binding StatusText}" Foreground="{StaticResource TextPrimaryBrush}" TextWrapping="Wrap" MaxWidth="440" FontSize="13"/>
+                        <TextBlock Text="{Binding PendingRebootText}" Foreground="{StaticResource CautionBrush}" FontSize="12" FontWeight="SemiBold" Margin="0,2,0,0" Visibility="{Binding HasPendingReboot, Converter={StaticResource BoolToVis}}"/>
+                    </StackPanel>
+                    <ui:Button Grid.Column="1" Margin="8,0" Padding="12,8" FontSize="13" Appearance="Primary" Style="{StaticResource PrimaryButtonStyle}" Icon="{ui:SymbolIcon Play24}" Content="{loc:Loc t.primenit_preset_2}" Command="{Binding ApplyPresetCommand}" ToolTip="{loc:Loc t.primenit_vse_tviki_vybrannogo_preseta}"/>
+                    <ui:Button Grid.Column="2" Margin="8,0" Padding="12,8" FontSize="13" Icon="{ui:SymbolIcon ArrowUndo24}" Content="{loc:Loc t.otkatit_vse}" Command="{Binding RollbackAllCommand}" ToolTip="{loc:Loc t.vosstanovit_vse_znacheniya_iz_bekapa}"/>
+                    <ui:Button Grid.Column="3" Padding="12,8" FontSize="13" Icon="{ui:SymbolIcon ArrowClockwise24}" Content="{loc:Loc t.obnovit}" Command="{Binding RefreshCommand}" ToolTip="{loc:Loc t.perechitat_sostoyanie_tvikov}"/>
+                </Grid>
+            </Border>
+            <ui:ProgressRing Grid.Row="3" Width="32" Height="32" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,4,6,0" IsIndeterminate="True" Foreground="{DynamicResource AccentBrush}" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
+        </Grid>
     </Grid>
 </Page>
