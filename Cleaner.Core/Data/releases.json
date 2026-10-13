@@ -2,6 +2,32 @@
   "schemaVersion": 1,
   "releases": [
     {
+      "version": "1.1.0-beta.4",
+      "date": "2026-10-13",
+      "text": {
+        "ru": {
+          "title": "Лаконичный комплект для тестирования",
+          "summary": "В архиве осталось приложение, данные, руководства на русском и английском и лицензии зависимостей.",
+          "added": [],
+          "changed": [
+            "Документы разработчика и внутренние отчёты перенесены в docs и исключены из ZIP.",
+            "Ссылки в руководствах обновлены; проверка SHA-256 обозначена как необязательная."
+          ],
+          "fixed": []
+        },
+        "en": {
+          "title": "A focused package for testers",
+          "summary": "The archive contains the app, required data, Russian and English guides, and dependency licenses.",
+          "added": [],
+          "changed": [
+            "Developer documents and internal reports moved to docs and excluded from the ZIP.",
+            "Guide links updated; SHA-256 verification described as optional."
+          ],
+          "fixed": []
+        }
+      }
+    },
+    {
       "version": "1.1.0-beta.3",
       "date": "2026-10-13",
       "text": {

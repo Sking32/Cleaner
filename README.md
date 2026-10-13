@@ -2,12 +2,12 @@
 
 [Русский](README.ru.md) · English
 
-**Current beta: 1.1.0-beta.3.** A desktop app for inspecting cleanup candidates, reviewing Windows tweaks, managing startup entries and services, and recovering quarantined files. This is a test release: system changes still need validation on real Windows installations. Cleaner does not promise to speed up every computer.
+**Current beta: 1.1.0-beta.4.** A desktop app for inspecting cleanup candidates, reviewing Windows tweaks, managing startup entries and services, and recovering quarantined files. This is a test release: system changes still need validation on real Windows installations. Cleaner does not promise to speed up every computer.
 
 ## Download and start
 
-1. Open [Releases](https://github.com/Sking32/Cleaner/releases) and choose the beta you want to test. Download `Cleaner-1.1.0-beta.3-win-x64.zip` under **Assets**, rather than GitHub’s automatic “Source code” archives.
-2. Compare the ZIP’s SHA-256 against the accompanying `.zip.sha256` file. In PowerShell: `Get-FileHash -Algorithm SHA256 .\Cleaner-1.1.0-beta.3-win-x64.zip`. A matching hash checks integrity; it does not prove the software is safe.
+1. Open [Releases](https://github.com/Sking32/Cleaner/releases) and choose the beta you want to test. Download `Cleaner-1.1.0-beta.4-win-x64.zip` under **Assets**, rather than GitHub’s automatic “Source code” archives.
+2. Optional: download the `.zip.sha256` file to check the ZIP's integrity. In PowerShell: `Get-FileHash -Algorithm SHA256 .\Cleaner-1.1.0-beta.4-win-x64.zip`. Compare the result with that file. The checksum is not needed to run Cleaner and does not prove the software is safe.
 3. Extract the entire archive into an ordinary writable folder. Keep `Data` beside `Cleaner.App.exe`; do not run directly from the ZIP.
 4. Start `Cleaner.App.exe`. The portable x64 package includes .NET. It targets Windows with the required .NET 10/WPF support; compatibility with individual system actions is not yet verified across all Windows builds. ARM64 needs a separate build and testing; macOS and Linux are not supported.
 
@@ -47,8 +47,8 @@ For a reproducible problem, open a [bug report](https://github.com/Sking32/Clean
 
 Check screenshots and exported reports for usernames, personal paths and file names. Do not upload your quarantine, registry backups or full settings profile. The app does not automatically send your bug report. Use a private channel for sensitive reports.
 
-## Build, publish and previous changes
+## Testing guides and version history
 
-[Developer guide](DEVELOPMENT.md) · [Build a portable package](RELEASE_GUIDE.md) · [Publish a beta / Публикация beta](PUBLISHING.md) · [Russian testing checklist](FRIEND_TESTING.md)
+[Russian testing checklist](https://github.com/Sking32/Cleaner/blob/master/docs/testing/FRIEND_TESTING.md) · [Compatibility / Совместимость](https://github.com/Sking32/Cleaner/blob/master/docs/testing/COMPATIBILITY.md)
 
 Version history is also available inside **What’s new?**. Each update adds a new entry and retains earlier ones. Packages must be built from the final committed source. Native Windows actions still need verification in a disposable VM. Dependency notices are included in the ZIP; the project’s own license has not yet been selected.
