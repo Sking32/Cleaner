@@ -1,0 +1,54 @@
+name: Bug report / Сообщить об ошибке
+description: Report a Cleaner beta problem / Ошибка тестовой версии Cleaner
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        English and Russian reports are welcome. / Можно писать на русском или английском.
+        Remove usernames and personal paths from attachments. Do not upload quarantine or registry backups.
+        Уберите личные пути со снимков и отчётов. Не прикладывайте карантин и бэкапы реестра.
+  - type: input
+    id: version
+    attributes:
+      label: App version / Версия приложения
+      placeholder: 1.1.0-beta.3 (shown in the header / указана в шапке)
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: Windows edition, build and architecture / Редакция, сборка и архитектура Windows
+      placeholder: Windows 11, build 26100, x64
+    validations:
+      required: true
+  - type: input
+    id: display
+    attributes:
+      label: Interface language and display scale / Язык приложения и масштаб экрана
+      placeholder: English, 150% / Русский, 125%
+  - type: dropdown
+    id: admin
+    attributes:
+      label: Administrator permission / Права администратора
+      options:
+        - "No / Нет"
+        - "Yes / Да"
+        - "Not sure / Не знаю"
+  - type: textarea
+    id: steps
+    attributes:
+      label: Page and steps to reproduce / Страница и шаги повторения
+      description: If about a restore point, mention UAC and System Protection. / Для точки восстановления укажите состояние UAC и защиты системы.
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: Expected and actual result / Ожидаемый и фактический результат
+    validations:
+      required: true
+  - type: textarea
+    id: attachments
+    attributes:
+      label: Redacted screenshot or error text / Снимок или текст ошибки без личных данных

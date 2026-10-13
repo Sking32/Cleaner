@@ -27,6 +27,8 @@ public partial class MainWindow : FluentWindow
     private readonly SettingsPage _settingsPage;
     private readonly HistoryPage _historyPage;
     private readonly WhatsNewPage _whatsNewPage;
+    private readonly FirstRunSafetyViewModel _firstRunSafety;
+    private IInputElement? _focusBeforeSafety;
     private TaskCompletionSource<bool>? _dialogTcs;
     private IInputElement? _focusBeforeDialog;
     private List<PaletteCommand> _paletteAll = new();
@@ -44,7 +46,8 @@ public partial class MainWindow : FluentWindow
         HistoryPage historyPage,
         WhatsNewPage whatsNewPage,
         StatusBarViewModel statusBar,
-        ISnackbarService snackbarService)
+        ISnackbarService snackbarService,
+        FirstRunSafetyViewModel firstRunSafety)
     {
         _cleanupPage = cleanupPage;
         _optimizePage = optimizePage;
@@ -55,8 +58,13 @@ public partial class MainWindow : FluentWindow
         _settingsPage = settingsPage;
         _historyPage = historyPage;
         _whatsNewPage = whatsNewPage;
+        _firstRunSafety = firstRunSafety;
 
         InitializeComponent();
+        SafetyNotice.DataContext = _firstRunSafety;
+        _firstRunSafety.PropertyChanged += (_, _) => UpdateNavigationAvailability();
+        _firstRunSafety.Completed += CloseSafetyNotice;
+        if (_settingsPage.DataContext is SettingsViewModel settings) settings.ShowSafety = ShowSafetyNotice;
         Title = ApplicationTitle;
         if (Application.Current is App)
         {
@@ -141,6 +149,37 @@ public partial class MainWindow : FluentWindow
         StatusBarHost.Visibility = UserSettings.GetShowMetrics() ? Visibility.Visible : Visibility.Collapsed;
     }
 
+    public void ShowFirstRunSafetyIfNeeded(bool force = false)
+    {
+        // Initial view models may still be reading services/startup entries. The first-run
+        // notice must appear immediately and block interaction during those reads too.
+        if ((force || UserSettings.NeedsSafetyNotice) && SafetyOverlay.Visibility != Visibility.Visible) OpenSafetyNotice();
+    }
+
+    public void ShowSafetyNotice()
+    {
+        if (IsOperationActive || DialogOverlay.Visibility == Visibility.Visible) return;
+        OpenSafetyNotice();
+    }
+
+    private void OpenSafetyNotice()
+    {
+        ClosePalette();
+        _focusBeforeSafety = Keyboard.FocusedElement;
+        WorkspaceHost.IsEnabled = false;
+        SafetyOverlay.Visibility = Visibility.Visible;
+        UpdateNavigationAvailability();
+        ((FrameworkElement)SafetyNotice.FindName("ContinueButton")).Focus();
+    }
+
+    private void CloseSafetyNotice()
+    {
+        SafetyOverlay.Visibility = Visibility.Collapsed;
+        WorkspaceHost.IsEnabled = true;
+        UpdateNavigationAvailability();
+        _focusBeforeSafety?.Focus();
+    }
+
     private void OnNavigationSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (RootNavigation.SelectedItem is ListBoxItem item) NavigateByTag(item.Tag as string);
@@ -156,7 +195,8 @@ public partial class MainWindow : FluentWindow
 
     private void UpdateNavigationAvailability()
     {
-        RootNavigation.IsEnabled = SettingsButton.IsEnabled = HistoryButton.IsEnabled = WhatsNewButton.IsEnabled = !IsOperationActive;
+        RootNavigation.IsEnabled = SettingsButton.IsEnabled = HistoryButton.IsEnabled = WhatsNewButton.IsEnabled =
+            !IsOperationActive && SafetyOverlay.Visibility != Visibility.Visible;
     }
 
     /// <summary>Переход на страницу с подсветкой пункта меню (для палитры команд).</summary>
@@ -203,6 +243,7 @@ public partial class MainWindow : FluentWindow
     }
 
     private bool IsOperationActive =>
+        _firstRunSafety.IsBusy ||
         (_cleanupPage.DataContext as CleanupViewModel)?.IsRunning == true ||
         (_optimizePage.DataContext as OptimizeViewModel)?.IsBusy == true ||
         (_privacyPage.DataContext as PrivacyViewModel)?.IsBusy == true ||
@@ -260,7 +301,7 @@ public partial class MainWindow : FluentWindow
     {
         if (e.Key == Key.K && Keyboard.Modifiers == ModifierKeys.Control)
         {
-            if (DialogOverlay.Visibility == Visibility.Visible) return;
+            if (DialogOverlay.Visibility == Visibility.Visible || SafetyOverlay.Visibility == Visibility.Visible) return;
 
             if (PaletteOverlay.Visibility == Visibility.Visible) ClosePalette();
             else OpenPalette();
@@ -300,7 +341,7 @@ public partial class MainWindow : FluentWindow
 
     private void OpenPalette()
     {
-        if (IsOperationActive) return;
+        if (IsOperationActive || SafetyOverlay.Visibility == Visibility.Visible) return;
         _paletteAll = BuildPaletteCommands();
         PaletteInput.Text = "";
         PaletteList.ItemsSource = _paletteAll;

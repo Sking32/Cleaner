@@ -2,6 +2,44 @@
   "schemaVersion": 1,
   "releases": [
     {
+      "version": "1.1.0-beta.3",
+      "date": "2026-10-13",
+      "text": {
+        "ru": {
+          "title": "Безопасный старт и инструкции для тестирования",
+          "summary": "Знакомство с Cleaner начинается с объяснения рисков и предложения создать точку восстановления. Добавлены руководства для русскоязычных и англоязычных тестировщиков.",
+          "added": [
+            "Окно безопасности при первом запуске: анализ, карантин, ограничения восстановления и создание точки по запросу.",
+            "Повторный доступ к окну безопасности через настройки.",
+            "README на русском и английском, инструкция публикации beta и шаблон сообщения об ошибке."
+          ],
+          "changed": [
+            "При старте нет навязчивого запроса повышения прав: он появляется при выбранном создании точки.",
+            "В настройках появился режим «Как в Windows»; ручной выбор русского или английского сохраняется."
+          ],
+          "fixed": [
+            "Повышенный экземпляр при перезапуске ждёт завершения предыдущего, чтобы не столкнуться с блокировкой данных."
+          ]
+        },
+        "en": {
+          "title": "A safer start and guides for testers",
+          "summary": "Cleaner now starts with an explanation of risks and an offer to create a restore point. Russian and English guides help testers get started.",
+          "added": [
+            "First-run safety notice covering analysis, quarantine, recovery limits and restore point creation on request.",
+            "Reopen the safety notice from Settings.",
+            "Russian and English READMEs, beta publishing instructions and a bug report template."
+          ],
+          "changed": [
+            "No unsolicited administrator prompt on startup; elevation is offered when you request a restore point.",
+            "Settings now include “Match Windows”; manual Russian or English choices are preserved."
+          ],
+          "fixed": [
+            "An elevated restart waits for the previous instance to exit before acquiring the shared data lock."
+          ]
+        }
+      }
+    },
+    {
       "version": "1.1.0-beta.2",
       "date": "2026-10-13",
       "text": {

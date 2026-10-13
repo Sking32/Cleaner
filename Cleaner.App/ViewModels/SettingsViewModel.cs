@@ -10,7 +10,7 @@ public sealed record SettingsChoice(string Key, string Label);
 
 public partial class SettingsViewModel : ObservableObject
 {
-    public IReadOnlyList<SettingsChoice> Languages { get; } = new[] { new SettingsChoice("ru", "Русский"), new SettingsChoice("en", "English") };
+    public IReadOnlyList<SettingsChoice> Languages { get; } = new[] { new SettingsChoice("auto", Loc.T("settings.language.auto")), new SettingsChoice("ru", "Русский"), new SettingsChoice("en", "English") };
     public IReadOnlyList<SettingsChoice> Accents { get; } = new[]
     {
         new SettingsChoice("blue", Loc.T("settings.accent.blue")),
@@ -26,13 +26,16 @@ public partial class SettingsViewModel : ObservableObject
     public IReadOnlyList<SettingsChoice> Densities { get; } = new[] { new SettingsChoice("compact", Loc.T("settings.density.compact")), new SettingsChoice("comfortable", Loc.T("settings.density.comfortable")) };
     [ObservableProperty] private string _density = UserSettings.GetDensity();
     partial void OnDensityChanged(string value) { UserSettings.SetDensity(value); Appearance.Apply(); Saved(); }
-    [ObservableProperty] private string _language = UserSettings.GetLanguage();
+    [ObservableProperty] private string _language = UserSettings.GetLanguagePreference();
     [ObservableProperty] private string _accent = UserSettings.GetAccent();
     [ObservableProperty] private string _startPage = UserSettings.GetStartPage();
     [ObservableProperty] private bool _animations = UserSettings.GetAnimations();
     [ObservableProperty] private bool _showMetrics = UserSettings.GetShowMetrics();
     [ObservableProperty] private string _statusText = Loc.T("settings.saved.auto");
-    public bool RestartRequired => Language != Loc.Language;
+    public bool RestartRequired => UserSettings.GetLanguage() != Loc.Language;
+    public Action? ShowSafety { get; set; }
+    [RelayCommand]
+    private void ShowSafetyNotice() => ShowSafety?.Invoke();
     public string VersionText => "Cleaner · " + AppVersion.Current;
     public string DataDirectory => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Cleaner");
     public string LogDirectory => AppLog.LogDirectory;

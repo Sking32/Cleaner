@@ -1,4 +1,4 @@
-<ui:FluentWindow x:Class="Cleaner.App.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml" xmlns:loc="clr-namespace:Cleaner.App.Localization" xmlns:app="clr-namespace:Cleaner.App" Title="Cleaner" Height="860" Width="1360" MinHeight="700" MinWidth="1120" WindowStartupLocation="CenterScreen" ExtendsContentIntoTitleBar="True" WindowBackdropType="Mica" WindowCornerPreference="Round" Background="{DynamicResource BgBaseBrush}" FontFamily="{StaticResource FontUi}" Foreground="{StaticResource TextPrimaryBrush}" UseLayoutRounding="True" SnapsToDevicePixels="True">
+<ui:FluentWindow x:Class="Cleaner.App.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml" xmlns:loc="clr-namespace:Cleaner.App.Localization" xmlns:app="clr-namespace:Cleaner.App" xmlns:views="clr-namespace:Cleaner.App.Views" Title="Cleaner" Height="860" Width="1360" MinHeight="700" MinWidth="1120" WindowStartupLocation="CenterScreen" ExtendsContentIntoTitleBar="True" WindowBackdropType="Mica" WindowCornerPreference="Round" Background="{DynamicResource BgBaseBrush}" FontFamily="{StaticResource FontUi}" Foreground="{StaticResource TextPrimaryBrush}" UseLayoutRounding="True" SnapsToDevicePixels="True">
     <Grid Background="{DynamicResource BgBaseBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -24,7 +24,7 @@
                 </StackPanel>
             </Grid>
         </Border>
-        <Grid Grid.Row="3">
+        <Grid x:Name="WorkspaceHost" Grid.Row="3">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="224" />
                 <ColumnDefinition Width="*" />
@@ -111,6 +111,9 @@
                     <ListBox x:Name="PaletteList" MaxHeight="320" Margin="8,0,8,12" Background="Transparent" BorderThickness="0" DisplayMemberPath="Title" PreviewMouseLeftButtonUp="OnPaletteItemClick" />
                 </StackPanel>
             </Border>
+        </Grid>
+        <Grid x:Name="SafetyOverlay" Grid.Row="1" Grid.RowSpan="3" Panel.ZIndex="95" Visibility="Collapsed" Background="#B310141C" KeyboardNavigation.TabNavigation="Cycle">
+            <views:FirstRunSafetyView x:Name="SafetyNotice" Margin="24"/>
         </Grid>
         <!-- Диалог подтверждения внутри окна -->
         <Grid x:Name="DialogOverlay" Grid.RowSpan="4" Panel.ZIndex="100" Visibility="Collapsed" Background="#99000000" PreviewKeyDown="OnDialogKeyDown">
