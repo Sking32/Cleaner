@@ -39,6 +39,31 @@ public sealed class UpgradeTests
     }
 
     [Fact]
+    public void AutomaticSettingsSaveFailureRollsBackBothValues()
+    {
+        var path = Path.Combine(_root, "auto-invalid.json"); File.WriteAllText(path, "{broken");
+        UserSettings.UsePreviewStore(new AppSettingsStore(path));
+        Assert.False(UserSettings.SetAutoCleanup(true, 60));
+        Assert.False(UserSettings.GetAutoCleanupEnabled()); Assert.Equal(1440, UserSettings.GetAutoCleanupInterval());
+        Assert.Equal("{broken", File.ReadAllText(path));
+    }
+
+    private sealed class FailingStartup : IStartupRegistration
+    {
+        public bool IsEnabled => false;
+        public void SetEnabled(bool enabled) => throw new IOException("fixture failure");
+    }
+
+    [Fact]
+    public void StartupRegistrationFailureRestoresToggleWithoutWindowsAccess()
+    {
+        var viewModel = new SettingsViewModel(new FailingStartup());
+        viewModel.StartWithWindows = true;
+        Assert.False(viewModel.StartWithWindows);
+        Assert.Contains("fixture failure", viewModel.StatusText);
+    }
+
+    [Fact]
     public void InvalidPresetCannotWriteASelection()
     {
         var path = Path.Combine(_root, "invalid.json"); var store = new AppSettingsStore(path);

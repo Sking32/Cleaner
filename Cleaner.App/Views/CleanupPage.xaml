@@ -101,7 +101,11 @@
             </Border>
         </UniformGrid>
         <StackPanel Grid.Row="2" Grid.ColumnSpan="2" Margin="0,0,0,8" IsEnabled="{Binding CanEditSelection}">
-            <TextBlock Text="{loc:Loc t.preset_3}" Style="{StaticResource SectionLabelStyle}" Margin="0,0,0,8"/>
+            <DockPanel Margin="0,0,0,8">
+                <ComboBox DockPanel.Dock="Right" Width="220" ItemsSource="{Binding FileModes}" DisplayMemberPath="Label" SelectedValuePath="Key" SelectedValue="{Binding FileMode, Mode=TwoWay}" ToolTip="{Binding FileModeHint}" AutomationProperties.Name="{loc:Loc cleanup.mode.title}"/>
+                <TextBlock DockPanel.Dock="Right" Text="{loc:Loc cleanup.mode.title}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                <TextBlock Text="{loc:Loc t.preset_3}" Style="{StaticResource SectionLabelStyle}" VerticalAlignment="Center"/>
+            </DockPanel>
             <DockPanel LastChildFill="True">
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" IsEnabled="{Binding CanEditSelection}">
                     <TextBlock Text="{loc:Loc presets.custom}" VerticalAlignment="Center" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="4,0,6,0"/>
@@ -267,7 +271,7 @@
                     <TextBlock Text="{loc:Loc design.cleanup.estimate.hint}" Style="{StaticResource SettingHintStyle}"/>
                     <Border Style="{StaticResource DividerStyle}" Margin="0,20"/>
                     <ui:SymbolIcon Symbol="ShieldCheckmark24" HorizontalAlignment="Left" Foreground="{DynamicResource AccentBrush}" FontSize="22"/>
-                    <TextBlock Text="{loc:Loc design.cleanup.recovery}" Style="{StaticResource SettingHintStyle}" Margin="0,10,0,0"/>
+                    <TextBlock Text="{Binding FileModeHint}" Style="{StaticResource SettingHintStyle}" Margin="0,10,0,0"/>
                     <TextBlock Text="{Binding ResultSummary}" Style="{StaticResource SettingHintStyle}" Margin="0,16,0,0"/>
                 </StackPanel>
             </ScrollViewer>

@@ -63,7 +63,7 @@ public sealed class CleanupRunner : ICleanupRunner
 
         using var linkedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, ctx.CancellationToken);
         ctx = new CleanupContext(ctx.Safety, ctx.Whitelist, ctx.Quarantine, ctx.Progress,
-            linkedCancellation.Token, ctx.DryRun, ctx.Commands, ctx.Registry);
+            linkedCancellation.Token, ctx.DryRun, ctx.Commands, ctx.Registry, ctx.FileMode, ctx.MinimumFileAge);
 
         var keys = operationKeys.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
         var outcomes = new List<OperationOutcome>(keys.Count);
@@ -100,6 +100,7 @@ public sealed class CleanupRunner : ICleanupRunner
             {
                 Key = key,
                 Handler = _operations?.GetByKey(key)?.Handler ?? "",
+                FileMode = ctx.FileMode,
                 Success = result.Success,
                 BytesFreed = result.BytesFreed,
                 PreviewBytes = result.PreviewBytes,

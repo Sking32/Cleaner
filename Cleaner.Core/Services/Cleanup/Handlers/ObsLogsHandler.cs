@@ -51,8 +51,8 @@ public sealed class ObsLogsHandler : ICleanupHandler
         return new CleanupOperationResult
         {
             Success = errors.Count == 0,
-            BytesFreed = 0, PreviewBytes = ctx.DryRun ? bytes : 0, BytesQuarantined = ctx.DryRun ? 0 : bytes,
-            FilesDeleted = 0, FilesQuarantined = deleted,
+            BytesFreed = !ctx.DryRun && ctx.FileMode == CleanupFileMode.PermanentDelete ? bytes : 0, PreviewBytes = ctx.DryRun ? bytes : 0, BytesQuarantined = !ctx.DryRun && ctx.FileMode == CleanupFileMode.Quarantine ? bytes : 0,
+            FilesDeleted = ctx.FileMode == CleanupFileMode.PermanentDelete ? deleted : 0, FilesQuarantined = ctx.FileMode == CleanupFileMode.Quarantine ? deleted : 0,
             FilesSkipped = skipped,
             Errors = errors
         };

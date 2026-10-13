@@ -27,6 +27,7 @@ internal sealed class QuarantineManifest
     [JsonPropertyName("sessionId")] public string SessionId { get; set; } = "";
     [JsonPropertyName("createdUtc")] public string CreatedUtc { get; set; } = "";
     [JsonPropertyName("entries")] public List<QuarantineEntry> Entries { get; set; } = new();
+    [JsonPropertyName("deletionInProgress")] public bool DeletionInProgress { get; set; }
 }
 
 /// <summary>Описание сессии карантина (для UI/CLI — «что лежит в карантине»).</summary>
@@ -40,10 +41,11 @@ public sealed class QuarantineSession
     public QuarantineHealth Health { get; init; }
     public IReadOnlyList<string> Issues { get; init; } = Array.Empty<string>();
     public bool CanRestore { get; init; } = true;
-    public bool CanDelete => Health == QuarantineHealth.Healthy;
+    public bool CanDelete => Health is QuarantineHealth.Healthy or QuarantineHealth.DeletionInterrupted;
 }
 
-public enum QuarantineHealth { Healthy, NeedsRecovery, InvalidManifest, UnrecordedFiles, Inaccessible, LinkRejected }
+public enum QuarantineHealth { Healthy, NeedsRecovery, InvalidManifest, UnrecordedFiles, Inaccessible, LinkRejected, DeletionInterrupted }
+public readonly record struct QuarantineMoveResult(QuarantineEntry? Entry, string? Reason = null, string? Detail = null);
 public readonly record struct QuarantineProgress(int Completed, int Total, string Item);
 
 public readonly record struct QuarantineRestoreResult(
@@ -70,6 +72,11 @@ public interface IQuarantineService
     IReadOnlyList<QuarantineEntry> Entries { get; }
 
     QuarantineEntry? MoveToQuarantine(string path, string category);
+    QuarantineMoveResult MoveToQuarantineDetailed(string path, string category)
+    {
+        var entry = MoveToQuarantine(path, category);
+        return new(entry, entry == null ? "quarantine_failed" : null);
+    }
     QuarantineRestoreResult RestoreAll();
     int ClearAll();
 }
@@ -260,22 +267,26 @@ public sealed partial class QuarantineService : IQuarantineService
     /// Возвращает запись или null, если путь не существует / не удалось перенести.
     /// </summary>
     public QuarantineEntry? MoveToQuarantine(string path, string category)
+        => MoveToQuarantineDetailed(path, category).Entry;
+
+    public QuarantineMoveResult MoveToQuarantineDetailed(string path, string category)
     {
-        if (string.IsNullOrWhiteSpace(path)) return null;
+        if (string.IsNullOrWhiteSpace(path)) return new(null, "quarantine_failed", "Empty path.");
 
         string fullPath;
         try { fullPath = Path.GetFullPath(path); }
-        catch { return null; }
+        catch (Exception ex) { return new(null, FileFailure.Classify(ex), ex.Message); }
 
         bool isDir;
         try { isDir = Directory.Exists(fullPath); }
-        catch { return null; }
+        catch (Exception ex) { return new(null, FileFailure.Classify(ex), ex.Message); }
 
-        if (!isDir && !File.Exists(fullPath)) return null;
+        if (!isDir && !File.Exists(fullPath)) return new(null, "missing");
 
         lock (_lock)
         {
             Reload();
+            if (_manifest.DeletionInProgress) throw new IOException("Finish interrupted quarantine deletion before adding files.");
             RejectLinks(fullPath);
             if (fullPath.Equals(SessionDirectory, StringComparison.OrdinalIgnoreCase) ||
                 fullPath.StartsWith(SessionDirectory.TrimEnd('\\') + "\\", StringComparison.OrdinalIgnoreCase) ||
@@ -318,17 +329,17 @@ public sealed partial class QuarantineService : IQuarantineService
                 if (isDir) Directory.Move(fullPath, targetPath);
                 else File.Move(fullPath, targetPath);
             }
-            catch
+            catch (Exception ex)
             {
                 _manifest.Entries.Remove(entry);
                 SaveManifest();
-                return null;
+                return new(null, FileFailure.Classify(ex), ex.Message);
             }
             entry.Pending = false;
             // The durable intent already contains both paths if this final update fails.
             try { SaveManifest(); }
             catch (Exception ex) { entry.Pending = true; CoreLog.Warn("Quarantine move recorded; final journal update pending", ex); }
-            return entry;
+            return new(entry);
         }
     }
 
@@ -340,6 +351,7 @@ public sealed partial class QuarantineService : IQuarantineService
         lock (_lock)
         {
             Reload();
+            if (_manifest.DeletionInProgress) throw new IOException("This session has an interrupted permanent deletion; finish deletion first.");
             int restored = 0, failed = 0;
             var errors = new List<string>();
             var total = _manifest.Entries.Count;
@@ -410,16 +422,20 @@ public sealed partial class QuarantineService : IQuarantineService
             Reload();
             if (cancellationToken.IsCancellationRequested)
                 return new(0, 0, Array.Empty<string>()) { Canceled = true };
-            if (_manifest.Entries.Any(e => e.Pending)) throw new IOException("Recover pending moves before deleting this session.");
+            if (_manifest.Entries.Any(e => e.Pending || e.RestorePath != null)) throw new IOException("Recover pending moves before deleting this session.");
             var known = _manifest.Entries.Select(e => e.StoredName).Append("manifest.json").ToHashSet(StringComparer.OrdinalIgnoreCase);
             if (Directory.GetFileSystemEntries(SessionDirectory).Any(p => !known.Contains(Path.GetFileName(p))))
                 throw new IOException("Session contains unrecorded files; manual recovery required.");
-            // Verify that the journal can be saved before any irreversible deletion.
+            // Persist deletion intent. Missing entries after a crash can then be retried
+            // without mistaking them for files lost during quarantine or restoration.
+            var resumingDeletion = _manifest.DeletionInProgress;
+            _manifest.DeletionInProgress = true;
             SaveManifest();
             int deleted = 0;
             var errors = new List<string>();
             var total = _manifest.Entries.Count;
             int completed = 0;
+            bool checkpointFailed = false;
             foreach (var entry in _manifest.Entries.ToArray())
             {
                 if (cancellationToken.IsCancellationRequested) break;
@@ -439,6 +455,7 @@ public sealed partial class QuarantineService : IQuarantineService
                         if (entry.IsDirectory) throw new IOException("Stored item type differs from the manifest.");
                         DeleteQuarantinedFile(stored);
                     }
+                    else if (!resumingDeletion) throw new IOException("Stored item missing before deletion: " + entry.StoredName);
                 }
                 catch (OperationCanceledException) { break; }
                 catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
@@ -448,17 +465,27 @@ public sealed partial class QuarantineService : IQuarantineService
                     continue;
                 }
                 _manifest.Entries.Remove(entry);
-                try { SaveManifest(); deleted++; }
-                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+                deleted++;
+                if (deleted % 64 == 0)
                 {
-                    // Keep the entry for retry if deletion succeeded but journal persistence failed.
-                    _manifest.Entries.Add(entry);
-                    errors.Add($"{entry.StoredName}: {ex.Message}");
-                    break;
+                    try { SaveManifest(); }
+                    catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+                    {
+                        errors.Add(ex.Message);
+                        checkpointFailed = true;
+                        break;
+                    }
                 }
                 progress?.Report(new(++completed, total, entry.StoredName));
             }
-            if (!cancellationToken.IsCancellationRequested && _manifest.Entries.Count == 0)
+            if (!checkpointFailed)
+            {
+                _manifest.DeletionInProgress = false;
+                try { SaveManifest(); }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+                { _manifest.DeletionInProgress = true; checkpointFailed = true; errors.Add(ex.Message); }
+            }
+            if (!checkpointFailed && !cancellationToken.IsCancellationRequested && _manifest.Entries.Count == 0)
             {
                 try
                 {
@@ -472,7 +499,7 @@ public sealed partial class QuarantineService : IQuarantineService
                     errors.Add(ex.Message);
                 }
             }
-            return new QuarantineDeleteResult(deleted, errors.Count == 0 ? 0 : _manifest.Entries.Count, errors)
+            return new QuarantineDeleteResult(deleted, errors.Count == 0 ? 0 : Math.Max(1, _manifest.Entries.Count), errors)
             { Canceled = cancellationToken.IsCancellationRequested };
         }
     }

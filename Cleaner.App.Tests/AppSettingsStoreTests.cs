@@ -18,6 +18,7 @@ public class AppSettingsStoreTests
         var path = NewPath(); var data = new AppSettingsStore(path).Load();
         Assert.False(File.Exists(path)); Assert.Equal("blue", data.Accent);
         Assert.Equal("cleanup", data.StartPage); Assert.True(data.Animations); Assert.True(data.ShowMetrics);
+        Assert.False(data.AutoCleanupEnabled); Assert.Equal(1440, data.AutoCleanupIntervalMinutes);
     }
 
     [Fact]
@@ -26,11 +27,13 @@ public class AppSettingsStoreTests
         var path = NewPath(); var store = new AppSettingsStore(path); var data = store.Load();
         data.Language = "en"; data.Accent = "teal"; data.StartPage = "privacy";
         data.Animations = false; data.ShowMetrics = false; data.DismissedHints.Add("cleanup");
+        data.AutoCleanupEnabled = true; data.AutoCleanupIntervalMinutes = 360;
         data.History.Add(new CleanupHistoryEntry { Operations = 3, FilesQuarantined = 9, Canceled = true });
         Assert.True(store.Save());
         var loaded = new AppSettingsStore(path).Load();
         Assert.Equal("en", loaded.Language); Assert.Equal("teal", loaded.Accent); Assert.Equal("privacy", loaded.StartPage);
         Assert.False(loaded.Animations); Assert.False(loaded.ShowMetrics); Assert.Contains("cleanup", loaded.DismissedHints);
+        Assert.True(loaded.AutoCleanupEnabled); Assert.Equal(360, loaded.AutoCleanupIntervalMinutes);
         Assert.Equal(9, Assert.Single(loaded.History).FilesQuarantined); Assert.True(loaded.History[0].Canceled);
         Assert.Single(Directory.GetFiles(Path.GetDirectoryName(path)!));
     }
@@ -69,5 +72,13 @@ public class AppSettingsStoreTests
         Directory.CreateDirectory(path); Assert.False(store.Save()); Assert.NotNull(store.LastError);
         Directory.Delete(path); Assert.True(store.Save()); Assert.Null(store.LastError);
         Assert.Equal("violet", new AppSettingsStore(path).Load().Accent);
+    }
+
+    [Fact]
+    public void InvalidAutomaticIntervalIsNormalized()
+    {
+        var path = NewPath(); File.WriteAllText(path, "{\"AutoCleanupIntervalMinutes\":-1}");
+        var data = new AppSettingsStore(path).Load();
+        Assert.False(data.AutoCleanupEnabled); Assert.Equal(1440, data.AutoCleanupIntervalMinutes);
     }
 }

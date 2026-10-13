@@ -75,6 +75,8 @@ public partial class App : Application
             var mainWindow = _services.GetRequiredService<MainWindow>();
             mainWindow.Show();
             mainWindow.ShowFirstRunSafetyIfNeeded(force: e.Args.Contains("--show-safety"));
+            mainWindow.StartAutoCleanup();
+            if (e.Args.Contains("--startup") && !UserSettings.NeedsSafetyNotice) mainWindow.WindowState = WindowState.Minimized;
         }
         catch (Exception ex)
         {
@@ -132,13 +134,15 @@ public partial class App : Application
         services.AddSingleton<LocalizationRepository>(_ => new LocalizationRepository(UserSettings.GetLanguage()));
 
         // --- Core-сервисы ---
-        services.AddSingleton<ISafetyService>(_ => new SafetyService(freshMinutes: 5));
+        services.AddSingleton<ISafetyService>(_ => new SafetyService(freshMinutes: 5,
+            extraForbidden: new[] { AppContext.BaseDirectory, System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Cleaner") }));
         services.AddSingleton<IWhitelistService>(_ => new WhitelistService());
         services.AddSingleton<IBackupService>(_ => new BackupService());
         services.AddSingleton<AppliedTweaksStore>();
         services.AddSingleton<IActionInterpreter, ActionInterpreter>();
         services.AddSingleton<IOptimizeService, OptimizeService>();
         services.AddSingleton<IQuarantineService>(_ => new QuarantineService());
+        services.AddSingleton<IStartupRegistration>(_ => new StartupRegistration(new Cleaner.Core.Registry.WindowsRegistryAccess(), Environment.ProcessPath ?? ""));
 
         services.AddSingleton<ICleanupService>(sp =>
             new CleanupService(sp.GetRequiredService<OperationsRepository>()));

@@ -10,6 +10,8 @@ public sealed class CleanupReport
     public string RuntimeVersion { get; init; } = Environment.Version.ToString();
     public string WindowsVersion { get; init; } = Environment.OSVersion.Version.ToString();
     public bool DryRun { get; init; }
+    public CleanupFileMode FileMode { get; init; }
+    public string? AppVersion { get; init; }
     public string? QuarantineDirectory { get; init; }
     public CleanupSessionResult Result { get; init; } = new();
 
@@ -18,4 +20,4 @@ public sealed class CleanupReport
         new JsonSerializerOptions { WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
 }
 
-public readonly record struct CleanupSkip(string OperationKey, string Path, string Reason);
+public readonly record struct CleanupSkip(string OperationKey, string Path, string Reason, string? Detail = null);

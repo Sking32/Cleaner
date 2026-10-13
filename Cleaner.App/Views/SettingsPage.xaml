@@ -88,7 +88,35 @@
                     </Grid>
                 </StackPanel>
             </Border>
-            <TextBlock Text="{loc:Loc settings.help}" Style="{StaticResource SectionLabelStyle}" Margin="0,26,0,10"/>
+            <TextBlock Text="{loc:Loc automation.title}" Style="{StaticResource SectionLabelStyle}" Margin="0,26,0,10"/>
+            <Border Style="{StaticResource CardStyle}" Margin="0,0,0,20">
+                <StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <StackPanel Margin="0,0,20,0">
+                            <TextBlock Text="{loc:Loc automation.startup}" FontWeight="SemiBold"/>
+                            <TextBlock Text="{loc:Loc automation.startup.hint}" Style="{StaticResource SettingHintStyle}"/>
+                        </StackPanel>
+                        <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding StartWithWindows, Mode=TwoWay}" OnContent="" OffContent="" VerticalAlignment="Center"/>
+                    </Grid>
+                    <Border Style="{StaticResource DividerStyle}" Margin="0,18"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <StackPanel Margin="0,0,20,0">
+                            <TextBlock Text="{loc:Loc automation.cleanup}" FontWeight="SemiBold"/>
+                            <TextBlock Text="{loc:Loc automation.cleanup.hint}" Style="{StaticResource SettingHintStyle}"/>
+                        </StackPanel>
+                        <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding AutoCleanupEnabled, Mode=TwoWay}" OnContent="" OffContent="" VerticalAlignment="Center"/>
+                    </Grid>
+                    <Grid Margin="0,18,0,0">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="210"/></Grid.ColumnDefinitions>
+                        <TextBlock Text="{loc:Loc automation.interval}" VerticalAlignment="Center"/>
+                        <ComboBox Grid.Column="1" ItemsSource="{Binding CleanupIntervals}" DisplayMemberPath="Label" SelectedValuePath="Key" SelectedValue="{Binding AutoCleanupInterval, Mode=TwoWay}" IsEnabled="{Binding AutoCleanupEnabled}"/>
+                    </Grid>
+                    <TextBlock Text="{Binding AutomationStatus}" Style="{StaticResource SettingHintStyle}" Margin="0,12,0,0"/>
+                </StackPanel>
+            </Border>
+            <TextBlock Text="{loc:Loc settings.help}" Style="{StaticResource SectionLabelStyle}" Margin="0,6,0,10"/>
             <Border Style="{StaticResource CardStyle}">
                 <StackPanel>
                     <TextBlock Text="{loc:Loc settings.hints}" FontWeight="SemiBold"/>

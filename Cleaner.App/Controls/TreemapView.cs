@@ -4,7 +4,9 @@ using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Controls;
 using System.Windows.Media;
+using Cleaner.App.Localization;
 using Cleaner.Core.Services;
 
 namespace Cleaner.App.Controls;
@@ -21,6 +23,19 @@ public sealed class TreemapView : FrameworkElement
 
     public static readonly DependencyProperty ActivateCommandProperty = DependencyProperty.Register(
         nameof(ActivateCommand), typeof(ICommand), typeof(TreemapView));
+    public static readonly DependencyProperty OpenLocationCommandProperty = DependencyProperty.Register(
+        nameof(OpenLocationCommand), typeof(ICommand), typeof(TreemapView));
+    public static readonly DependencyProperty SelectedNodeProperty = DependencyProperty.Register(
+        nameof(SelectedNode), typeof(DiskTreeNode), typeof(TreemapView),
+        new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
+    public ICommand? OpenLocationCommand { get => (ICommand?)GetValue(OpenLocationCommandProperty); set => SetValue(OpenLocationCommandProperty, value); }
+    public DiskTreeNode? SelectedNode { get => (DiskTreeNode?)GetValue(SelectedNodeProperty); set => SetValue(SelectedNodeProperty, value); }
+    public TreemapView()
+    {
+        Focusable = true;
+        ToolTipService.SetInitialShowDelay(this, 100);
+        ToolTipService.SetShowDuration(this, 30000);
+    }
 
     public IReadOnlyList<DiskTreeNode>? Nodes
     {
@@ -67,6 +82,7 @@ public sealed class TreemapView : FrameworkElement
         _cells.Clear();
         _hover = -1;
         ToolTip = null;
+        SetCurrentValue(SelectedNodeProperty, null);
 
         var nodes = Nodes;
         if (nodes is { Count: > 0 } && ActualWidth > 4 && ActualHeight > 4)
@@ -105,20 +121,23 @@ public sealed class TreemapView : FrameworkElement
             Pen? pen = hovered ? new Pen(Brushes.White, 1.5) : null;
             dc.DrawRoundedRectangle(fill, pen, cell.Rect, 6, 6);
 
-            if (cell.Rect.Width > 70 && cell.Rect.Height > 34)
+            if (cell.Rect.Width >= 24 && cell.Rect.Height >= 18)
                 DrawLabel(dc, cell, dpi);
         }
     }
 
     private static void DrawLabel(DrawingContext dc, Cell cell, double dpi)
     {
-        var maxWidth = cell.Rect.Width - 16;
+        var maxWidth = Math.Max(1, cell.Rect.Width - 10);
+        var showSize = cell.Rect.Height >= 46;
+        var fontSize = cell.Rect.Width < 70 || cell.Rect.Height < 30 ? 10 : 12;
+        dc.PushClip(new RectangleGeometry(cell.Rect));
 
         var name = new FormattedText(cell.Node.Name, CultureInfo.CurrentUICulture, FlowDirection.LeftToRight,
-            LabelFace, 12, Brushes.White, dpi)
+            LabelFace, fontSize, Brushes.White, dpi)
         {
             MaxTextWidth = maxWidth,
-            MaxTextHeight = 18,
+            MaxTextHeight = Math.Max(1, Math.Min(showSize ? cell.Rect.Height - 28 : cell.Rect.Height - 4, 34)),
             Trimming = TextTrimming.CharacterEllipsis
         };
 
@@ -130,8 +149,9 @@ public sealed class TreemapView : FrameworkElement
             Trimming = TextTrimming.CharacterEllipsis
         };
 
-        dc.DrawText(name, new Point(cell.Rect.X + 8, cell.Rect.Y + 6));
-        dc.DrawText(size, new Point(cell.Rect.X + 8, cell.Rect.Y + 24));
+        dc.DrawText(name, new Point(cell.Rect.X + 5, cell.Rect.Y + 4));
+        if (showSize) dc.DrawText(size, new Point(cell.Rect.X + 5, cell.Rect.Bottom - 19));
+        dc.Pop();
     }
 
     private int HitTest(Point point)
@@ -154,7 +174,8 @@ public sealed class TreemapView : FrameworkElement
         if (index >= 0)
         {
             var node = _cells[index].Node;
-            ToolTip = node.Name + "\n" + FormatBytes(node.SizeBytes);
+            SetCurrentValue(SelectedNodeProperty, node);
+            ToolTip = node.Name + "\n" + node.Path + "\n" + FormatBytes(node.SizeBytes);
             Cursor = node.IsDirectory ? Cursors.Hand : Cursors.Arrow;
         }
         else
@@ -182,8 +203,39 @@ public sealed class TreemapView : FrameworkElement
         if (index < 0) return;
 
         var node = _cells[index].Node;
+        SetCurrentValue(SelectedNodeProperty, node);
+        Focus();
         if (node.IsDirectory && ActivateCommand?.CanExecute(node) == true)
             ActivateCommand.Execute(node);
+    }
+
+    protected override void OnMouseRightButtonUp(MouseButtonEventArgs e)
+    {
+        base.OnMouseRightButtonUp(e);
+        var index = HitTest(e.GetPosition(this));
+        if (index < 0) return;
+        SetCurrentValue(SelectedNodeProperty, _cells[index].Node);
+        Focus();
+        OpenContextMenu(_cells[index].Node);
+        e.Handled = true;
+    }
+
+    protected override void OnKeyDown(KeyEventArgs e)
+    {
+        base.OnKeyDown(e);
+        if ((e.Key == Key.Apps || e.Key == Key.F10 && Keyboard.Modifiers == ModifierKeys.Shift) && SelectedNode != null)
+        { OpenContextMenu(SelectedNode); e.Handled = true; }
+    }
+
+    private void OpenContextMenu(DiskTreeNode node)
+    {
+        var menu = new ContextMenu { PlacementTarget = this };
+        menu.Items.Add(new MenuItem { Header = node.Name, IsEnabled = false });
+        menu.Items.Add(new Separator());
+        menu.Items.Add(new MenuItem { Header = Loc.T("disk.map.open.location"), Command = OpenLocationCommand,
+            CommandParameter = node, IsEnabled = !string.IsNullOrWhiteSpace(node.Path) });
+        ContextMenu = menu;
+        menu.IsOpen = true;
     }
 
     private static string FormatBytes(long bytes)

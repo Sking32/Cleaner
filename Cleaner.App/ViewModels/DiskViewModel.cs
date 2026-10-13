@@ -51,6 +51,23 @@ public partial class DiskViewModel : HelpViewModelBase
 
     [ObservableProperty] private IReadOnlyList<DiskTreeNode> _treemapNodes = Array.Empty<DiskTreeNode>();
     [ObservableProperty] private bool _isTreemapBusy;
+    [ObservableProperty] private DiskTreeNode? _mapSelection;
+    public string MapSelectionText => MapSelection == null ? Loc.T("disk.map.selection.hint")
+        : MapSelection.Name + " · " + FormatBytes(MapSelection.SizeBytes) + "\n" + MapSelection.Path;
+    partial void OnMapSelectionChanged(DiskTreeNode? value) => OnPropertyChanged(nameof(MapSelectionText));
+    [RelayCommand(CanExecute = nameof(CanOpenMapLocation))]
+    private void OpenMapLocation(DiskTreeNode? node)
+    {
+        if (!CanOpenMapLocation(node)) return;
+        try
+        {
+            if (!System.IO.File.Exists(node!.Path) && !Directory.Exists(node.Path))
+            { StatusText = Loc.T("disk.map.missing"); return; }
+            Process.Start(new ProcessStartInfo("explorer.exe") { Arguments = $"/select,\"{node.Path}\"", UseShellExecute = true });
+        }
+        catch (Exception ex) { StatusText = Loc.T("t.oshibka") + ex.Message; }
+    }
+    private bool CanOpenMapLocation(DiskTreeNode? node) => !string.IsNullOrWhiteSpace(node?.Path);
     [ObservableProperty] private int _fileFilterIndex;
 
     public bool HasTreemap => TreemapNodes.Count > 0;

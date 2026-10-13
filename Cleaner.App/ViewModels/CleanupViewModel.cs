@@ -30,6 +30,13 @@ public partial class CleanupViewModel : HelpViewModelBase
 
     private CancellationTokenSource? _cts;
     private CleanupReport? _lastReport;
+    private CleanupFileMode _activeMode;
+    public IReadOnlyList<CleanupModeChoice> FileModes { get; } = new[]
+    { new CleanupModeChoice(CleanupFileMode.Quarantine, Loc.T("cleanup.mode.quarantine")),
+      new CleanupModeChoice(CleanupFileMode.PermanentDelete, Loc.T("cleanup.mode.delete")) };
+    [ObservableProperty] private CleanupFileMode _fileMode;
+    public string FileModeHint => Loc.T(FileMode == CleanupFileMode.Quarantine ? "cleanup.mode.quarantine.hint" : "cleanup.mode.delete.hint");
+    partial void OnFileModeChanged(CleanupFileMode value) { OnPropertyChanged(nameof(FileModeHint)); UpdateCheckedCount(); }
     [ObservableProperty] private int _currentStage;
     [ObservableProperty] private string _previewSizeText = "—";
     [ObservableProperty] private string _resultSummary = "";
@@ -91,7 +98,8 @@ public partial class CleanupViewModel : HelpViewModelBase
     private CleanupReport MakeReport(CleanupSessionResult result, bool preview)
     {
         // Persist handler identity so history remains understandable if the catalog later changes.
-        return new CleanupReport { DryRun = preview, Result = result, QuarantineDirectory = preview ? null : _quarantine.SessionDirectory };
+        return new CleanupReport { DryRun = preview, FileMode = _activeMode, AppVersion = AppVersion.Current, Result = result,
+            QuarantineDirectory = preview || _activeMode == CleanupFileMode.PermanentDelete ? null : _quarantine.SessionDirectory };
     }
 
     private bool CanExportReport() => !IsRunning && _lastReport != null;
@@ -276,6 +284,7 @@ public partial class CleanupViewModel : HelpViewModelBase
         }
 
         _lastReport = null;
+        _activeMode = FileMode;
         var historyKind = "preview";
         string? historyError = null;
         IsRunning = true;
@@ -301,7 +310,7 @@ public partial class CleanupViewModel : HelpViewModelBase
                 _safety, _whitelist, _quarantine,
                 progress: progress,
                 cancellationToken: token,
-                dryRun: true);
+                dryRun: true, fileMode: _activeMode);
 
             var scan = await Task.Run(() => _runner.Run(selected, scanCtx, token), token);
             _lastReport = MakeReport(scan, true);
@@ -336,7 +345,7 @@ public partial class CleanupViewModel : HelpViewModelBase
 
             // Шаг 2. Подтверждение пользователя.
             CurrentStage = 2;
-            if (!await ConfirmRunAsync(selected.Count, scan.PreviewBytes, dangerNames, hasNonFileOps))
+            if (!await ConfirmRunAsync(selected.Count, scan.PreviewBytes, dangerNames, hasNonFileOps, _activeMode))
             {
                 historyKind = "declined";
                 StatusText = Loc.T("t.otmeneno_nichego_ne_udaleno");
@@ -358,14 +367,14 @@ public partial class CleanupViewModel : HelpViewModelBase
                 _safety, _whitelist, _quarantine,
                 progress: progress,
                 cancellationToken: token,
-                dryRun: false);
+                dryRun: false, fileMode: _activeMode);
 
             historyKind = "applied";
             _lastReport = MakeReport(new CleanupSessionResult(), false);
             var result = await Task.Run(() => _runner.Run(selected, ctx, token), token);
             _lastReport = MakeReport(result, false);
             ShowResults(result, false);
-            ResultSummary = Loc.F("design.cleanup.result", result.FilesQuarantined, result.FilesSkipped, result.OperationsFailed);
+            ResultSummary = Loc.F("cleanup.result.full", result.FilesQuarantined, result.FilesDeleted, result.FilesSkipped, result.OperationsFailed);
 
             foreach (var outcome in result.Outcomes)
             {
@@ -378,10 +387,9 @@ public partial class CleanupViewModel : HelpViewModelBase
 
             StatusText = result.Canceled
                 ? Loc.F("t.otmeneno_obrabotano_operaciy", result.OperationsRun)
-                : Loc.F("t.gotovo_udaleno_propuscheno", result.FilesQuarantined, result.FilesSkipped) +
-                  Loc.F("t.oshibok", result.OperationsFailed);
+                : ResultSummary;
 
-            await AnimateFreedAsync(result.BytesQuarantined);
+            await AnimateFreedAsync(_activeMode == CleanupFileMode.Quarantine ? result.BytesQuarantined : result.BytesFreed);
         }
         catch (OperationCanceledException)
         {
@@ -411,7 +419,7 @@ public partial class CleanupViewModel : HelpViewModelBase
     }
 
     /// <summary>Окно подтверждения перед настоящей очисткой.</summary>
-    private static async Task<bool> ConfirmRunAsync(int operationsCount, long bytes, IReadOnlyList<string> dangerNames, bool hasNonFileOps)
+    private static async Task<bool> ConfirmRunAsync(int operationsCount, long bytes, IReadOnlyList<string> dangerNames, bool hasNonFileOps, CleanupFileMode mode)
     {
         var sb = new System.Text.StringBuilder();
         sb.AppendLine(Loc.F("t.vybrano_operaciy", operationsCount));
@@ -428,7 +436,7 @@ public partial class CleanupViewModel : HelpViewModelBase
             sb.AppendLine();
         }
 
-        sb.AppendLine(Loc.T("t.udalyaemye_fayly_snachala_popadayut_v_karant"));
+        sb.AppendLine(Loc.T(mode == CleanupFileMode.Quarantine ? "cleanup.mode.quarantine.hint" : "cleanup.mode.delete.confirm"));
 
         if (hasNonFileOps)
         {
@@ -439,13 +447,13 @@ public partial class CleanupViewModel : HelpViewModelBase
         sb.AppendLine();
         sb.Append(Loc.T("t.prodolzhit"));
 
-        return await Dialogs.ConfirmAsync(Loc.T("t.podtverzhdenie_ochistki"), sb.ToString(), dangerNames.Count > 0);
+        return await Dialogs.ConfirmAsync(Loc.T("t.podtverzhdenie_ochistki"), sb.ToString(), dangerNames.Count > 0 || mode == CleanupFileMode.PermanentDelete);
     }
 
     /// <summary>Анимированный счётчик освобождённого места (ease-out, ~0.8 с).</summary>
     private async Task AnimateFreedAsync(long bytes)
     {
-        var label = Loc.T("cleanup.quarantined");
+        var label = Loc.T(_activeMode == CleanupFileMode.Quarantine ? "cleanup.quarantined" : "cleanup.freed");
 
         if (bytes <= 0 || !Motion.Enabled)
         {
@@ -466,6 +474,37 @@ public partial class CleanupViewModel : HelpViewModelBase
     }
 
     private bool CanRun() => !IsRunning && CheckedCount > 0;
+
+    public async Task RunAutomaticAsync()
+    {
+        if (IsRunning || UserSettings.NeedsSafetyNotice || !UserSettings.GetAutoCleanupEnabled()) return;
+        IsRunning = true; CurrentStage = 3; _activeMode = CleanupFileMode.Quarantine;
+        _cts = new CancellationTokenSource();
+        _lastReport = null;
+        string? error = null;
+        var kind = "automatic";
+        StatusText = Loc.T("automation.running");
+        try
+        {
+            var token = _cts.Token;
+            var temp = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Temp");
+            var result = await Task.Run(() => AutomaticCleanup.Run(temp, _safety, _whitelist, _quarantine, token));
+            _lastReport = MakeReport(result, false);
+            ShowResults(result, false);
+            ResultSummary = Loc.F("cleanup.result.full", result.FilesQuarantined, result.FilesDeleted, result.FilesSkipped, result.OperationsFailed);
+            StatusText = result.Canceled ? Loc.T("quarantine.canceled") : Loc.T("automation.completed") + " · " + ResultSummary;
+            if (result.Canceled) kind = "canceled";
+            await AnimateFreedAsync(result.BytesQuarantined);
+        }
+        catch (Exception ex)
+        { error = ex.Message; kind = "failed"; StatusText = Loc.T("t.oshibka") + ex.Message; AppLog.Error("Automatic cleanup failed", ex); }
+        finally
+        {
+            _lastReport ??= MakeReport(new CleanupSessionResult(), false);
+            UserSettings.AddCleanup(CleanupHistoryEntry.FromReport(_lastReport, kind, error));
+            _cts.Dispose(); _cts = null; CurrentStage = 4; IsRunning = false;
+        }
+    }
 
     [RelayCommand(CanExecute = nameof(CanCancel))]
     private void Cancel()
@@ -526,6 +565,8 @@ public partial class CleanupViewModel : HelpViewModelBase
         return $"{v.ToString("F2", CultureInfo.InvariantCulture)} {units[u]}";
     }
 }
+
+public sealed record CleanupModeChoice(CleanupFileMode Key, string Label);
 
 public sealed class CleanupPresetViewModel
 {

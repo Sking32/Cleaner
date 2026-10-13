@@ -8,6 +8,8 @@ public sealed class AppSettingsData
 {
     public string? Language { get; set; }
     public int SafetyNoticeVersion { get; set; }
+    public bool AutoCleanupEnabled { get; set; }
+    public int AutoCleanupIntervalMinutes { get; set; } = 1440;
     public string Accent { get; set; } = "blue";
     public string StartPage { get; set; } = "cleanup";
     public bool Animations { get; set; } = true;
@@ -60,6 +62,8 @@ public sealed class AppSettingsStore
             _data.CleanupPresets = _data.CleanupPresets.Where(p => p != null && !string.IsNullOrWhiteSpace(p.Id)
                 && !string.IsNullOrWhiteSpace(p.Name) && p.Keys != null).Take(30).ToList();
             if (_data.Density is not ("compact" or "comfortable")) _data.Density = "compact";
+            if (!InAppCleanupSchedule.AllowedMinutes.Contains(_data.AutoCleanupIntervalMinutes))
+            { _data.AutoCleanupIntervalMinutes = 1440; _data.AutoCleanupEnabled = false; }
             if (_data.Accent is not ("blue" or "teal" or "violet")) _data.Accent = "blue";
             if (_data.StartPage is not ("cleanup" or "optimize" or "startup" or "system" or "privacy" or "disk" or "history" or "whatsnew")) _data.StartPage = "cleanup";
             return _data;
