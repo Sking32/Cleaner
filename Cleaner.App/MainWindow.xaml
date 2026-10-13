@@ -1,4 +1,4 @@
-<ui:FluentWindow x:Class="Cleaner.App.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml" xmlns:loc="clr-namespace:Cleaner.App.Localization" Title="Cleaner" Height="860" Width="1360" MinHeight="700" MinWidth="1120" WindowStartupLocation="CenterScreen" ExtendsContentIntoTitleBar="True" WindowBackdropType="Mica" WindowCornerPreference="Round" Background="{DynamicResource BgBaseBrush}" FontFamily="{StaticResource FontUi}" Foreground="{StaticResource TextPrimaryBrush}" UseLayoutRounding="True" SnapsToDevicePixels="True">
+<ui:FluentWindow x:Class="Cleaner.App.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml" xmlns:loc="clr-namespace:Cleaner.App.Localization" xmlns:app="clr-namespace:Cleaner.App" Title="Cleaner" Height="860" Width="1360" MinHeight="700" MinWidth="1120" WindowStartupLocation="CenterScreen" ExtendsContentIntoTitleBar="True" WindowBackdropType="Mica" WindowCornerPreference="Round" Background="{DynamicResource BgBaseBrush}" FontFamily="{StaticResource FontUi}" Foreground="{StaticResource TextPrimaryBrush}" UseLayoutRounding="True" SnapsToDevicePixels="True">
     <Grid Background="{DynamicResource BgBaseBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -6,7 +6,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <ui:TitleBar ApplicationTheme="Dark" Title="Cleaner" Icon="{ui:SymbolIcon Sparkle24}" Foreground="{StaticResource TextPrimaryBrush}" ButtonsForeground="{StaticResource TextPrimaryBrush}" ButtonsBackground="{StaticResource BgHoverBrush}" />
+        <ui:TitleBar x:Name="AppTitleBar" ApplicationTheme="Dark" Title="{x:Static app:MainWindow.ApplicationTitle}" Icon="{ui:SymbolIcon Sparkle24}" Foreground="{StaticResource TextPrimaryBrush}" ButtonsForeground="{StaticResource TextPrimaryBrush}" ButtonsBackground="{StaticResource BgHoverBrush}" />
         <Border Grid.Row="1" Background="{StaticResource BorderSubtleBrush}" />
         <Border x:Name="StatusBarHost" Grid.Row="2" Padding="24,8" Background="{StaticResource SidebarBrush}" BorderBrush="{StaticResource BorderSubtleBrush}" BorderThickness="0,0,0,1">
             <Grid>
@@ -45,7 +45,7 @@
                         <TextBlock Text="{loc:Loc design.tagline}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" Margin="0,8,0,0" />
                     </StackPanel>
                     <TextBlock Grid.Row="1" Text="{loc:Loc design.tools}" Style="{StaticResource SectionLabelStyle}" Margin="12,0,0,12" />
-                    <ListBox x:Name="RootNavigation" Grid.Row="2" Background="Transparent" BorderThickness="0" ItemContainerStyle="{StaticResource NavItemStyle}" ScrollViewer.HorizontalScrollBarVisibility="Disabled" VerticalAlignment="Top">
+                    <ListBox x:Name="RootNavigation" Grid.Row="2" Background="Transparent" BorderThickness="0" ItemContainerStyle="{StaticResource NavItemStyle}" ScrollViewer.HorizontalScrollBarVisibility="Disabled" VerticalAlignment="Stretch" ScrollViewer.VerticalScrollBarVisibility="Auto">
                         <ListBoxItem Tag="cleanup">
                             <StackPanel Orientation="Horizontal">
                                 <ui:SymbolIcon Symbol="Broom24" Margin="0,0,12,0" />
@@ -85,6 +85,8 @@
                     </ListBox>
                     <StackPanel Grid.Row="3">
                         <Border Style="{StaticResource DividerStyle}" Margin="0,0,0,14" />
+                        <ui:Button x:Name="HistoryButton" Content="{loc:Loc history.title}" Icon="{ui:SymbolIcon History24}" Click="OnHistoryClick" Appearance="Transparent" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="10,8" Margin="0,0,0,4" AutomationProperties.Name="{loc:Loc history.title}" />
+                        <ui:Button x:Name="WhatsNewButton" Content="{loc:Loc news.title}" Icon="{ui:SymbolIcon Sparkle24}" Click="OnWhatsNewClick" Appearance="Transparent" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="10,8" Margin="0,0,0,10" AutomationProperties.Name="{loc:Loc news.title}" />
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />

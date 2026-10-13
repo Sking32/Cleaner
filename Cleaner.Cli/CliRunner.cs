@@ -35,10 +35,11 @@ public sealed class CliRunner
 
         CleanupService cleanup;
         PresetsRepository presets;
+        OperationsRepository operations;
         try
         {
             presets = new PresetsRepository();
-            var operations = new OperationsRepository();
+            operations = new OperationsRepository();
             if (opts.Preset != null && !presets.CleanupPresets.ContainsKey(opts.Preset))
             { _out.Important("unknown preset: " + opts.Preset); return 64; }
             var keys = opts.Preset != null ? presets.CleanupPresets[opts.Preset].Keys : opts.Operations;
@@ -85,7 +86,7 @@ public sealed class CliRunner
             cancellationToken: cancellation.Token,
             dryRun: opts.DryRun);
 
-        var runner = new CleanupRunner(cleanup, presets);
+        var runner = new CleanupRunner(cleanup, presets, operations);
         CleanupSessionResult result;
 
         try

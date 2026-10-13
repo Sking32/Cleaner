@@ -34,6 +34,65 @@ public partial class CleanupViewModel : HelpViewModelBase
     [ObservableProperty] private string _previewSizeText = "—";
     [ObservableProperty] private string _resultSummary = "";
     public bool CanEditSelection => !IsRunning;
+    public ObservableCollection<CleanupDetailRow> ResultRows { get; } = new();
+    public ObservableCollection<UserCleanupPreset> CustomPresets { get; } = new();
+    [ObservableProperty] private UserCleanupPreset? _selectedCustomPreset;
+    [ObservableProperty] private bool _presetEditorOpen;
+    [ObservableProperty] private string _presetName = "";
+    [ObservableProperty] private int _resultTabIndex;
+    [ObservableProperty] private string _previewNote = "";
+    [ObservableProperty] private string _categorySummary = "";
+    public string CompactSummary => Loc.F("preview.compact", CheckedCount, PreviewSizeText);
+    public bool HasResults => ResultRows.Count > 0;
+
+    private void LoadCustomPresets()
+    {
+        CustomPresets.Clear();
+        foreach (var preset in UserSettings.GetCleanupPresets()) CustomPresets.Add(preset);
+    }
+    partial void OnSelectedCustomPresetChanged(UserCleanupPreset? value)
+    {
+        DeletePresetCommand.NotifyCanExecuteChanged();
+        if (value == null || IsRunning) return;
+        SelectedPreset = null;
+        var known = Categories.SelectMany(c => c.Operations).Select(o => o.Key).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        foreach (var op in Categories.SelectMany(c => c.Operations)) op.IsChecked = value.Keys.Contains(op.Key, StringComparer.OrdinalIgnoreCase);
+        PresetName = value.Name;
+        PresetNoteText = value.Keys.Any(k => !known.Contains(k)) ? Loc.T("presets.unknown") : Loc.T("presets.custom.note");
+        OnPropertyChanged(nameof(HasPresetNote));
+    }
+    [RelayCommand] private void EditPreset() { PresetEditorOpen = !PresetEditorOpen; }
+    [RelayCommand(CanExecute = nameof(CanRun))] private void SavePreset()
+    {
+        try
+        {
+            var preset = UserSettings.SaveCleanupPreset(PresetName, Categories.SelectMany(c => c.Operations).Where(o => o.IsChecked).Select(o => o.Key), _ops.Operations.Select(o => o.Key));
+            LoadCustomPresets(); SelectedCustomPreset = CustomPresets.First(p => p.Id == preset.Id);
+            PresetEditorOpen = false; StatusText = Loc.T("presets.saved");
+        }
+        catch (Exception ex) { StatusText = Loc.T(ex.Message); }
+    }
+    private bool CanDeletePreset() => !IsRunning && SelectedCustomPreset != null;
+    [RelayCommand(CanExecute = nameof(CanDeletePreset))] private void DeletePreset()
+    {
+        try { if (SelectedCustomPreset == null) return; UserSettings.DeleteCleanupPreset(SelectedCustomPreset.Id); SelectedCustomPreset = null; LoadCustomPresets(); StatusText = Loc.T("presets.deleted"); }
+        catch (Exception ex) { StatusText = Loc.T(ex.Message); }
+    }
+    private void ShowResults(CleanupSessionResult result, bool preview)
+    {
+        ResultRows.Clear();
+        foreach (var outcome in result.Outcomes) ResultRows.Add(new CleanupDetailRow(outcome, _ops, preview, result));
+        CategorySummary = string.Join(" · ", result.Outcomes.GroupBy(o => _ops.GetByKey(o.Key)?.Category ?? "other").Select(g =>
+            Loc.T("section.sec." + g.Key + ".name") + ": " + CleanupDetailRow.FormatBytes(g.Sum(o => preview ? o.PreviewBytes : o.BytesQuarantined + o.BytesFreed))));
+        PreviewNote = Loc.F("preview.sample.note", result.OmittedPreviewFiles, result.OmittedSkipDetails);
+        OnPropertyChanged(nameof(HasResults));
+        ResultTabIndex = 1;
+    }
+    private CleanupReport MakeReport(CleanupSessionResult result, bool preview)
+    {
+        // Persist handler identity so history remains understandable if the catalog later changes.
+        return new CleanupReport { DryRun = preview, Result = result, QuarantineDirectory = preview ? null : _quarantine.SessionDirectory };
+    }
 
     private bool CanExportReport() => !IsRunning && _lastReport != null;
 
@@ -97,6 +156,7 @@ public partial class CleanupViewModel : HelpViewModelBase
 
         LoadPresets();
         LoadCategories();
+        LoadCustomPresets();
         UpdateCheckedCount();
     }
 
@@ -180,6 +240,7 @@ public partial class CleanupViewModel : HelpViewModelBase
             return;
         }
 
+        SelectedCustomPreset = null;
         var keys = new HashSet<string>(value.Keys, StringComparer.OrdinalIgnoreCase);
         foreach (var op in Categories.SelectMany(c => c.Operations))
             op.IsChecked = keys.Contains(op.Key);
@@ -195,7 +256,12 @@ public partial class CleanupViewModel : HelpViewModelBase
     // ------------------------------------------------------------------
 
     [RelayCommand(CanExecute = nameof(CanRun))]
-    private async Task RunAsync()
+    private Task RunAsync() => RunCoreAsync(false);
+
+    [RelayCommand(CanExecute = nameof(CanRun))]
+    private Task AnalyzeAsync() => RunCoreAsync(true);
+
+    private async Task RunCoreAsync(bool previewOnly)
     {
         var selectedOps = Categories
             .SelectMany(c => c.Operations)
@@ -209,6 +275,9 @@ public partial class CleanupViewModel : HelpViewModelBase
             return;
         }
 
+        _lastReport = null;
+        var historyKind = "preview";
+        string? historyError = null;
         IsRunning = true;
         CurrentStage = 1;
         PreviewSizeText = "—";
@@ -235,17 +304,24 @@ public partial class CleanupViewModel : HelpViewModelBase
                 dryRun: true);
 
             var scan = await Task.Run(() => _runner.Run(selected, scanCtx, token), token);
-            _lastReport = new CleanupReport { DryRun = true, Result = scan };
+            _lastReport = MakeReport(scan, true);
+            ShowResults(scan, true);
             PreviewSizeText = FormatBytes(scan.PreviewBytes);
 
+            if (previewOnly && !scan.Canceled)
+            {
+                StatusText = Loc.F("preview.completed", scan.OperationsRun, scan.OperationsFailed);
+                return;
+            }
             if (scan.Canceled)
             {
+                historyKind = "canceled";
                 StatusText = Loc.T("t.otmeneno_nichego_ne_udaleno");
                 return;
             }
 
             var hasNonFileOps = selectedOps.Any(o =>
-                o.Handler is not ("PathCleanup" or "PathCleanupRecursive" or "MultiPathCleanup"));
+                !CleanupDetailRow.IsQuarantined(o.Handler));
 
             if (scan.PreviewBytes <= 0 && !hasNonFileOps)
             {
@@ -262,6 +338,7 @@ public partial class CleanupViewModel : HelpViewModelBase
             CurrentStage = 2;
             if (!await ConfirmRunAsync(selected.Count, scan.PreviewBytes, dangerNames, hasNonFileOps))
             {
+                historyKind = "declined";
                 StatusText = Loc.T("t.otmeneno_nichego_ne_udaleno");
                 return;
             }
@@ -271,7 +348,7 @@ public partial class CleanupViewModel : HelpViewModelBase
             if (dangerNames.Count > 0)
             {
                 StatusText = Loc.T("t.sozdaem_tochku_vosstanovleniya_windows");
-                if (!await SessionRestorePoint.EnsureAsync(Loc.T("t.pered_ochistkoy"))) return;
+                if (!await SessionRestorePoint.EnsureAsync(Loc.T("t.pered_ochistkoy"))) { historyKind = "declined"; return; }
             }
 
             StatusText = Loc.T("t.vypolnyaetsya_ochistka");
@@ -283,8 +360,11 @@ public partial class CleanupViewModel : HelpViewModelBase
                 cancellationToken: token,
                 dryRun: false);
 
+            historyKind = "applied";
+            _lastReport = MakeReport(new CleanupSessionResult(), false);
             var result = await Task.Run(() => _runner.Run(selected, ctx, token), token);
-            _lastReport = new CleanupReport { DryRun = false, Result = result, QuarantineDirectory = _quarantine.SessionDirectory };
+            _lastReport = MakeReport(result, false);
+            ShowResults(result, false);
             ResultSummary = Loc.F("design.cleanup.result", result.FilesQuarantined, result.FilesSkipped, result.OperationsFailed);
 
             foreach (var outcome in result.Outcomes)
@@ -301,42 +381,32 @@ public partial class CleanupViewModel : HelpViewModelBase
                 : Loc.F("t.gotovo_udaleno_propuscheno", result.FilesQuarantined, result.FilesSkipped) +
                   Loc.F("t.oshibok", result.OperationsFailed);
 
-            if (result.OperationsRun > 0)
-            {
-                UserSettings.AddCleanup(new CleanupHistoryEntry
-                {
-                    Time = DateTime.Now,
-                    BytesFreed = result.BytesFreed,
-                    BytesQuarantined = result.BytesQuarantined,
-                    FilesQuarantined = result.FilesQuarantined,
-                    Operations = result.OperationsRun,
-                    FilesDeleted = result.FilesDeleted,
-                    FilesSkipped = result.FilesSkipped,
-                    OperationsFailed = result.OperationsFailed,
-                    Canceled = result.Canceled,
-                    DurationMs = (long)result.Duration.TotalMilliseconds,
-                    Outcomes = result.Outcomes.ToList()
-                });
-            }
-
             await AnimateFreedAsync(result.BytesQuarantined);
         }
         catch (OperationCanceledException)
         {
+            historyKind = "canceled";
             StatusText = Loc.T("t.otmeneno");
         }
         catch (Exception ex)
         {
+            historyKind = "failed"; historyError = ex.Message;
             AppLog.Error("Ошибка очистки", ex);
             StatusText = Loc.T("t.oshibka") + ex.Message;
         }
         finally
         {
+            if (_lastReport == null && historyKind is "failed" or "canceled") _lastReport = new CleanupReport { DryRun = true, Result = new CleanupSessionResult { Canceled = historyKind == "canceled" } };
+            if (_lastReport != null) UserSettings.AddCleanup(CleanupHistoryEntry.FromReport(_lastReport, historyKind, historyError));
+            if (UserSettings.LastSaveError != null) StatusText += " · " + Loc.T("history.save.failed");
             CurrentStage = 4;
             IsRunning = false;
             _cts?.Dispose();
             _cts = null;
             RunCommand.NotifyCanExecuteChanged();
+            AnalyzeCommand.NotifyCanExecuteChanged();
+            SavePresetCommand.NotifyCanExecuteChanged();
+            DeletePresetCommand.NotifyCanExecuteChanged();
         }
     }
 
@@ -395,7 +465,7 @@ public partial class CleanupViewModel : HelpViewModelBase
         BytesFreedText = label + FormatBytes(bytes);
     }
 
-    private bool CanRun() => !IsRunning;
+    private bool CanRun() => !IsRunning && CheckedCount > 0;
 
     [RelayCommand(CanExecute = nameof(CanCancel))]
     private void Cancel()
@@ -410,6 +480,9 @@ public partial class CleanupViewModel : HelpViewModelBase
     {
         OnPropertyChanged(nameof(CanEditSelection));
         RunCommand.NotifyCanExecuteChanged();
+        AnalyzeCommand.NotifyCanExecuteChanged();
+        SavePresetCommand.NotifyCanExecuteChanged();
+        DeletePresetCommand.NotifyCanExecuteChanged();
         CancelCommand.NotifyCanExecuteChanged();
         ExportReportCommand.NotifyCanExecuteChanged();
     }
@@ -417,7 +490,11 @@ public partial class CleanupViewModel : HelpViewModelBase
     partial void OnCheckedCountChanged(int value)
     {
         OnPropertyChanged(nameof(RunButtonText));
+        OnPropertyChanged(nameof(CompactSummary));
+        RunCommand.NotifyCanExecuteChanged(); AnalyzeCommand.NotifyCanExecuteChanged(); SavePresetCommand.NotifyCanExecuteChanged();
     }
+
+    partial void OnPreviewSizeTextChanged(string value) => OnPropertyChanged(nameof(CompactSummary));
 
     // ------------------------------------------------------------------
     //  Helpers
@@ -427,9 +504,12 @@ public partial class CleanupViewModel : HelpViewModelBase
     {
         if (!IsRunning)
         {
+            _lastReport = null;
+            ExportReportCommand.NotifyCanExecuteChanged();
             CurrentStage = 0;
             PreviewSizeText = "—";
             ResultSummary = "";
+            ResultRows.Clear(); OnPropertyChanged(nameof(HasResults)); ResultTabIndex = 0;
         }
         CheckedCount = Categories
             .SelectMany(c => c.Operations)

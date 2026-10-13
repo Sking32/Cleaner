@@ -113,6 +113,7 @@ public sealed class PathCleanupHandler : ICleanupHandler
 
         if (ctx.DryRun)
         {
+            ctx.RecordPreviewFile(opKey, path, size);
             ctx.Report(opKey, "PathCleanup", path, 0, 0, "preview");
             return (size, 0, 0);
         }

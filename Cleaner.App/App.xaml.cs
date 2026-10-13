@@ -162,6 +162,8 @@ public partial class App : Application
         services.AddSingleton<StatusBarViewModel>();
         services.AddSingleton<StartupViewModel>();
         services.AddSingleton<SettingsViewModel>();
+        services.AddSingleton<HistoryViewModel>();
+        services.AddSingleton<WhatsNewViewModel>();
 
         // --- Страницы и главное окно ---
         services.AddSingleton<MainWindow>();
@@ -172,5 +174,7 @@ public partial class App : Application
         services.AddSingleton<PrivacyPage>();
         services.AddSingleton<DiskPage>();
         services.AddSingleton<SettingsPage>();
+        services.AddSingleton<HistoryPage>();
+        services.AddSingleton<WhatsNewPage>();
     }
 }

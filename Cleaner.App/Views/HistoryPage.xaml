@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml" xmlns:loc="clr-namespace:Cleaner.App.Localization" x:Class="Cleaner.App.Views.HistoryPage" Background="{DynamicResource BgBaseBrush}" Title="{loc:Loc history.title}">
+    <Page.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </Page.Resources>
+    <Grid Margin="24,20,24,18">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <StackPanel>
+            <TextBlock Text="{loc:Loc history.title}" Style="{StaticResource PageTitleStyle}"/>
+            <TextBlock Text="{loc:Loc history.subtitle}" Style="{StaticResource PageSubtitleStyle}" Margin="0,6,0,14"/>
+        </StackPanel>
+        <Grid Grid.Row="1" Margin="0,0,0,14">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="{loc:Loc history.search}" ToolTip="{loc:Loc history.search}"/>
+            <ui:Button Grid.Column="1" Icon="{ui:SymbolIcon ArrowClockwise24}" Command="{Binding RefreshCommand}" Margin="8,0,0,0" ToolTip="{loc:Loc history.refresh}" AutomationProperties.Name="{loc:Loc history.refresh}"/>
+        </Grid>
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="240"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Border Style="{StaticResource CardStyle}" Padding="8" Margin="0,0,14,0">
+                <Grid>
+                    <ListBox ItemContainerStyle="{StaticResource SessionItemStyle}" ItemsSource="{Binding FilteredEntries}" SelectedItem="{Binding SelectedEntry}" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled" VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Margin="4,8">
+                                    <TextBlock Text="{Binding TimeText}" FontWeight="SemiBold"/>
+                                    <TextBlock Text="{Binding StatusText}" Foreground="{DynamicResource AccentBrush}" Margin="0,4,0,0"/>
+                                    <TextBlock Text="{Binding SummaryText}" TextWrapping="Wrap" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" Margin="0,4,0,0"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                    <TextBlock Text="{loc:Loc history.empty}" TextWrapping="Wrap" Margin="8" Visibility="{Binding HasNoEntries, Converter={StaticResource BoolToVis}}"/>
+                </Grid>
+            </Border>
+            <Border Grid.Column="1" Style="{StaticResource CardStyle}">
+                <Grid Visibility="{Binding HasSelection, Converter={StaticResource BoolToVis}}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <StackPanel>
+                        <TextBlock Text="{Binding SelectedEntry.TimeText}" FontSize="20" FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding SelectedEntry.StatusText}" Foreground="{DynamicResource AccentBrush}" Margin="0,4,0,0"/>
+                        <TextBlock Text="{Binding SelectedEntry.TotalsText}" TextWrapping="Wrap" Margin="0,10,0,0"/>
+                        <TextBlock Text="{Binding SelectedEntry.ErrorText}" Foreground="{StaticResource DangerBrush}" TextWrapping="Wrap" Margin="0,8,0,0" Visibility="{Binding SelectedEntry.HasError, Converter={StaticResource BoolToVis}}"/>
+                        <TextBlock Text="{loc:Loc history.legacy}" Style="{StaticResource SettingHintStyle}" Visibility="{Binding SelectedEntry.IsLegacy, Converter={StaticResource BoolToVis}}"/>
+                        <WrapPanel Margin="0,12,0,14">
+                            <ui:Button Content="{loc:Loc report.export}" Command="{Binding ExportCommand}" Margin="0,0,8,0"/>
+                            <ui:Button Content="{loc:Loc history.quarantine}" Command="{Binding OpenQuarantineCommand}"/>
+                        </WrapPanel>
+                    </StackPanel>
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <ItemsControl ItemsSource="{Binding SelectedEntry.Outcomes}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Style="{StaticResource RowBorderStyle}" Margin="0,0,0,6">
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                                            <TextBlock Text="{Binding MethodText}" Style="{StaticResource SettingHintStyle}"/>
+                                            <TextBlock Text="{Binding SizeText}" Foreground="{DynamicResource AccentBrush}" Margin="0,4,0,0"/>
+                                            <Expander Style="{StaticResource CompactExpanderStyle}" Header="{Binding StatusText}" Margin="0,4,0,0">
+                                                <TextBox Text="{Binding DetailsText, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" BorderThickness="0" Background="Transparent" Margin="0,6,0,0"/>
+                                            </Expander>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+        </Grid>
+        <TextBlock Grid.Row="3" Text="{Binding StatusText}" TextWrapping="Wrap" Foreground="{DynamicResource AccentBrush}" Margin="0,8,0,0"/>
+    </Grid>
+</Page>

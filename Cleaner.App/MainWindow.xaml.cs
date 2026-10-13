@@ -16,6 +16,8 @@ namespace Cleaner.App;
 
 public partial class MainWindow : FluentWindow
 {
+    public static string ApplicationTitle => $"Cleaner · {AppVersion.Current}";
+
     private readonly CleanupPage _cleanupPage;
     private readonly OptimizePage _optimizePage;
     private readonly StartupPage _startupPage;
@@ -23,6 +25,8 @@ public partial class MainWindow : FluentWindow
     private readonly PrivacyPage _privacyPage;
     private readonly DiskPage _diskPage;
     private readonly SettingsPage _settingsPage;
+    private readonly HistoryPage _historyPage;
+    private readonly WhatsNewPage _whatsNewPage;
     private TaskCompletionSource<bool>? _dialogTcs;
     private IInputElement? _focusBeforeDialog;
     private List<PaletteCommand> _paletteAll = new();
@@ -37,6 +41,8 @@ public partial class MainWindow : FluentWindow
         PrivacyPage privacyPage,
         DiskPage diskPage,
         SettingsPage settingsPage,
+        HistoryPage historyPage,
+        WhatsNewPage whatsNewPage,
         StatusBarViewModel statusBar,
         ISnackbarService snackbarService)
     {
@@ -47,15 +53,45 @@ public partial class MainWindow : FluentWindow
         _privacyPage = privacyPage;
         _diskPage = diskPage;
         _settingsPage = settingsPage;
+        _historyPage = historyPage;
+        _whatsNewPage = whatsNewPage;
 
         InitializeComponent();
+        Title = ApplicationTitle;
+        if (Application.Current is App)
+        {
+            var work = SystemParameters.WorkArea;
+            var placement = WindowLayout.Fit(UserSettings.GetWindow(), work);
+            MinWidth = Math.Min(1000, work.Width); MinHeight = Math.Min(640, work.Height);
+            Width = placement.Width; Height = placement.Height; Left = placement.Left!.Value; Top = placement.Top!.Value;
+            WindowStartupLocation = WindowStartupLocation.Manual;
+            if (placement.Maximized) WindowState = WindowState.Maximized;
+        }
+        if (_historyPage.DataContext is HistoryViewModel history) history.OpenSession = directory =>
+        {
+            NavigateTo("privacy");
+            if (_privacyPage.DataContext is PrivacyViewModel privacy)
+            {
+                privacy.SessionSearchText = "";
+                privacy.SelectedSession = privacy.QuarantineSessions.FirstOrDefault(s => string.Equals(s.Directory, directory, StringComparison.OrdinalIgnoreCase));
+                if (privacy.SelectedSession == null) privacy.StatusText = Loc.T("history.session.missing");
+            }
+        };
         foreach (var page in new Page[] { _cleanupPage, _optimizePage, _startupPage, _systemPage, _privacyPage, _diskPage, _settingsPage })
             if (page.DataContext is System.ComponentModel.INotifyPropertyChanged vm)
                 vm.PropertyChanged += (_, _) => UpdateNavigationAvailability();
         UpdateNavigationAvailability();
         Closing += (_, e) =>
         {
-            if (!IsOperationActive) return;
+            if (!IsOperationActive)
+            {
+                if (IsLoaded && Application.Current is App)
+                {
+                    var bounds = WindowState == WindowState.Normal ? new Rect(Left, Top, ActualWidth, ActualHeight) : RestoreBounds;
+                    UserSettings.SetWindow(new WindowPlacement { Width = bounds.Width, Height = bounds.Height, Left = bounds.Left, Top = bounds.Top, Maximized = WindowState == WindowState.Maximized });
+                }
+                return;
+            }
             e.Cancel = true;
             _ = Dialogs.InfoAsync("Cleaner", Loc.T("operation.wait"));
         };
@@ -83,15 +119,19 @@ public partial class MainWindow : FluentWindow
 
     private void OnFrameNavigated(object sender, System.Windows.Navigation.NavigationEventArgs e)
     {
-        var showingSettings = ReferenceEquals(e.Content, _settingsPage);
-        SettingsButton.SetResourceReference(BackgroundProperty, showingSettings ? "AccentSoftBrush" : "SidebarBrush");
-        SettingsButton.SetResourceReference(ForegroundProperty, showingSettings ? "AccentBrush" : "TextSecondaryBrush");
-        if (showingSettings) RootNavigation.SelectedItem = null;
+        foreach (var (button, page) in new[] { (SettingsButton, (Page)_settingsPage), (HistoryButton, _historyPage), (WhatsNewButton, _whatsNewPage) })
+        {
+            var selected = ReferenceEquals(e.Content, page);
+            button.SetResourceReference(BackgroundProperty, selected ? "AccentSoftBrush" : "SidebarBrush");
+            button.SetResourceReference(ForegroundProperty, selected ? "AccentBrush" : "TextSecondaryBrush");
+            if (selected) RootNavigation.SelectedItem = null;
+        }
         Motion.PlayEnter(e.Content as FrameworkElement);
         switch ((e.Content as Page)?.DataContext)
         {
             case PrivacyViewModel privacy: privacy.RefreshCommand.Execute(null); break;
             case OptimizeViewModel optimize: optimize.RefreshCommand.Execute(null); break;
+            case HistoryViewModel history: history.RefreshCommand.Execute(null); break;
             case SystemViewModel system: system.RefreshCommand.Execute(null); break;
         }
     }
@@ -110,9 +150,13 @@ public partial class MainWindow : FluentWindow
 
     private void OnSettingsClick(object sender, RoutedEventArgs e) => NavigateTo("settings");
 
+    private void OnHistoryClick(object sender, RoutedEventArgs e) => NavigateTo("history");
+
+    private void OnWhatsNewClick(object sender, RoutedEventArgs e) => NavigateTo("whatsnew");
+
     private void UpdateNavigationAvailability()
     {
-        RootNavigation.IsEnabled = SettingsButton.IsEnabled = !IsOperationActive;
+        RootNavigation.IsEnabled = SettingsButton.IsEnabled = HistoryButton.IsEnabled = WhatsNewButton.IsEnabled = !IsOperationActive;
     }
 
     /// <summary>Переход на страницу с подсветкой пункта меню (для палитры команд).</summary>
@@ -147,6 +191,8 @@ public partial class MainWindow : FluentWindow
             "privacy" => _privacyPage,
             "disk" => _diskPage,
             "settings" => _settingsPage,
+            "history" => _historyPage,
+            "whatsnew" => _whatsNewPage,
             _ => null
         };
 
@@ -247,7 +293,8 @@ public partial class MainWindow : FluentWindow
                 if (_diskPage.DataContext is DiskViewModel vm && vm.ScanCommand.CanExecute(null))
                     vm.ScanCommand.Execute(null);
             }),
-            new(Loc.T("ui.palette.history"), () => _ = ShowHistoryAsync())
+            new(Loc.T("ui.palette.history"), () => NavigateTo("history")),
+            new(Go(Loc.T("news.title")), () => NavigateTo("whatsnew"))
         };
     }
 

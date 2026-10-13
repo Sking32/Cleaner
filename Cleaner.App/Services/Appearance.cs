@@ -19,6 +19,7 @@ public static class Appearance
         resources["AccentHoverBrush"] = new SolidColorBrush(accent);
         resources["AccentSoftBrush"] = new SolidColorBrush(Color.FromArgb(28, accent.R, accent.G, accent.B));
         resources["AccentGradientBrush"] = new SolidColorBrush(accent);
+        resources["OperationRowPadding"] = UserSettings.GetDensity() == "comfortable" ? new Thickness(14, 10, 14, 10) : new Thickness(10, 6, 10, 6);
         ApplicationAccentColorManager.Apply(accent, ApplicationTheme.Dark);
     }
 }

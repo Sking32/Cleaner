@@ -37,7 +37,7 @@ public class CleanupRunnerTests : IDisposable
                 entry["paths"] = new System.Text.Json.Nodes.JsonArray(_tempDir);
         File.WriteAllText(Path.Combine(_root, "operations.json"), data.ToJsonString());
         _cleanup = new CleanupService(new OperationsRepository(_root));
-        _runner = new CleanupRunner(_cleanup, new PresetsRepository());
+        _runner = new CleanupRunner(_cleanup, new PresetsRepository(), new OperationsRepository(_root));
     }
 
     public void Dispose()
@@ -114,11 +114,10 @@ public class CleanupRunnerTests : IDisposable
     [Fact]
     public void Runs_Soft_Preset()
     {
-        // soft: temp_user, temp_sys, dns, recycle, wer_user — часть требует реальных путей.
-        // В dry-run не должно быть падений из-за отсутствия путей.
+        // Gentle preset uses only file operations. Fixture paths replace catalog paths.
         var r = _runner.RunPreset("soft", Ctx(dryRun: true));
 
-        Assert.Equal(5, r.OperationsRun);
+        Assert.Equal(new PresetsRepository().CleanupPresets["soft"].Keys.Count, r.OperationsRun);
         Assert.Equal(0, r.OperationsFailed);
     }
 

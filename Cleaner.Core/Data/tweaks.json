@@ -202,7 +202,7 @@
     {
       "key": "BackgroundApps",
       "category": "perf",
-      "level": "safe",
+      "level": "caution",
       "requiresReboot": false,
       "conflictsWith": [],
       "nameKey": "tweak.BackgroundApps.name",
@@ -347,7 +347,7 @@
     {
       "key": "AutoMaintenance",
       "category": "perf",
-      "level": "safe",
+      "level": "caution",
       "requiresReboot": false,
       "conflictsWith": [],
       "nameKey": "tweak.AutoMaintenance.name",
@@ -387,7 +387,7 @@
     {
       "key": "DefenderScanLimit",
       "category": "perf",
-      "level": "safe",
+      "level": "caution",
       "requiresReboot": false,
       "conflictsWith": [],
       "nameKey": "tweak.DefenderScanLimit.name",
@@ -430,7 +430,7 @@
     {
       "key": "WerSvc",
       "category": "perf",
-      "level": "safe",
+      "level": "caution",
       "requiresReboot": false,
       "conflictsWith": [],
       "nameKey": "tweak.WerSvc.name",
@@ -537,7 +537,7 @@
     {
       "key": "EventLogSize",
       "category": "perf",
-      "level": "safe",
+      "level": "caution",
       "requiresReboot": false,
       "conflictsWith": [],
       "nameKey": "tweak.EventLogSize.name",
@@ -573,7 +573,7 @@
           "type": "commandGet",
           "fileName": "wevtutil.exe",
           "arguments": "gl Application /f:xml",
-          "outputContains": "\u003CmaxSize\u003E10485760\u003C/maxSize\u003E"
+          "outputContains": "<maxSize>10485760</maxSize>"
         }
       ]
     },
@@ -653,7 +653,7 @@
     {
       "key": "Telemetry",
       "category": "privacy",
-      "level": "safe",
+      "level": "caution",
       "requiresReboot": false,
       "conflictsWith": [],
       "nameKey": "tweak.Telemetry.name",
@@ -813,7 +813,7 @@
     {
       "key": "Cortana",
       "category": "privacy",
-      "level": "safe",
+      "level": "caution",
       "requiresReboot": false,
       "conflictsWith": [],
       "nameKey": "tweak.Cortana.name",
@@ -1174,7 +1174,7 @@
     {
       "key": "Location",
       "category": "privacy",
-      "level": "safe",
+      "level": "caution",
       "requiresReboot": false,
       "conflictsWith": [],
       "nameKey": "tweak.Location.name",
@@ -1318,7 +1318,7 @@
     {
       "key": "DiagnosticData",
       "category": "privacy",
-      "level": "safe",
+      "level": "caution",
       "requiresReboot": false,
       "conflictsWith": [],
       "nameKey": "tweak.DiagnosticData.name",
@@ -1428,7 +1428,7 @@
     {
       "key": "SpeechRecognition",
       "category": "privacy",
-      "level": "safe",
+      "level": "caution",
       "requiresReboot": false,
       "conflictsWith": [],
       "nameKey": "tweak.SpeechRecognition.name",
@@ -1486,7 +1486,7 @@
     {
       "key": "UpdateP2P",
       "category": "privacy",
-      "level": "safe",
+      "level": "caution",
       "requiresReboot": false,
       "conflictsWith": [],
       "nameKey": "tweak.UpdateP2P.name",
@@ -1529,7 +1529,10 @@
     {
       "key": "ClassicContext",
       "category": "win11",
-      "compatibility": { "minWindowsBuild": 22000, "verifiedWindowsBuilds": [] },
+      "compatibility": {
+        "minWindowsBuild": 22000,
+        "verifiedWindowsBuilds": []
+      },
       "level": "safe",
       "requiresReboot": true,
       "conflictsWith": [],
@@ -1572,7 +1575,10 @@
     {
       "key": "Widgets",
       "category": "win11",
-      "compatibility": { "minWindowsBuild": 22000, "verifiedWindowsBuilds": [] },
+      "compatibility": {
+        "minWindowsBuild": 22000,
+        "verifiedWindowsBuilds": []
+      },
       "level": "safe",
       "requiresReboot": true,
       "conflictsWith": [],
@@ -1637,7 +1643,10 @@
     {
       "key": "SearchHighlights",
       "category": "win11",
-      "compatibility": { "minWindowsBuild": 22000, "verifiedWindowsBuilds": [] },
+      "compatibility": {
+        "minWindowsBuild": 22000,
+        "verifiedWindowsBuilds": []
+      },
       "level": "safe",
       "requiresReboot": false,
       "conflictsWith": [],
@@ -1681,7 +1690,10 @@
     {
       "key": "StartRecommendations",
       "category": "win11",
-      "compatibility": { "minWindowsBuild": 22000, "verifiedWindowsBuilds": [] },
+      "compatibility": {
+        "minWindowsBuild": 22000,
+        "verifiedWindowsBuilds": []
+      },
       "level": "safe",
       "requiresReboot": false,
       "conflictsWith": [],
@@ -1740,7 +1752,10 @@
     {
       "key": "TaskbarAlign",
       "category": "win11",
-      "compatibility": { "minWindowsBuild": 22000, "verifiedWindowsBuilds": [] },
+      "compatibility": {
+        "minWindowsBuild": 22000,
+        "verifiedWindowsBuilds": []
+      },
       "level": "safe",
       "requiresReboot": true,
       "conflictsWith": [],
@@ -1790,7 +1805,10 @@
     {
       "key": "SearchBox",
       "category": "win11",
-      "compatibility": { "minWindowsBuild": 22000, "verifiedWindowsBuilds": [] },
+      "compatibility": {
+        "minWindowsBuild": 22000,
+        "verifiedWindowsBuilds": []
+      },
       "level": "safe",
       "requiresReboot": true,
       "conflictsWith": [],
@@ -1840,7 +1858,10 @@
     {
       "key": "ChatIcon",
       "category": "win11",
-      "compatibility": { "minWindowsBuild": 22000, "verifiedWindowsBuilds": [] },
+      "compatibility": {
+        "minWindowsBuild": 22000,
+        "verifiedWindowsBuilds": []
+      },
       "level": "safe",
       "requiresReboot": true,
       "conflictsWith": [],
@@ -1890,7 +1911,10 @@
     {
       "key": "TaskView",
       "category": "win11",
-      "compatibility": { "minWindowsBuild": 22000, "verifiedWindowsBuilds": [] },
+      "compatibility": {
+        "minWindowsBuild": 22000,
+        "verifiedWindowsBuilds": []
+      },
       "level": "safe",
       "requiresReboot": true,
       "conflictsWith": [],
@@ -1940,7 +1964,10 @@
     {
       "key": "EndTask",
       "category": "win11",
-      "compatibility": { "minWindowsBuild": 22000, "verifiedWindowsBuilds": [] },
+      "compatibility": {
+        "minWindowsBuild": 22000,
+        "verifiedWindowsBuilds": []
+      },
       "level": "safe",
       "requiresReboot": true,
       "conflictsWith": [],
@@ -1987,7 +2014,7 @@
     {
       "key": "NetworkThrottle",
       "category": "network",
-      "level": "safe",
+      "level": "caution",
       "requiresReboot": false,
       "conflictsWith": [],
       "nameKey": "tweak.NetworkThrottle.name",
@@ -2114,7 +2141,7 @@
     {
       "key": "QosReserved",
       "category": "network",
-      "level": "safe",
+      "level": "caution",
       "requiresReboot": false,
       "conflictsWith": [],
       "nameKey": "tweak.QosReserved.name",
@@ -2236,7 +2263,7 @@
     {
       "key": "WindowsUpdateP2P",
       "category": "network",
-      "level": "safe",
+      "level": "caution",
       "requiresReboot": false,
       "conflictsWith": [],
       "nameKey": "tweak.WindowsUpdateP2P.name",
@@ -2279,7 +2306,7 @@
     {
       "key": "StorageSense",
       "category": "maint",
-      "level": "safe",
+      "level": "caution",
       "requiresReboot": false,
       "conflictsWith": [],
       "nameKey": "tweak.StorageSense.name",
@@ -2449,21 +2476,21 @@
         {
           "type": "commandRun",
           "fileName": "schtasks.exe",
-          "arguments": "/Change /TN \u0022\\Microsoft\\Windows\\Defrag\\ScheduledDefrag\u0022 /Disable"
+          "arguments": "/Change /TN \"\\Microsoft\\Windows\\Defrag\\ScheduledDefrag\" /Disable"
         }
       ],
       "unapply": [
         {
           "type": "commandRun",
           "fileName": "schtasks.exe",
-          "arguments": "/Change /TN \u0022\\Microsoft\\Windows\\Defrag\\ScheduledDefrag\u0022 /Enable"
+          "arguments": "/Change /TN \"\\Microsoft\\Windows\\Defrag\\ScheduledDefrag\" /Enable"
         }
       ],
       "state": [
         {
           "type": "commandGet",
           "fileName": "schtasks.exe",
-          "arguments": "/Query /TN \u0022\\Microsoft\\Windows\\Defrag\\ScheduledDefrag\u0022 /FO LIST",
+          "arguments": "/Query /TN \"\\Microsoft\\Windows\\Defrag\\ScheduledDefrag\" /FO LIST",
           "outputContains": "Disabled"
         }
       ]
@@ -2471,7 +2498,7 @@
     {
       "key": "DeliveryOptimization",
       "category": "maint",
-      "level": "safe",
+      "level": "caution",
       "requiresReboot": false,
       "conflictsWith": [],
       "nameKey": "tweak.DeliveryOptimization.name",

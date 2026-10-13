@@ -1,0 +1,110 @@
+{
+  "schemaVersion": 1,
+  "releases": [
+    {
+      "version": "1.1.0-beta.2",
+      "date": "2026-10-13",
+      "text": {
+        "ru": {
+          "title": "Понятнее навигация, больше места для служб",
+          "summary": "Небольшое обновление интерфейса для тестирования с друзьями. История предыдущих версий сохранена.",
+          "added": [
+            "Текущая версия рядом с названием приложения в шапке."
+          ],
+          "changed": [
+            "«История» и «Что нового?» перенесены в нижний блок бокового меню, рядом с настройками.",
+            "На странице «Система» убраны повторяющиеся показатели CPU, ОЗУ и диска; они остаются в верхней панели.",
+            "Освободилось больше места для списка служб."
+          ],
+          "fixed": []
+        },
+        "en": {
+          "title": "Clearer navigation, more room for services",
+          "summary": "A small interface update for testing with friends. Earlier version entries are preserved.",
+          "added": [
+            "The current version appears beside the application name in the header."
+          ],
+          "changed": [
+            "History and What’s new? moved to the lower sidebar, beside settings.",
+            "Removed duplicate CPU, RAM and disk metrics from the System page; the top metrics bar remains.",
+            "The services list has more space."
+          ],
+          "fixed": []
+        }
+      }
+    },
+    {
+      "version": "1.1.0-beta.1",
+      "date": "2026-10-13",
+      "text": {
+        "ru": {
+          "title": "Больше контроля, меньше лишнего",
+          "summary": "Тестовая версия 1.1.0-beta.1 для первых проверок с друзьями. История ниже отражает этапы исходного проекта, а не выдуманные публичные релизы.",
+          "added": [
+            "Вкладка «Что нового?» с текущей версией и предыдущей версией проекта.",
+            "История анализа и очистки: статусы, детали операций, экспорт и переход к карантину.",
+            "Анализ без очистки, примеры файлов и причины пропусков.",
+            "Пользовательские пресеты очистки, выбор плотности списков и сохранение окна.",
+            "Сценарий сборки portable EXE, контрольная сумма, инструкция тестирования и CI."
+          ],
+          "changed": [
+            "Новый визуальный стиль, отдельная кнопка настроек, компактные списки и адаптивная панель очистки.",
+            "Пересмотрены метки риска и пресеты: системные операции исключены из мягкой очистки.",
+            "Совместимость твиков показана отдельно от успешной записи настройки."
+          ],
+          "fixed": [
+            "Надёжность карантина, обработки отмены, повреждённых журналов и частичных ошибок.",
+            "Удаление файлов с атрибутом «только чтение» без изменения прав доступа.",
+            "Привязка PressedForeground у кнопок и изоляция автоматических тестов."
+          ]
+        },
+        "en": {
+          "title": "More control, less clutter",
+          "summary": "Version 1.1.0-beta.1 for early testing with friends. The history describes project stages, not invented public releases.",
+          "added": [
+            "What’s new with the current version and the original project version.",
+            "Analysis and cleanup history with statuses, operation details, exports and quarantine links.",
+            "Analyze without cleanup, sample files and skip reasons.",
+            "Custom cleanup presets, list density and saved window placement.",
+            "Portable EXE packaging, checksum, testing guide and CI."
+          ],
+          "changed": [
+            "New visual style, separate settings button, compact lists and adaptive cleanup sidebar.",
+            "Risk labels and presets reviewed; system operations removed from gentle cleanup.",
+            "Tweak compatibility shown independently of successful settings writes."
+          ],
+          "fixed": [
+            "Quarantine durability, cancellation, damaged journals and partial failure handling.",
+            "Read-only file deletion without changing access permissions.",
+            "PressedForeground button bindings and automatic test isolation."
+          ]
+        }
+      }
+    },
+    {
+      "version": "1.0.0",
+      "text": {
+        "ru": {
+          "title": "Исходный Cleaner",
+          "summary": "Исходная версия 1.0.0 по версии сборки проекта. Дата публичного выпуска не подтверждена.",
+          "added": [
+            "Разделы очистки, оптимизации, автозагрузки, служб, карантина и анализа диска.",
+            "Каталоги операций, пресеты и интерфейс на русском и английском."
+          ],
+          "changed": [],
+          "fixed": []
+        },
+        "en": {
+          "title": "Original Cleaner",
+          "summary": "Original 1.0.0 project assembly version. No public release date has been confirmed.",
+          "added": [
+            "Cleanup, optimization, startup, services, quarantine and disk analysis.",
+            "Operation catalogs, presets and Russian / English interface."
+          ],
+          "changed": [],
+          "fixed": []
+        }
+      }
+    }
+  ]
+}

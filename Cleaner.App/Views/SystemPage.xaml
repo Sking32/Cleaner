@@ -22,38 +22,8 @@
                 </Grid>
                 <ui:InfoBar Margin="0,16,0,0" Severity="Informational" Title="{loc:Loc help.system.title}" Message="{loc:Loc help.system.msg}" IsClosable="True" IsOpen="{Binding ShowHelp, Mode=TwoWay}"/>
             </StackPanel>
-            <!-- Живые показатели -->
+            <!-- Сведения о компьютере -->
             <StackPanel Grid.Row="1" Margin="0,12,0,0">
-                <UniformGrid Columns="3">
-                    <Border Style="{StaticResource CardStyle}" Padding="12,8" Margin="0,0,6,0">
-                        <StackPanel>
-                            <TextBlock Text="CPU" Style="{StaticResource SectionLabelStyle}"/>
-                            <Grid Margin="0,2,0,0">
-                                <TextBlock Text="{Binding StatusBar.CpuPercentText}" Style="{StaticResource NumberTextStyle}" FontSize="20"/>
-                                <Canvas Width="64" Height="16" HorizontalAlignment="Right" VerticalAlignment="Bottom">
-                                    <Polyline Points="{Binding StatusBar.CpuPoints}" Stroke="{DynamicResource AccentBrush}" StrokeThickness="1.5" StrokeLineJoin="Round"/>
-                                </Canvas>
-                            </Grid>
-                        </StackPanel>
-                    </Border>
-                    <Border Style="{StaticResource CardStyle}" Padding="12,8" Margin="3,0,3,0">
-                        <StackPanel>
-                            <TextBlock Text="{loc:Loc ui.ram}" Style="{StaticResource SectionLabelStyle}"/>
-                            <Grid Margin="0,2,0,0">
-                                <TextBlock Text="{Binding StatusBar.RamPercentText}" Style="{StaticResource NumberTextStyle}" FontSize="20"/>
-                                <Canvas Width="64" Height="16" HorizontalAlignment="Right" VerticalAlignment="Bottom">
-                                    <Polyline Points="{Binding StatusBar.RamPoints}" Stroke="{StaticResource SafeBrush}" StrokeThickness="1.5" StrokeLineJoin="Round"/>
-                                </Canvas>
-                            </Grid>
-                        </StackPanel>
-                    </Border>
-                    <Border Style="{StaticResource CardStyle}" Padding="12,8" Margin="6,0,0,0">
-                        <StackPanel>
-                            <TextBlock Text="{Binding StatusBar.DiskLabelText}" Style="{StaticResource SectionLabelStyle}"/>
-                            <TextBlock Text="{Binding StatusBar.DiskFreeText}" Style="{StaticResource NumberTextStyle}" FontSize="20" Margin="0,2,0,0"/>
-                        </StackPanel>
-                    </Border>
-                </UniformGrid>
                 <!-- Плитки информации -->
                 <Expander x:Name="SystemDetails" AutomationProperties.Name="{loc:Loc design.system.details}" Margin="0,6,0,0" Style="{StaticResource CompactExpanderStyle}" Header="{loc:Loc design.system.details}" IsExpanded="False">
                     <Border Style="{StaticResource CategoryCardStyle}" Padding="10" Margin="0,4,0,0">

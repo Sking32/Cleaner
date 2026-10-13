@@ -82,7 +82,7 @@ public class TweakRepositoryTests
 
         Assert.NotNull(cortana);
         Assert.Equal("privacy", cortana!.Category);
-        Assert.Equal("safe", cortana.Level);
+        Assert.Equal("caution", cortana.Level);
         Assert.False(cortana.RequiresReboot);
         Assert.Single(cortana.Apply);
         Assert.Equal("regSet", cortana.Apply[0].Type);
