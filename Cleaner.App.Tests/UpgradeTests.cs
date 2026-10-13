@@ -168,6 +168,7 @@ public sealed class UpgradeTests
         Assert.Contains(catalog, r => r.Version == AppVersion.Current); Assert.Contains(catalog, r => r.Version == "1.0.0" && r.Date == null);
         Assert.Equal(AppVersion.Current, catalog[0].Version);
         Assert.Contains(catalog, r => r.Version == "1.1.0-beta.1");
+        Assert.Contains(catalog, r => r.Version == "1.1.0-beta.2");
         Assert.All(catalog, r => { Assert.Contains("en", r.Text.Keys); Assert.Contains("ru", r.Text.Keys); });
     }
 

@@ -23,6 +23,13 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
+        if (!AdminHelper.WaitForParent(e.Args))
+        {
+            System.Windows.MessageBox.Show(Loc.T("startup.handoff.failed"), "Cleaner", System.Windows.MessageBoxButton.OK, MessageBoxImage.Warning);
+            Shutdown(1);
+            return;
+        }
+
         AppLog.PruneOld();
         RegisterGlobalExceptionHandlers();
 
@@ -35,23 +42,6 @@ public partial class App : Application
 
         var elevated = AdminHelper.IsElevated();
         AppLog.Info($"Запуск программы. Права администратора: {elevated}");
-
-        if (!elevated && !System.Diagnostics.Debugger.IsAttached)
-        {
-            var answer = System.Windows.MessageBox.Show(
-                Loc.T("t.dlya_polnoy_ochistki_i_optimizacii_sluzhby") +
-                Loc.T("t.perezapustit_programmu_ot_imeni_administrato") +
-                Loc.T("t.esli_vybrat_net_chast_funkciy_budet"),
-                "Cleaner",
-                System.Windows.MessageBoxButton.YesNo,
-                System.Windows.MessageBoxImage.Question);
-
-            if (answer == System.Windows.MessageBoxResult.Yes && AdminHelper.TryRestartElevated())
-            {
-                Shutdown();
-                return;
-            }
-        }
 
         try
         {
@@ -84,6 +74,7 @@ public partial class App : Application
 
             var mainWindow = _services.GetRequiredService<MainWindow>();
             mainWindow.Show();
+            mainWindow.ShowFirstRunSafetyIfNeeded(force: e.Args.Contains("--show-safety"));
         }
         catch (Exception ex)
         {
@@ -164,6 +155,7 @@ public partial class App : Application
         services.AddSingleton<SettingsViewModel>();
         services.AddSingleton<HistoryViewModel>();
         services.AddSingleton<WhatsNewViewModel>();
+        services.AddSingleton<FirstRunSafetyViewModel>();
 
         // --- Страницы и главное окно ---
         services.AddSingleton<MainWindow>();

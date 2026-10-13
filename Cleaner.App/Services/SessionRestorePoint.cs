@@ -16,17 +16,24 @@ public static class SessionRestorePoint
 
     public static async Task<bool> EnsureAsync(string reason)
     {
+        var result = await TryCreateAsync(reason);
+        if (result.Success) return true;
+        await Dialogs.InfoAsync("Cleaner", Loc.T("restore.failed") + "\n" + result.Message);
+        return false;
+    }
+
+    public static async Task<RestorePointResult> TryCreateAsync(string reason)
+    {
         await Gate.WaitAsync();
         try
         {
-            if (_created) return true;
+            if (_created) return new RestorePointResult(true, Loc.T("safety.created"));
             var result = AdminHelper.IsElevated()
                 ? await Task.Run(() => RestorePointService.TryCreate("Cleaner: " + reason))
                 : new RestorePointResult(false, Loc.T("restore.admin"));
             AppLog.Info($"Точка восстановления ({reason}): {result.Message}");
-            if (result.Success) { _created = true; return true; }
-            await Dialogs.InfoAsync("Cleaner", Loc.T("restore.failed") + "\n" + result.Message);
-            return false;
+            if (result.Success) _created = true;
+            return result;
         }
         finally { Gate.Release(); }
     }

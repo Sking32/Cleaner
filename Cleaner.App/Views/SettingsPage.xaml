@@ -92,6 +92,7 @@
             <Border Style="{StaticResource CardStyle}">
                 <StackPanel>
                     <TextBlock Text="{loc:Loc settings.hints}" FontWeight="SemiBold"/>
+                    <ui:Button Content="{loc:Loc safety.open}" Icon="{ui:SymbolIcon ShieldCheckmark24}" Command="{Binding ShowSafetyNoticeCommand}" Margin="0,12,0,12" HorizontalAlignment="Left"/>
                     <TextBlock Text="{loc:Loc settings.hints.hint}" Style="{StaticResource SettingHintStyle}"/>
                     <ui:Button Content="{loc:Loc settings.hints.reset}" Command="{Binding ResetHintsCommand}" Margin="0,14,0,0" HorizontalAlignment="Left"/>
                     <TextBlock Text="{loc:Loc settings.keyboard}" Style="{StaticResource SettingHintStyle}" Margin="0,18,0,0"/>

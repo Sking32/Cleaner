@@ -1,86 +1,54 @@
-# Cleaner
+# Cleaner for Windows
 
-Приложение для Windows на .NET 10: интерфейс WPF, ядро Cleaner.Core и командная строка Cleaner.Cli.
+[Русский](README.ru.md) · English
 
-## Сборка
+**Current beta: 1.1.0-beta.3.** A desktop app for inspecting cleanup candidates, reviewing Windows tweaks, managing startup entries and services, and recovering quarantined files. This is a test release: system changes still need validation on real Windows installations. Cleaner does not promise to speed up every computer.
 
-На Windows с .NET SDK 10:
+## Download and start
 
-~~~powershell
-dotnet restore Cleaner.slnx
-dotnet build Cleaner.slnx --no-restore -m:1
-~~~
+1. Open [Releases](https://github.com/Sking32/Cleaner/releases) and choose the beta you want to test. Download `Cleaner-1.1.0-beta.3-win-x64.zip` under **Assets**, rather than GitHub’s automatic “Source code” archives.
+2. Compare the ZIP’s SHA-256 against the accompanying `.zip.sha256` file. In PowerShell: `Get-FileHash -Algorithm SHA256 .\Cleaner-1.1.0-beta.3-win-x64.zip`. A matching hash checks integrity; it does not prove the software is safe.
+3. Extract the entire archive into an ordinary writable folder. Keep `Data` beside `Cleaner.App.exe`; do not run directly from the ZIP.
+4. Start `Cleaner.App.exe`. The portable x64 package includes .NET. It targets Windows with the required .NET 10/WPF support; compatibility with individual system actions is not yet verified across all Windows builds. ARM64 needs a separate build and testing; macOS and Linux are not supported.
 
-Сборка не запускает очистку, твики или тесты.
+If this beta has not been published yet, request the complete ZIP from its author. Release assets may be absent until the first publication. There is no installer in this package.
 
-## Очистка через CLI
+The beta is not code-signed. Windows may warn about an unfamiliar app. Check its source and hash; do not disable antivirus, SmartScreen or Windows protection to run it. If you are unsure, stop and contact the author.
 
-По умолчанию CLI выполняет только просмотр:
+## First launch and recovery
 
-~~~powershell
-dotnet run --project Cleaner.Cli -- --preset soft --json
-dotnet run --project Cleaner.Cli -- --list-operations
-~~~
+The first launch shows a safety notice. Simply opening it does not run cleanup, apply tweaks or create a restore point.
 
-Для реальных изменений требуется --apply:
+- **Create a restore point** requests administrator permission if needed. Cleaner restarts after UAC approval; click the same button in the new window to create the point. Canceling UAC leaves the current app open without creating a point.
+- Windows needs System Protection enabled and may refuse a new point if one was created within the last 24 hours. Cleaner does not change those policies, schedules or protection settings. If creation fails, the notice explains how to open System Protection manually.
+- A restore point covers Windows system files and settings; it does not recover deleted personal files. Back up important documents separately. See [Microsoft’s System Restore guide](https://support.microsoft.com/en-us/windows/experience/backup-recovery/system-restore).
+- **Understood, continue** lets you explore the app without creating a point. It does not bypass the separate safeguards for dangerous actions. The notice is remembered for this Windows user profile and can be reopened in **Settings → Safety and restore point**. Existing beta users will also see this new notice once.
 
-~~~powershell
-dotnet run --project Cleaner.Cli -- --operations temp_user --apply
-~~~
+First launch follows the Windows **display language**: Russian → Russian, English → English, other languages → English. Keyboard layout and regional number/date settings do not select the interface language. Settings offers **Match Windows**, **Русский**, and **English**; a manual choice overrides detection. Restart after changing it.
 
-Не запускайте этот пример автоматически: он перемещает настоящие файлы пользовательского Temp в карантин. Другие операции могут очищать корзину, менять настройки Windows или удалять данные без возможности восстановления. Ctrl+C запрашивает отмену; уже выполненные действия автоматически не отменяются.
+## What to test first
 
-Обычные файлы переносятся в %LOCALAPPDATA%\Cleaner\Quarantine. Перенос на том же диске не освобождает место. Результат отдельно содержит previewBytes, bytesQuarantined, filesQuarantined, bytesFreed и filesDeleted. Для системных команд неизвестный объём освобождения остаётся равным нулю.
+Start with navigation, window sizes, search, settings, language, the version in the header, **History**, and **What’s new?** in the lower sidebar. `Ctrl+K` opens command search.
 
-GUI и CLI используют общие данные восстановления. Одновременный запуск запрещён: перед CLI закройте GUI.
+In **Cleanup**, choose **Analyze without cleaning** and review sizes, sample paths and skipped items. Analysis reads data without moving or deleting files. Real cleanup is a separate action. Regular files normally move to quarantine: a move on the same drive does not free disk space. Some system cleanup actions delete permanently. Deleting quarantine permanently removes its contents.
 
-## Проверки
+Use a disposable Windows VM with a snapshot for system tweaks, service changes and other unfamiliar actions. Cancellation stops further work; it does not undo changes already made. Do not assume a “low risk” label guarantees safety for every computer.
 
-Владелец разрешил изолированные тесты после проверки их кода без повторного запроса. Для тестов, затрагивающих реальные файлы и настройки Windows, требуется отдельное разрешение. Нативные тесты следует запускать в отдельной VM.
+Preferences, history, recovery data and quarantine live under `%LOCALAPPDATA%\Cleaner`. App logs are in its `Logs` directory. Keep recovery data until you have checked the result. This is not a fully isolated portable data profile: a new ZIP still uses this account’s existing data. Close Cleaner before running its CLI; they share recovery state.
 
-~~~powershell
-powershell -NoProfile -File .\run-isolated-tests.ps1
-~~~
+## Report a bug
 
-Скрипт направляет TEMP/TMP тестовых процессов в отдельный каталог .test-sandbox внутри проекта и сохраняет TRX-результаты. Перед запуском сценариев все три тестовые сборки проверяют путь и отсутствие junction/symlink. При прямом запуске из Visual Studio или dotnet test создаётся отдельный Temp в каталоге тестовой сборки. Переменные меняются только у тестового процесса. Изменение пользовательского или системного TEMP не выполняется.
+Open a [GitHub issue](https://github.com/Sking32/Cleaner/issues) or send the author a private message with:
 
-В проектах тестов подключён isolated.runsettings: по умолчанию исключена категория WindowsIntegration. Скрипт также явно исключает её фильтром. Основные тесты используют реестр в памяти и заглушки системных команд. Файловые сценарии изменяют создаваемые ими каталоги. Некоторые проверки просмотра читают существующие каталоги кэшей, не изменяя их. Изоляция Temp — дополнительная защита; она не заменяет проверку кода тестов.
+- App version; Windows edition/build, architecture and display scale.
+- Interface language, page and steps to reproduce; whether administrator permission was used.
+- Expected result and actual result, plus a screenshot if useful.
+- For restore points: whether UAC was canceled, System Protection was enabled, and another point was created recently.
 
-Нативные проверки RegistryHelperTests работают с отдельными временными ветками настоящего HKCU. Они не входят в обычный запуск. Их запуск требует отдельного согласования; используйте отдельную Windows VM и явные настройки тестов.
+Check screenshots and exported reports for usernames, personal paths and file names. Do not upload your quarantine, registry backups or full settings profile. The app does not automatically send your bug report. Use a private channel for sensitive reports.
 
-## Восстановление и ограничения
+## Build, publish and previous changes
 
-- Перед изменением каждого значения сохраняется его исходное состояние. Отключение твика восстанавливает сохранённое состояние.
-- Ошибка записи бэкапа останавливает изменение. Повреждённые журналы не заменяются пустыми.
-- Откат сохраняет резервные записи до успешной записи результата восстановления.
-- Твики с пересекающимися настройками нельзя включать одновременно.
-- Опасные действия в GUI требуют подтверждённой точки восстановления. Если Windows не создаёт её, действие останавливается.
-- Старые неполные бэкапы не содержат всех исходных значений: программа не может достоверно восстановить недостающие данные.
-- Карантин сохраняет повреждённые журналы и файлы без записей для ручного восстановления. Не удаляйте их, пока не разберётесь с содержимым.
-- Для Windows.old программа не меняет владельцев и ACL. При отказе доступа используйте штатные настройки хранилища Windows.
+[Developer guide](DEVELOPMENT.md) · [Build a portable package](RELEASE_GUIDE.md) · [Publish a beta / Публикация beta](PUBLISHING.md) · [Russian testing checklist](FRIEND_TESTING.md)
 
-Результаты исправлений и список ручных проверок: [UPGRADE_REPORT.md](UPGRADE_REPORT.md).
-
-## Beta 1.1.0 и передача друзьям
-
-Добавлены «Что нового?», полная история очистки, отдельный анализ без изменений, пользовательские пресеты, плотность списков и сохранение окна. Инструкции сборки portable EXE: [RELEASE_GUIDE.md](RELEASE_GUIDE.md). Сценарии проверки: [FRIEND_TESTING.md](FRIEND_TESTING.md). Отчёт основного обновления и ограничения: [BETA_REPORT.md](BETA_REPORT.md). Правки интерфейса в текущей версии 1.1.0-beta.2: [PATCH_REPORT.md](PATCH_REPORT.md).
-
-## Диагностика
-
-На странице очистки доступен экспорт последнего просмотра или выполнения. В карантине доступны проверка целостности, экспорт результата, прогресс по записям и отмена. Повреждённые журналы, отсутствующие файлы и незарегистрированные данные отображаются; опасное автоматическое удаление блокируется. Проверка целостности ничего не исправляет и не удаляет.
-
-CLI поддерживает --report <путь.json> вместе с --preset или --operations. Отчёт содержит версию формата, признак просмотра, результаты операций, ошибки и причины пропусков для файловых обработчиков PathCleanup. Сохраняются первые 250 подробностей пропусков и число остальных. Данные и снимки реестра в отчёт не включаются, но сообщения могут содержать личные пути — проверьте файл перед отправкой.
-
-Отмена не отменяет уже выполненные действия. Оставшиеся записи карантина сохраняются для повторной попытки. История сохраняет также неудачные и отменённые запуски с результатами операций.
-
-## Совместимость твиков
-
-Определения поддерживают compatibility.minWindowsBuild, maxWindowsBuild и verifiedWindowsBuilds. Ограничения проверяются ядром до изменений; неподдерживаемый твик можно откатить, если он уже применён. Для категории Windows 11 задана нижняя граница 22000. Список подтверждённых сборок пока пуст: проверки заглушками не подтверждают эффект твика на реальной системе.
-
-Реализованный интерфейс и ручные проверки: [REDESIGN_REPORT.md](REDESIGN_REPORT.md).
-
-## Настройки и интерфейс
-
-В боковом меню добавлены «Настройки»: акцент, переходы, верхние метрики, язык, стартовый раздел и возврат подсказок. Язык меняется после следующего запуска, остальные параметры — сразу. Рискованные операции сохраняют подтверждения.
-
-Изолированный визуальный хост: сначала dotnet build tools/VisualPreview/Cleaner.VisualPreview.csproj -m:1, затем dotnet tools/VisualPreview/bin/Debug/net10.0-windows/Cleaner.VisualPreview.dll. Для английских снимков передайте en. PNG записываются в .test-sandbox; команды в этом хосте не выполняют реальные действия.
+Version history is also available inside **What’s new?**. Each update adds a new entry and retains earlier ones. For the first public test, the author should choose a project license, check native Windows behavior in a VM, and rebuild from the final committed source before uploading release assets. Dependency notices are included in the ZIP; the project’s own license has not yet been selected.

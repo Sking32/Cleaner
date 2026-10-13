@@ -72,7 +72,10 @@ internal static class Program
         var news = new WhatsNewPage(new WhatsNewViewModel());
         if (((WhatsNewViewModel)news.DataContext).HasError) throw new InvalidOperationException(((WhatsNewViewModel)news.DataContext).ErrorText);
         Console.WriteLine("Pages loaded");
-        var window = new MainWindow(cleanup, optimize, startup, system, privacy, disk, settings, history, news, null!, new SnackbarService());
+        var fixturePoints = 0;
+        var safetyVm = new FirstRunSafetyViewModel(() => true, () => throw new InvalidOperationException("Preview must never request elevation"),
+            () => { fixturePoints++; return Task.FromResult(new RestorePointResult(true, "fixture")); }, UserSettings.AcknowledgeSafetyNotice);
+        var window = new MainWindow(cleanup, optimize, startup, system, privacy, disk, settings, history, news, null!, new SnackbarService(), safetyVm);
         var frame = (Frame)window.FindName("RootFrame");
         var navigation = (ListBox)window.FindName("RootNavigation");
         var titleBar = (TitleBar)window.FindName("AppTitleBar");
@@ -198,6 +201,55 @@ internal static class Program
         settingsVm.ResetHintsCommand.Execute(null);
         if (UserSettings.LastSaveError != null) throw new InvalidOperationException("Fixture preferences could not be saved.");
         Console.WriteLine("Settings interaction and persistence checks passed.");
+        settingsVm.Language = "auto";
+        if (new AppSettingsStore(Path.Combine(root, "settings.json")).Load().Language != null)
+            throw new InvalidOperationException("Match Windows must remain automatic after saving.");
+        frame.Navigate(cleanup); Pump(100);
+        window.ShowFirstRunSafetyIfNeeded();
+        var safetyOverlay = (Grid)window.FindName("SafetyOverlay");
+        var safetyView = (FirstRunSafetyView)window.FindName("SafetyNotice");
+        if (safetyOverlay.Visibility != Visibility.Visible || ((Grid)window.FindName("WorkspaceHost")).IsEnabled || fixturePoints != 0)
+            throw new InvalidOperationException("First-run notice must block tools without starting restore operations.");
+        foreach (var (width, height) in new[] { (1360, 860), (1120, 700), (1000, 640) })
+        {
+            var visual = (FrameworkElement)window.Content;
+            visual.Measure(new Size(width, height)); visual.Arrange(new Rect(0, 0, width, height)); visual.UpdateLayout(); Pump(100);
+            if (safetyOverlay.TransformToAncestor(visual).Transform(new Point(0, 0)).Y < titleBar.ActualHeight)
+                throw new InvalidOperationException("The safety notice must leave the window title bar accessible.");
+            foreach (var name in new[] { "CreatePointButton", "ContinueButton" })
+            {
+                var button = (FrameworkElement)safetyView.FindName(name);
+                var bounds = button.TransformToAncestor(visual).TransformBounds(new Rect(button.RenderSize));
+                if (button.ActualHeight < 20 || bounds.Left < 0 || bounds.Right > width || bounds.Bottom > height)
+                    throw new InvalidOperationException("Safety notice buttons are clipped: " + name);
+            }
+            if (!args.Contains("--bindings-only"))
+            {
+                var bitmap = new RenderTargetBitmap(width, height, 96, 96, PixelFormats.Pbgra32); bitmap.Render(visual);
+                var encoder = new PngBitmapEncoder(); encoder.Frames.Add(BitmapFrame.Create(bitmap));
+                using var file = File.Create(Path.Combine(root, $"first-run-{width}x{height}-1x.png")); encoder.Save(file);
+            }
+        }
+        CheckPressedButtons(safetyView);
+        if (((Wpf.Ui.Controls.Button)safetyView.FindName("CreatePointButton")).Command != safetyVm.CreateRestorePointCommand ||
+            ((Wpf.Ui.Controls.Button)safetyView.FindName("ContinueButton")).Command != safetyVm.ContinueCommand)
+            throw new InvalidOperationException("Safety buttons must bind to the isolated fixture commands.");
+        safetyVm.CreateRestorePointCommand.ExecuteAsync(null).GetAwaiter().GetResult();
+        if (fixturePoints != 1 || !safetyVm.HasRestorePoint || !UserSettings.NeedsSafetyNotice)
+            throw new InvalidOperationException("Creating a fake point must not acknowledge the notice.");
+        safetyVm.ContinueCommand.Execute(null); Pump(100);
+        window.ShowFirstRunSafetyIfNeeded();
+        if (safetyOverlay.Visibility != Visibility.Collapsed || !((Grid)window.FindName("WorkspaceHost")).IsEnabled || UserSettings.NeedsSafetyNotice)
+            throw new InvalidOperationException("Acknowledged notice must not reappear on the next launch.");
+        window.ShowFirstRunSafetyIfNeeded(force: true);
+        if (safetyOverlay.Visibility != Visibility.Visible) throw new InvalidOperationException("An explicit elevated restart must reopen an acknowledged notice.");
+        safetyVm.ContinueCommand.Execute(null);
+        settingsVm.ShowSafetyNoticeCommand.Execute(null);
+        if (safetyOverlay.Visibility != Visibility.Visible)
+            throw new InvalidOperationException("Settings must reopen the safety notice.");
+        safetyVm.ContinueCommand.Execute(null);
+        Console.WriteLine("Isolated first-run notice, automatic language and fake restore point checks passed.");
+
         Console.WriteLine(root);
         window.Close();
     }

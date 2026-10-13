@@ -100,20 +100,37 @@ public static class UserSettings
     /// <summary>"ru" или "en": сохранённый выбор, иначе язык системы (русский → ru, остальные → en).</summary>
     public static string GetLanguage()
     {
-        var lang = Load().Language;
-        if (lang == "ru" || lang == "en") return lang;
+        return AppLanguage.Resolve(Load().Language, CultureInfo.CurrentUICulture);
+    }
 
-        return CultureInfo.CurrentUICulture.TwoLetterISOLanguageName.Equals("ru", StringComparison.OrdinalIgnoreCase)
-            ? "ru"
-            : "en";
+    public static string GetLanguagePreference() => Load().Language is "ru" or "en" ? Load().Language! : "auto";
+
+    public static bool NeedsSafetyNotice => Load().SafetyNoticeVersion < 1;
+
+    public static bool AcknowledgeSafetyNotice()
+    {
+        lock (Gate)
+        {
+            var data = Load();
+            var previous = data.SafetyNoticeVersion;
+            data.SafetyNoticeVersion = Math.Max(previous, 1);
+            if (!Store.Save())
+            {
+                data.SafetyNoticeVersion = previous;
+                AppLog.Warn("Не удалось сохранить ознакомление с безопасностью: " + Store.LastError);
+                return false;
+            }
+        }
+        Changed?.Invoke();
+        return true;
     }
 
     public static void SetLanguage(string language)
     {
-        if (language != "ru" && language != "en") return;
+        if (language is not ("ru" or "en" or "auto")) return;
         lock (Gate)
         {
-            Load().Language = language;
+            Load().Language = language == "auto" ? null : language;
         }
         Save();
     }

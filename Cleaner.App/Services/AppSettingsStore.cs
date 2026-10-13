@@ -7,6 +7,7 @@ namespace Cleaner.App.Services;
 public sealed class AppSettingsData
 {
     public string? Language { get; set; }
+    public int SafetyNoticeVersion { get; set; }
     public string Accent { get; set; } = "blue";
     public string StartPage { get; set; } = "cleanup";
     public bool Animations { get; set; } = true;
