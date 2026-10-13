@@ -61,11 +61,11 @@ powershell -NoProfile -File .\run-isolated-tests.ps1
 - Карантин сохраняет повреждённые журналы и файлы без записей для ручного восстановления. Не удаляйте их, пока не разберётесь с содержимым.
 - Для Windows.old программа не меняет владельцев и ACL. При отказе доступа используйте штатные настройки хранилища Windows.
 
-Результаты исправлений и список ручных проверок: [UPGRADE_REPORT.md](https://github.com/Sking32/Cleaner/blob/master/UPGRADE_REPORT.md).
+Результаты исправлений и список ручных проверок: [UPGRADE_REPORT.md](https://github.com/Sking32/Cleaner/blob/master/docs/internal/UPGRADE_REPORT.md).
 
 ## Beta 1.1.0 и передача друзьям
 
-Добавлены «Что нового?», полная история очистки, отдельный анализ без изменений, пользовательские пресеты, плотность списков и сохранение окна. Инструкции сборки portable EXE: [RELEASE_GUIDE.md](RELEASE_GUIDE.md). Сценарии проверки: [FRIEND_TESTING.md](FRIEND_TESTING.md). Отчёт основного обновления и ограничения: [BETA_REPORT.md](https://github.com/Sking32/Cleaner/blob/master/BETA_REPORT.md). Правки интерфейса в текущей версии 1.1.0-beta.2: [PATCH_REPORT.md](https://github.com/Sking32/Cleaner/blob/master/PATCH_REPORT.md).
+Добавлены «Что нового?», полная история очистки, отдельный анализ без изменений, пользовательские пресеты, плотность списков и сохранение окна. Инструкции сборки portable EXE: [RELEASE_GUIDE.md](RELEASE_GUIDE.md). Сценарии проверки: [FRIEND_TESTING.md](../testing/FRIEND_TESTING.md). Отчёт основного обновления и ограничения: [BETA_REPORT.md](https://github.com/Sking32/Cleaner/blob/master/docs/internal/BETA_REPORT.md). Правки интерфейса в текущей версии 1.1.0-beta.2: [PATCH_REPORT.md](https://github.com/Sking32/Cleaner/blob/master/docs/internal/PATCH_REPORT.md).
 
 ## Диагностика
 
@@ -79,7 +79,7 @@ CLI поддерживает --report <путь.json> вместе с --preset �
 
 Определения поддерживают compatibility.minWindowsBuild, maxWindowsBuild и verifiedWindowsBuilds. Ограничения проверяются ядром до изменений; неподдерживаемый твик можно откатить, если он уже применён. Для категории Windows 11 задана нижняя граница 22000. Список подтверждённых сборок пока пуст: проверки заглушками не подтверждают эффект твика на реальной системе.
 
-Реализованный интерфейс и ручные проверки: [REDESIGN_REPORT.md](https://github.com/Sking32/Cleaner/blob/master/REDESIGN_REPORT.md).
+Реализованный интерфейс и ручные проверки: [REDESIGN_REPORT.md](https://github.com/Sking32/Cleaner/blob/master/docs/internal/REDESIGN_REPORT.md).
 
 ## Настройки и интерфейс
 

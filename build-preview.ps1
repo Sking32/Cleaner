@@ -24,7 +24,7 @@ foreach ($required in @('Cleaner.App.exe', 'Data\operations.json', 'Data\tweaks.
     if (-not (Test-Path -LiteralPath (Join-Path $packageDirectory $required) -PathType Leaf)) { throw ('Missing packaged file: ' + $required) }
 }
 # Only reviewed source documentation is copied. No profile data, settings, quarantine or logs are bundled.
-foreach ($document in @('README.md', 'README.ru.md', 'DEVELOPMENT.md', 'FRIEND_TESTING.md', 'RELEASE_GUIDE.md', 'PUBLISHING.md', 'RELEASE_NOTES.md')) {
+foreach ($document in @('README.md', 'README.ru.md')) {
     Copy-Item -LiteralPath (Join-Path $projectRoot $document) -Destination $packageDirectory
 }
 if (Test-Path -LiteralPath (Join-Path $projectRoot 'LICENSE')) { Copy-Item -LiteralPath (Join-Path $projectRoot 'LICENSE') -Destination $packageDirectory }
