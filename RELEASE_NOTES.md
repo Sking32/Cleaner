@@ -1,31 +1,38 @@
-# Cleaner 1.1.0-beta.3 — public test / открытое тестирование
-
-## English
-
-Windows x64 portable beta with .NET included. Download the ready-made ZIP and its SHA-256 file from Assets; extract everything and keep `Data` beside the EXE.
-
-New in this beta:
-
-- First-run safety notice with restore point creation on request and an option to continue exploring.
-- Reopen the notice in Settings; administrator permission is requested for point creation instead of every launch.
-- Match Windows display language, with Russian/English manual overrides.
-- English/Russian READMEs and a bilingual bug-report form.
-
-Start with the interface and analysis. System tweaks and service actions are still under testing: use a disposable VM for them. A restore point is not a backup of deleted personal files. Native restore-point creation and UAC still need manual verification; passing isolated tests does not replace this check. The beta is unsigned; do not disable Windows security to run it.
-
-[English guide](https://github.com/Sking32/Cleaner/blob/master/README.md) · [Report a bug](https://github.com/Sking32/Cleaner/issues)
+# Cleaner 1.1.0-beta.3 — тестирование / beta testing
 
 ## Русский
 
-Portable beta для Windows x64 со встроенным .NET. В Assets скачайте готовый ZIP и файл SHA-256, распакуйте архив целиком и оставьте `Data` рядом с EXE.
+Тестовый выпуск для Windows x64. Скачайте **Cleaner-1.1.0-beta.3-win-x64.zip** и **.zip.sha256** в разделе Assets. Распакуйте архив целиком; папка Data должна оставаться рядом с Cleaner.App.exe. .NET включён в сборку.
 
-В этом выпуске:
+В beta входят:
 
-- Памятка при первом запуске с предложением создать точку восстановления или продолжить знакомство.
-- Повторное открытие памятки в настройках; запрос прав для создания точки вместо запроса на каждом запуске.
-- Язык интерфейса Windows по умолчанию, ручной выбор русского и английского.
-- README на двух языках и форма отчёта об ошибке.
+- Обновлённый интерфейс, компактные списки, отдельные настройки, история действий и список версий.
+- Анализ без очистки, просмотр результатов и сохранение пользовательских пресетов.
+- Усиленные проверки очистки и карантина, обработка ошибок удаления и восстановления, защита важных служб и атомарное сохранение данных.
+- Памятка первого запуска с предложением создать точку восстановления и возможностью продолжить знакомство.
+- Язык интерфейса Windows по умолчанию и ручной выбор русского или английского.
+- Инструкции на двух языках и отдельные формы для ошибок и общего отзыва.
 
-Начните с интерфейса и анализа. Твики и управление службами ещё проверяются: используйте отдельную VM. Точка восстановления не заменяет резервную копию удалённых личных файлов. Реальное создание точки и UAC требуют ручной проверки; изолированные тесты её не заменяют. Beta не подписана; не отключайте защиту Windows ради запуска.
+Начните с интерфейса, настроек и анализа без очистки. Реальную очистку, службы, твики и создание точки проверяйте в отдельной Windows VM со снимком. Изолированные автотесты и проверки привязок пройдены; нативная совместимость системных действий ещё проверяется. Точка восстановления не возвращает удалённые личные файлы. Beta не подписана: не отключайте защиту Windows ради запуска.
 
-[Русская инструкция](https://github.com/Sking32/Cleaner/blob/master/README.ru.md) · [Сообщить об ошибке](https://github.com/Sking32/Cleaner/issues)
+[Русская инструкция](https://github.com/Sking32/Cleaner/blob/master/README.ru.md) · [Ошибки и предложения](https://github.com/Sking32/Cleaner/issues/new/choose)
+
+## English
+
+A test release for Windows x64. Download **Cleaner-1.1.0-beta.3-win-x64.zip** and its **.zip.sha256** file under Assets. Extract everything and keep Data beside Cleaner.App.exe. The package includes .NET.
+
+This beta includes:
+
+- A refreshed interface, compact lists, separate settings, action history, and version history.
+- Analysis without cleanup, result inspection, and user presets.
+- Stronger cleanup and quarantine checks, deletion/recovery error handling, critical-service protection, and atomic data persistence.
+- First-launch safety guidance with optional restore-point creation.
+- Windows display-language detection and manual Russian/English selection.
+- Bilingual instructions and separate forms for bugs and general feedback.
+
+Start with the interface, settings, and analysis without cleanup. Use a disposable Windows VM with a snapshot for real cleanup, services, tweaks, and restore-point creation. Isolated automated tests and binding checks passed; native system-action compatibility is still under evaluation. A restore point is not a backup of deleted personal files. The beta is unsigned; do not disable Windows protection to run it.
+
+[English guide](https://github.com/Sking32/Cleaner/blob/master/README.md) · [Bugs and feedback](https://github.com/Sking32/Cleaner/issues/new/choose)
+
+Reports are public. Remove private paths and other personal data from screenshots; do not upload quarantine contents or registry backups.
+Отчёты публичные. Уберите личные данные со снимков; не прикладывайте карантин и бэкапы реестра.

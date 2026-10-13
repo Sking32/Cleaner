@@ -41,7 +41,7 @@ public interface IWhitelistService
 /// Хранится в %LOCALAPPDATA%\Cleaner\whitelist.json в виде массива строк.
 ///
 /// Поддерживаются правила трёх видов:
-///   1) Полный путь (case-insensitive):  C:\Users\Sking\Documents\important.docx
+///   1) Полный путь (case-insensitive):  C:\Users\Example\Documents\important.docx
 ///   2) Glob с * и ?:                     *.log,  temp_??.tmp,  C:\Projects\**
 ///   3) Regex с префиксом re:             re:^.*\.bak$
 /// </summary>

@@ -38,7 +38,7 @@ Preferences, history, recovery data and quarantine live under `%LOCALAPPDATA%\Cl
 
 ## Report a bug
 
-Open a [GitHub issue](https://github.com/Sking32/Cleaner/issues) or send the author a private message with:
+For a reproducible problem, open a [bug report](https://github.com/Sking32/Cleaner/issues/new/choose). For an idea or general experience, choose **Feedback / Предложение** in the issue form. A GitHub account is needed to submit a report. English and Russian reports are welcome. Include:
 
 - App version; Windows edition/build, architecture and display scale.
 - Interface language, page and steps to reproduce; whether administrator permission was used.
@@ -51,4 +51,4 @@ Check screenshots and exported reports for usernames, personal paths and file na
 
 [Developer guide](DEVELOPMENT.md) · [Build a portable package](RELEASE_GUIDE.md) · [Publish a beta / Публикация beta](PUBLISHING.md) · [Russian testing checklist](FRIEND_TESTING.md)
 
-Version history is also available inside **What’s new?**. Each update adds a new entry and retains earlier ones. For the first public test, the author should choose a project license, check native Windows behavior in a VM, and rebuild from the final committed source before uploading release assets. Dependency notices are included in the ZIP; the project’s own license has not yet been selected.
+Version history is also available inside **What’s new?**. Each update adds a new entry and retains earlier ones. Packages must be built from the final committed source. Native Windows actions still need verification in a disposable VM. Dependency notices are included in the ZIP; the project’s own license has not yet been selected.

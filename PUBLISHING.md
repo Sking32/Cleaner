@@ -1,53 +1,47 @@
-# Публикация тестовой версии / Publishing a test release
+# Публикация beta / Publishing the beta
 
-[Русская инструкция для пользователей](README.ru.md) · [English user guide](README.md)
+[Русская инструкция](README.ru.md) · [English guide](README.md)
 
-## Русский: рекомендуемый путь
+## Русский: когда черновик уже подготовлен
 
-Используйте **GitHub Releases → Pre-release** в [существующем репозитории Cleaner](https://github.com/Sking32/Cleaner). Это даёт одну страницу скачивания, историю версий и обратную связь через Issues. Отметка beta не означает, что GitHub проверил безопасность приложения. Сам GitHub не приведёт тестировщиков: после небольшой проверки друзьями делитесь ссылкой на релиз в сообществах Windows, где разрешены такие публикации.
+Для этой beta готовятся ZIP для Windows x64, SHA-256, описание на двух языках и GitHub-формы для ошибок и предложений. Публикация остаётся ручным решением владельца.
 
-### Подготовить пакет
+1. Войдите в GitHub под аккаунтом Sking32 и откройте https://github.com/Sking32/Cleaner/releases.
+2. Найдите `Cleaner 1.1.0-beta.3` с отметкой **Draft**. Пока выпуск в черновике, тестеры его не видят.
+3. Нажмите значок карандаша / **Edit**. Проверьте тег `v1.1.0-beta.3`, описание и два вложения: `Cleaner-1.1.0-beta.3-win-x64.zip` и `Cleaner-1.1.0-beta.3-win-x64.zip.sha256`.
+4. Оставьте **Set as a pre-release** включённым. Не выбирайте стабильный выпуск. Если хотите ещё подумать, нажмите **Save draft**.
+5. Когда решите начать тестирование, нажмите **Publish release** внизу страницы. Другие операции Git, сборка и загрузка файлов к этому моменту уже завершены.
+6. Откройте опубликованную страницу в приватном окне браузера, проверьте скачивание ZIP и скопируйте ссылку на конкретный выпуск.
+7. Передайте людям ссылку на выпуск и https://github.com/Sking32/Cleaner/issues/new/choose. Для отправки отзывов нужен аккаунт GitHub. Там можно выбрать ошибку или общий отзыв; обе формы принимают русский и английский.
 
-1. Просмотреть изменения и зафиксировать их вручную. Версия в `Directory.Build.props`, README и первая запись `Data/releases.json` должны совпадать.
-2. Выполнить сборку и изолированные тесты по `DEVELOPMENT.md`. Нативные действия проверить отдельно в одноразовой VM: первый запуск, UAC (подтверждение и отказ), реально включённая/отключённая защита системы, создание и проверка точки, очистка с возвратом файлов из карантина. Автотесты с заглушками этого не подтверждают.
-3. Выбрать собственную лицензию проекта и добавить `LICENSE`. Здесь лицензия за автора не назначалась. Проверить, что в репозитории нет пользовательских данных, ключей и журналов. `.test-sandbox`, `.recovery` и `artifacts` не загружать как исходники.
-4. После фиксации исходников запустить `powershell -NoProfile -File .\build-preview.ps1`. Перед публикацией пересобрать пакет из того же коммита, на который будет указывать тег релиза.
-5. Передавать готовый ZIP и его `.zip.sha256`. README на двух языках и уведомления о зависимостях включены в ZIP. Не выкладывать EXE отдельно от `Data` и не заменять файл уже переданной beta — для исправлений выпускать следующую версию.
+Готовое приглашение:
 
-### Создать выпуск вручную
+> Ищу тестеров Cleaner 1.1.0-beta.3 для Windows x64. Это beta: начните с интерфейса, настроек и анализа без очистки. Системные изменения проверяйте в отдельной Windows VM со снимком. Скачать полный ZIP и SHA-256: [вставьте ссылку на выпуск]. Ошибки и идеи: https://github.com/Sking32/Cleaner/issues/new/choose. Укажите версию приложения и Windows; уберите личные данные со скриншотов. Спасибо!
 
-1. Отправить проверенный коммит в свой репозиторий. Если тест должен быть публичным, убедиться, что людям доступна страница проекта; приватный репозиторий требует настроенного доступа.
-2. Открыть **Releases → Draft a new release**. Задать новый тег `v1.1.0-beta.3` на проверенном коммите и название `Cleaner 1.1.0-beta.3 — public test`.
-3. В описание вставить `RELEASE_NOTES.md`, указать x64, тестовый статус и известные ограничения.
-4. Прикрепить ZIP и `.zip.sha256`, отметить **Set as a pre-release**. Сначала сохранить черновик и проверить файлы и ссылки, затем опубликовать.
-5. Передать ссылку на конкретный релиз. В Assets люди выбирают готовый `Cleaner-…-win-x64.zip`, а не “Source code”. Попросить начать с интерфейса и анализа и использовать Issues для ошибок.
+EXE не подписан. Не просите тестеров отключать защиту Windows. Точка восстановления не заменяет копии личных файлов. Системные операции и создание точки ещё требуют ручных проверок в VM. Репозиторий и формы Issues публичные: не публикуйте приватные пути, пароли, карантин, бэкапы реестра или непроверенные журналы.
 
-Как устроены выпуски и загрузка файлов: [GitHub — управление Releases](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository), [GitHub — о Releases](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases).
+## English: publishing a prepared draft
 
-### После первых отзывов
+The beta uses a Windows x64 ZIP, SHA-256 checksum, bilingual release notes, and GitHub forms for bugs and feedback. The owner makes the final publication decision.
 
-Сначала исправлять сбои запуска, ошибки восстановления и потери данных. Для каждого нового пакета менять версию, добавлять RU/EN запись в историю, повторять подходящие проверки и прикладывать новую контрольную сумму. Не обещать подтверждённую совместимость с той сборкой Windows, на которой тест ещё не проводился. Подписывание EXE и установщик можно подготовить после стабилизации beta. Автоматическая публичная публикация в этом этапе не настроена.
+1. Sign in as Sking32 and open https://github.com/Sking32/Cleaner/releases.
+2. Find the `Cleaner 1.1.0-beta.3` **Draft**. Testers cannot see it until it is published.
+3. Click the pencil / **Edit**. Check tag `v1.1.0-beta.3`, release notes, and both assets: `Cleaner-1.1.0-beta.3-win-x64.zip` and its `.zip.sha256` file.
+4. Keep **Set as a pre-release** selected. Use **Save draft** if you need more time.
+5. When ready to invite testers, click **Publish release** at the bottom. Source preparation, packaging, and asset upload should already be complete.
+6. Check the published ZIP download in a private browser window, then share the specific release URL.
+7. Share https://github.com/Sking32/Cleaner/issues/new/choose for bugs and general feedback. A GitHub account is required to submit either form; English and Russian are welcome.
 
-## English: recommended workflow
+Invitation text:
 
-Use **GitHub Releases → Pre-release** in the [existing Cleaner repository](https://github.com/Sking32/Cleaner). It gives testers a download page, release history and Issues for feedback. A beta label is not a security review by GitHub. Start with a small group; then share the release link in Windows communities that allow testing invitations.
+> Looking for testers for Cleaner 1.1.0-beta.3 on Windows x64. Start with the interface, settings, and analysis without cleanup. Test system changes only in a disposable Windows VM with a snapshot. Download the complete ZIP and SHA-256: [insert release URL]. Bugs and ideas: https://github.com/Sking32/Cleaner/issues/new/choose. Include the app and Windows versions, and remove personal data from screenshots. Thank you!
 
-### Prepare
+The EXE is unsigned. Do not ask testers to disable Windows protection. A restore point is not a personal-file backup. Native system operations and restore-point creation still need manual VM validation. Issues are public; never upload secrets, private paths, quarantine contents, registry backups, or unreviewed logs.
 
-1. Review and commit the changes manually. Keep the application version, READMEs and first release-catalog entry consistent.
-2. Build and run isolated tests. Separately test native behavior in a disposable VM: first launch, UAC approval/cancellation, System Protection on/off, actual point creation and verification, and cleanup followed by quarantine recovery. Mock tests cannot establish native compatibility.
-3. Choose a project license and add `LICENSE`; this work does not choose one on the author's behalf. Check the repository for personal data and secrets. Do not upload `.test-sandbox`, `.recovery` or `artifacts` as source files.
-4. From the final committed source run `powershell -NoProfile -File .\build-preview.ps1`. Rebuild against the same commit that the release tag will reference.
-5. Distribute the complete ZIP and `.zip.sha256`. Both READMEs and dependency notices are included. Do not separate the EXE from `Data` or silently replace an already distributed beta; publish a new version for fixes.
+## Следующие beta / Future beta releases
 
-### Publish manually
+Для исправлений меняйте версию, сохраняйте старые записи в «Что нового?» и добавляйте новую запись RU/EN. Собирайте новый ZIP из коммита, на который указывает новый тег. Не заменяйте файлы уже опубликованной beta незаметно.
 
-1. Push the reviewed commit to your repository and make sure intended testers can access it.
-2. Open **Releases → Draft a new release**. Create `v1.1.0-beta.3` for the reviewed commit and use `Cleaner 1.1.0-beta.3 — public test` as the title.
-3. Paste `RELEASE_NOTES.md` into the description and attach the ZIP plus `.zip.sha256`.
-4. Select **Set as a pre-release**. Save and inspect a draft first; then publish.
-5. Share the specific release link. Ask testers to use the ready-made ZIP under Assets, start with interface checks and analysis, and report bugs through Issues.
+For fixes, increment the version, retain previous entries in What's new, and add a new bilingual entry. Build from the commit referenced by the new tag; do not silently replace an existing public beta.
 
-Official instructions: [Managing GitHub Releases](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository), [About Releases](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases).
-
-Prioritize launch failures, recovery failures and data loss. Each later package needs a new version, bilingual release entry, relevant checks and checksum. Only claim Windows compatibility that was actually tested. Code signing and an installer can follow after beta stabilization. No release is published automatically by this change.
+[GitHub: managing releases](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository)

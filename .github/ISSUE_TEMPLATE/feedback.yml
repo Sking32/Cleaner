@@ -1,0 +1,43 @@
+name: Feedback / Предложение
+description: Share an idea or your experience testing Cleaner / Предложить улучшение или поделиться впечатлением
+title: "[Feedback]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        English and Russian feedback are welcome.
+        Можно писать на русском или английском.
+        Do not include passwords, personal paths, logs, quarantine contents, or registry backups.
+        Не указывайте пароли и личные пути, не прикладывайте журналы, карантин и резервные копии реестра.
+  - type: input
+    id: version
+    attributes:
+      label: App version / Версия приложения
+      placeholder: 1.1.0-beta.3
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Feedback type / Тип отзыва
+      options:
+        - Feature idea / Идея функции
+        - Usability / Удобство использования
+        - Compatibility / Совместимость
+        - General experience / Общее впечатление
+        - Other / Другое
+    validations:
+      required: true
+  - type: textarea
+    id: experience
+    attributes:
+      label: What did you try, and what would you improve? / Что вы проверяли и что хотели бы улучшить?
+      description: Include the page or action and what outcome you expected. / Укажите страницу или действие и желаемый результат.
+      placeholder: Describe your idea or experience. / Опишите идею или впечатление.
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Windows version and interface language / Версия Windows и язык интерфейса
+      placeholder: Windows 11, build 26100, English
