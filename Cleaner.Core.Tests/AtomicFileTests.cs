@@ -50,16 +50,26 @@ public sealed class AtomicFileTests
     }
 
     [Fact]
-    public async Task RealTemporarySharingLockDoesNotLoseTheJournal()
+    public void RealTemporarySharingLockDoesNotLoseTheJournal()
     {
-        var path = Fixture(); var locked = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read);
-        using var attempted = new ManualResetEventSlim();
-        var release = Task.Run(() => { if (!attempted.Wait(TimeSpan.FromSeconds(5))) throw new TimeoutException(); Thread.Sleep(100); locked.Dispose(); });
-        try
+        var path = Fixture();
+        using var locked = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read);
+        var calls = 0;
+        var delays = new List<int>();
+        AtomicFile.Write(path, "after-lock", (source, target) =>
         {
-            await Task.Run(() => AtomicFile.Write(path, "after-lock", (source, target) => { attempted.Set(); File.Replace(source, target, null); }, Thread.Sleep));
-            await release; Assert.Equal("after-lock", File.ReadAllText(path));
-        }
-        finally { locked.Dispose(); }
+            calls++;
+            File.Replace(source, target, null);
+        }, delay =>
+        {
+            // Release the real sharing lock at the retry boundary, independently of thread-pool scheduling.
+            delays.Add(delay);
+            Assert.Equal("original", File.ReadAllText(path));
+            locked.Dispose();
+        });
+        Assert.Equal(2, calls);
+        Assert.Equal(new[] { 40 }, delays);
+        Assert.Equal("after-lock", File.ReadAllText(path));
+        Assert.Single(Directory.GetFiles(Path.GetDirectoryName(path)!));
     }
 }
