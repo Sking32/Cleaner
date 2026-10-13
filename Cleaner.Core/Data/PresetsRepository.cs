@@ -52,8 +52,12 @@ public sealed class PresetsRepository
         var doc = JsonSerializer.Deserialize<PresetsDocument>(File.ReadAllText(path), JsonOptions)
             ?? throw new InvalidOperationException($"Failed to deserialize {path}");
 
-        CleanupPresets = doc.CleanupPresets;
-        OptimizePresets = doc.OptimizePresets;
+        if (doc.SchemaVersion != 1 || doc.CleanupPresets == null || doc.OptimizePresets == null || doc.Conflicts == null || doc.RebootTweaks == null ||
+            doc.CleanupPresets.Any(p => p.Value == null || p.Value.Keys == null || p.Value.Keys.Any(string.IsNullOrWhiteSpace)) ||
+            doc.OptimizePresets.Any(p => p.Value == null || p.Value.Keys == null || p.Value.Keys.Any(string.IsNullOrWhiteSpace)))
+            throw new InvalidDataException("Invalid presets or unsupported schema: " + path);
+        CleanupPresets = new System.Collections.ObjectModel.ReadOnlyDictionary<string, CleanupPreset>(new Dictionary<string, CleanupPreset>(doc.CleanupPresets, StringComparer.OrdinalIgnoreCase));
+        OptimizePresets = new System.Collections.ObjectModel.ReadOnlyDictionary<string, OptimizePreset>(new Dictionary<string, OptimizePreset>(doc.OptimizePresets, StringComparer.OrdinalIgnoreCase));
         RebootTweaks = doc.RebootTweaks;
         Conflicts = doc.Conflicts;
     }

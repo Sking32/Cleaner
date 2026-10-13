@@ -11,6 +11,8 @@ namespace Cleaner.Core.Tests;
 
 public class OptimizeServiceTests : IDisposable
 {
+    private readonly MemoryRegistry _registry = new();
+    private readonly FakeCommands _commands = new();
     private readonly string _backupFile;
     private readonly string _appliedFile;
     private readonly BackupService _backup;
@@ -24,10 +26,12 @@ public class OptimizeServiceTests : IDisposable
         _backupFile = Path.Combine(Path.GetTempPath(), "cleaner-opt-bak-" + Guid.NewGuid().ToString("N") + ".json");
         _appliedFile = Path.Combine(Path.GetTempPath(), "cleaner-opt-app-" + Guid.NewGuid().ToString("N") + ".json");
 
-        _backup = new BackupService(_backupFile);
+        _backup = new BackupService(_backupFile, _registry, _commands);
         _appliedStore = new AppliedTweaksStore(_appliedFile);
-        _interp = new ActionInterpreter(_backup);
+        _interp = new ActionInterpreter(_backup, _registry, _commands);
         _tweaks = new TweakRepository();
+        foreach (var action in _tweaks.GetByKey("VisualFx")!.Apply.Where(a => a.Type == "regSet"))
+            _registry.SetValue(action.Hive!, action.Key!, "Fixture", 0, RegistryValueKind.DWord, true);
         var presets = new PresetsRepository();
 
         _svc = new OptimizeService(_tweaks, _interp, _backup, _appliedStore, presets);
@@ -50,7 +54,7 @@ public class OptimizeServiceTests : IDisposable
         Assert.True(r.Success, r.Error);
         Assert.True(_svc.IsAppliedByCleaner("VisualFx"));
 
-        var v = RegistryHelper.GetValue(
+        var v = _registry.GetValue(
             "HKCU",
             @"Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects",
             "VisualFXSetting");
@@ -86,7 +90,7 @@ public class OptimizeServiceTests : IDisposable
     [Fact]
     public void Rollback_Restores_OldValue()
     {
-        RegistryHelper.SetValue(
+        _registry.SetValue(
             "HKCU",
             @"Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects",
             "VisualFXSetting", 1, RegistryValueKind.DWord, true);
@@ -94,7 +98,7 @@ public class OptimizeServiceTests : IDisposable
         var apply = _svc.Apply("VisualFx");
         Assert.True(apply.Success, apply.Error);
 
-        var afterApply = RegistryHelper.GetValue(
+        var afterApply = _registry.GetValue(
             "HKCU",
             @"Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects",
             "VisualFXSetting");
@@ -103,7 +107,7 @@ public class OptimizeServiceTests : IDisposable
         var rb = _svc.Rollback("VisualFx");
         Assert.True(rb.Success, rb.Error);
 
-        var afterRollback = RegistryHelper.GetValue(
+        var afterRollback = _registry.GetValue(
             "HKCU",
             @"Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects",
             "VisualFXSetting");
@@ -114,6 +118,7 @@ public class OptimizeServiceTests : IDisposable
     [Fact]
     public void Rollback_Without_Backup_Fails()
     {
+        _appliedStore.MarkApplied("Cortana", false);
         var r = _svc.Rollback("Cortana");
         Assert.False(r.Success);
     }
@@ -178,7 +183,7 @@ public class OptimizeServiceTests : IDisposable
     public void RollbackAll_Restores_Everything()
     {
         // Готовим старое значение VisualFXSetting
-        RegistryHelper.SetValue(
+        _registry.SetValue(
             "HKCU",
             @"Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects",
             "VisualFXSetting", 1, RegistryValueKind.DWord, true);
@@ -190,7 +195,7 @@ public class OptimizeServiceTests : IDisposable
         Assert.True(restored >= 2);
         Assert.Equal(0, failed);
 
-        var v = RegistryHelper.GetValue(
+        var v = _registry.GetValue(
             "HKCU",
             @"Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects",
             "VisualFXSetting");

@@ -79,7 +79,7 @@ public class MultiPathCleanupHandlerTests : IDisposable
         Assert.True(result.Success);
         Assert.False(File.Exists(f1));
         Assert.False(File.Exists(f2));
-        Assert.Equal(2, result.FilesDeleted);
+        Assert.Equal(2, result.FilesQuarantined);
     }
 
     [Fact]

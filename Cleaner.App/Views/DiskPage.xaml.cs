@@ -8,11 +8,12 @@ namespace Cleaner.App.Views;
 
 public partial class DiskPage : Page
 {
+    public DiskPage() => InitializeComponent();
+
     public DiskPage(DiskViewModel vm)
     {
         InitializeComponent();
         DataContext = vm;
-        Loaded += (_, _) => AnimateIn();
     }
 
     private void AnimateIn()

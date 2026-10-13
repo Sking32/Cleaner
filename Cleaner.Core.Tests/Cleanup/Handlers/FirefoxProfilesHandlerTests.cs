@@ -30,7 +30,7 @@ public class FirefoxProfilesHandlerTests : IDisposable
         return new CleanupContext(
             new SafetyService(freshMinutes: 5),
             new WhitelistService(Path.Combine(_root, "wl.json")),
-            new QuarantineService(q));
+            new QuarantineService(q), dryRun: true, commands: new FakeCommands());
     }
 
     [Fact]

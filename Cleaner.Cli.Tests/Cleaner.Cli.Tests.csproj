@@ -5,6 +5,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<IsPackable>false</IsPackable>
+		<RunSettingsFilePath>$(MSBuildProjectDirectory)\..\isolated.runsettings</RunSettingsFilePath>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -20,6 +21,7 @@
 
 	<ItemGroup>
 		<Using Include="Xunit" />
+		<Compile Include="..\Cleaner.Core.Tests\IsolatedTestEnvironment.cs" Link="IsolatedTestEnvironment.cs" />
 	</ItemGroup>
 
 </Project>

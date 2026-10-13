@@ -21,10 +21,10 @@ public sealed class DismComponentCleanupHandler : ICleanupHandler
 
         try
         {
-            var result = CommandRunner.Run(
+            var result = ctx.Commands.Run(
                 "dism.exe",
                 "/Online /Cleanup-Image /StartComponentCleanup",
-                timeoutMs: 3_600_000);   // до часа
+                timeoutMs: 3_600_000, cancellationToken: ctx.CancellationToken);   // до часа
 
             ctx.Report(op.Key, Name, "dism.exe", 0, 0,
                 result.Success ? "done" : "failed");
@@ -34,6 +34,7 @@ public sealed class DismComponentCleanupHandler : ICleanupHandler
                 : CleanupOperationResult.Fail(
                     $"dism exit={result.ExitCode}: {result.StdErr.Trim()}".Trim());
         }
+        catch (OperationCanceledException) { throw; }
         catch (Exception ex)
         {
             return CleanupOperationResult.Fail($"dism: {ex.Message}");

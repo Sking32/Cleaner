@@ -8,11 +8,12 @@ namespace Cleaner.App.Views;
 
 public partial class PrivacyPage : Page
 {
+    public PrivacyPage() => InitializeComponent();
+
     public PrivacyPage(PrivacyViewModel vm)
     {
         InitializeComponent();
         DataContext = vm;
-        Loaded += (_, _) => AnimateIn();
     }
 
     private void AnimateIn()

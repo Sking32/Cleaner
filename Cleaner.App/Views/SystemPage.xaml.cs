@@ -1,41 +1,39 @@
 using System;
+using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
-using System.Windows.Media.Animation;
+using System.Windows.Input;
+using Cleaner.App.Localization;
+using Cleaner.App.Services;
 using Cleaner.App.ViewModels;
 
 namespace Cleaner.App.Views;
 
 public partial class SystemPage : Page
 {
-    public SystemPage(SystemViewModel vm)
+    private readonly IAppNotifications? _notify;
+
+    public SystemPage() => InitializeComponent();
+
+    public SystemPage(SystemViewModel vm, IAppNotifications notify)
     {
+        _notify = notify;
         InitializeComponent();
         DataContext = vm;
-        Loaded += (_, _) => AnimateIn();
     }
 
-    private void AnimateIn()
+    /// <summary>Клик по значению (версия Windows, имя компьютера и т.д.) копирует его в буфер обмена.</summary>
+    private void OnCopyValueClick(object sender, MouseButtonEventArgs e)
     {
-        Opacity = 0;
-        var fade = new DoubleAnimation
-        {
-            From = 0,
-            To = 1,
-            Duration = TimeSpan.FromMilliseconds(320),
-            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
-        };
-        BeginAnimation(OpacityProperty, fade);
+        if (sender is not TextBlock block || string.IsNullOrWhiteSpace(block.Text)) return;
 
-        var translate = new TranslateTransform(0, 18);
-        RenderTransform = translate;
-        var slide = new DoubleAnimation
+        try
         {
-            From = 18,
-            To = 0,
-            Duration = TimeSpan.FromMilliseconds(380),
-            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
-        };
-        translate.BeginAnimation(TranslateTransform.YProperty, slide);
+            Clipboard.SetText(block.Text);
+            _notify?.Success(Loc.T("ui.copied"), block.Text);
+        }
+        catch (Exception ex)
+        {
+            AppLog.Warn("Не удалось скопировать в буфер обмена: " + ex.Message);
+        }
     }
 }

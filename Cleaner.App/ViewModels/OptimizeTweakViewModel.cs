@@ -1,3 +1,4 @@
+using Cleaner.App.Localization;
 using System;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -32,13 +33,26 @@ public partial class OptimizeTweakViewModel : ObservableObject
 
     public bool HasWarn => !string.IsNullOrWhiteSpace(Warn);
     public bool HasShort => !string.IsNullOrWhiteSpace(Short);
+    public bool IsCompatible { get; }
+    public string CompatibilityText { get; }
+    public string CompatibilityLabel { get; }
 
     /// <summary>Полная метка уровня — для тултипа.</summary>
     public string LevelLabel => Level switch
     {
-        "safe" => "Безопасно",
-        "caution" => "Осторожно",
-        "danger" => "Опасно",
+        "safe" => Loc.T("t.bezopasno"),
+        "caution" => Loc.T("t.ostorozhno"),
+        "danger" => Loc.T("t.opasno"),
+        _ => Level
+    };
+
+    /// <summary>Понятное объяснение уровня риска — для тултипа.</summary>
+    public string LevelHint => Level switch
+    {
+        "safe" => Loc.T("level.safe.hint"),
+        "medium" => Loc.T("level.medium.hint"),
+        "caution" => Loc.T("level.caution.hint"),
+        "danger" => Loc.T("level.danger.hint"),
         _ => Level
     };
 
@@ -53,6 +67,7 @@ public partial class OptimizeTweakViewModel : ObservableObject
 
     [ObservableProperty]
     private bool _isApplied;
+    [ObservableProperty] private bool _isVisible = true;
 
     [ObservableProperty]
     private bool _isPendingReboot;
@@ -62,9 +77,14 @@ public partial class OptimizeTweakViewModel : ObservableObject
 
     [ObservableProperty]
     private string? _lastError;
+    public bool HasError => !string.IsNullOrWhiteSpace(LastError);
+    partial void OnLastErrorChanged(string? value) => OnPropertyChanged(nameof(HasError));
 
     /// <summary>UI-признак: разрешено ли переключение (не бизи).</summary>
-    public bool CanToggle => !IsBusy;
+    public bool CanToggle => !IsBusy && !IsOperationBusy && (IsApplied || IsCompatible);
+
+    [ObservableProperty] private bool _isOperationBusy;
+    partial void OnIsOperationBusyChanged(bool value) => OnPropertyChanged(nameof(CanToggle));
 
     public OptimizeTweakViewModel(
         TweakDefinition def,
@@ -82,6 +102,11 @@ public partial class OptimizeTweakViewModel : ObservableObject
         Short = shortText;
         Description = description;
         Warn = warn;
+        var compatibility = Cleaner.Core.Services.TweakCompatibilityService.Evaluate(def);
+        IsCompatible = compatibility.CanApply;
+        CompatibilityText = Loc.T(compatibility.MessageKey);
+        CompatibilityLabel = Loc.T(!compatibility.CanApply ? "compatibility.label.unsupported"
+            : compatibility.Verified ? "compatibility.label.verified" : "compatibility.label.unverified");
         _toggle = toggle ?? throw new ArgumentNullException(nameof(toggle));
     }
 
@@ -92,6 +117,7 @@ public partial class OptimizeTweakViewModel : ObservableObject
 
     partial void OnIsAppliedChanged(bool value)
     {
+        OnPropertyChanged(nameof(CanToggle));
         if (_suppressToggle) return;
         // Пользователь кликнул ToggleSwitch → вызываем родителя.
         _ = RunToggleAsync(value);
@@ -99,7 +125,7 @@ public partial class OptimizeTweakViewModel : ObservableObject
 
     private async Task RunToggleAsync(bool apply)
     {
-        if (IsBusy) return;
+        if (IsBusy || IsOperationBusy || apply && !IsCompatible) { SetAppliedSilently(!apply, IsPendingReboot); return; }
 
         IsBusy = true;
         LastError = null;

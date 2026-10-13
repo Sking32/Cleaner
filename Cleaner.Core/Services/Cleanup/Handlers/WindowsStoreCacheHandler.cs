@@ -21,13 +21,15 @@ public sealed class WindowsStoreCacheHandler : ICleanupHandler
 
         try
         {
-            var result = CommandRunner.Run("wsreset.exe", "-i", timeoutMs: 120_000);
+            var result = ctx.Commands.Run("wsreset.exe", "-i", timeoutMs: 120_000, cancellationToken: ctx.CancellationToken);
             ctx.Report(op.Key, Name, "wsreset.exe", 0, 0,
                 result.Success ? "done" : "failed");
 
             // wsreset возвращает 0 не всегда корректно; успех = процесс не упал.
-            return CleanupOperationResult.Ok(message: $"wsreset exit={result.ExitCode}");
+            return result.Success ? CleanupOperationResult.Ok(message: "Store cache reset")
+                : CleanupOperationResult.Fail($"wsreset exit={result.ExitCode}: {result.Combined.Trim()}");
         }
+        catch (OperationCanceledException) { throw; }
         catch (Exception ex)
         {
             return CleanupOperationResult.Fail($"wsreset: {ex.Message}");

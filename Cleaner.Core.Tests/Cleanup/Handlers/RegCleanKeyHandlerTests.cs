@@ -9,15 +9,17 @@ using Xunit;
 
 namespace Cleaner.Core.Tests.Cleanup.Handlers;
 
+
 public class RegCleanKeyHandlerTests : IDisposable
 {
+    private readonly MemoryRegistry _registry = new();
     private const string Hive = "HKCU";
     private const string RootKey = "Software\\CleanerTest_RegCleanKey";
     private readonly string _qDir;
 
     public RegCleanKeyHandlerTests()
     {
-        try { RegistryHelper.DeleteKey(Hive, RootKey, recursive: true); } catch { }
+        try { _registry.DeleteKey(Hive, RootKey, recursive: true); } catch { }
 
         _qDir = System.IO.Path.Combine(
             System.IO.Path.GetTempPath(),
@@ -27,14 +29,14 @@ public class RegCleanKeyHandlerTests : IDisposable
 
     public void Dispose()
     {
-        try { RegistryHelper.DeleteKey(Hive, RootKey, recursive: true); } catch { }
+        try { _registry.DeleteKey(Hive, RootKey, recursive: true); } catch { }
         try { if (System.IO.Directory.Exists(_qDir)) System.IO.Directory.Delete(_qDir, recursive: true); } catch { }
     }
 
     private CleanupContext Ctx()
         => new(new SafetyService(5),
                new WhitelistService(System.IO.Path.Combine(_qDir, "wl.json")),
-               new QuarantineService(_qDir));
+               new QuarantineService(_qDir), registry: _registry);
 
     private OperationEntry Op()
         => new()
@@ -48,18 +50,18 @@ public class RegCleanKeyHandlerTests : IDisposable
     [Fact]
     public void Deletes_Values_But_Keeps_Key()
     {
-        RegistryHelper.SetValue(Hive, RootKey, "a", "1", RegistryValueKind.String, true);
-        RegistryHelper.SetValue(Hive, RootKey, "b", "2", RegistryValueKind.String, true);
-        RegistryHelper.SetValue(Hive, RootKey, "URL1", "https://x", RegistryValueKind.String, true);
+        _registry.SetValue(Hive, RootKey, "a", "1", RegistryValueKind.String, true);
+        _registry.SetValue(Hive, RootKey, "b", "2", RegistryValueKind.String, true);
+        _registry.SetValue(Hive, RootKey, "URL1", "https://x", RegistryValueKind.String, true);
 
         var handler = new RegCleanKeyHandler();
         var result = handler.Run(Op(), Ctx());
 
         Assert.True(result.Success, string.Join(";", result.Errors));
-        Assert.True(RegistryHelper.KeyExists(Hive, RootKey));
-        Assert.Null(RegistryHelper.GetValue(Hive, RootKey, "URL1"));
-        Assert.Null(RegistryHelper.GetValue(Hive, RootKey, "a"));
-        Assert.Null(RegistryHelper.GetValue(Hive, RootKey, "b"));
+        Assert.True(_registry.KeyExists(Hive, RootKey));
+        Assert.Null(_registry.GetValue(Hive, RootKey, "URL1"));
+        Assert.Null(_registry.GetValue(Hive, RootKey, "a"));
+        Assert.Null(_registry.GetValue(Hive, RootKey, "b"));
     }
 
     [Fact]
@@ -88,7 +90,7 @@ public class RegCleanKeyHandlerTests : IDisposable
     [Fact]
     public void DryRun_Does_Not_Delete()
     {
-        RegistryHelper.SetValue(Hive, RootKey, "keep", "1", RegistryValueKind.String, true);
+        _registry.SetValue(Hive, RootKey, "keep", "1", RegistryValueKind.String, true);
         var ctx = new CleanupContext(
             new SafetyService(5),
             new WhitelistService(System.IO.Path.Combine(_qDir, "wl.json")),
@@ -98,7 +100,7 @@ public class RegCleanKeyHandlerTests : IDisposable
         var handler = new RegCleanKeyHandler();
         handler.Run(Op(), ctx);
 
-        Assert.Equal("1", RegistryHelper.GetValue(Hive, RootKey, "keep"));
+        Assert.Equal("1", _registry.GetValue(Hive, RootKey, "keep"));
     }
 
     [Theory]

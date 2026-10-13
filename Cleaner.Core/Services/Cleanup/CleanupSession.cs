@@ -7,6 +7,9 @@ namespace Cleaner.Core.Services.Cleanup;
 public sealed class CleanupSessionResult
 {
     public long BytesFreed { get; init; }
+    public long PreviewBytes { get; init; }
+    public long BytesQuarantined { get; init; }
+    public int FilesQuarantined { get; init; }
     public int FilesDeleted { get; init; }
     public int FilesSkipped { get; init; }
     public int OperationsRun { get; init; }
@@ -16,6 +19,8 @@ public sealed class CleanupSessionResult
 
     /// <summary>Была ли сессия отменена пользователем.</summary>
     public bool Canceled { get; init; }
+    public IReadOnlyList<CleanupSkip> SkipDetails { get; init; } = Array.Empty<CleanupSkip>();
+    public int OmittedSkipDetails { get; init; }
 }
 
 public sealed class OperationOutcome
@@ -23,7 +28,12 @@ public sealed class OperationOutcome
     public string Key { get; init; } = "";
     public string Handler { get; init; } = "";
     public bool Success { get; init; }
+    public bool Canceled { get; init; }
+    public string? Message { get; init; }
     public long BytesFreed { get; init; }
+    public long PreviewBytes { get; init; }
+    public long BytesQuarantined { get; init; }
+    public int FilesQuarantined { get; init; }
     public int FilesDeleted { get; init; }
     public int FilesSkipped { get; init; }
     public IReadOnlyList<string> Errors { get; init; } = Array.Empty<string>();

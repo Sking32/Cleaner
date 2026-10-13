@@ -1,3 +1,4 @@
+using Cleaner.App.Localization;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -15,8 +16,10 @@ using Wpf.Ui.Controls;
 
 namespace Cleaner.App.ViewModels;
 
-public partial class CleanupViewModel : ObservableObject
+public partial class CleanupViewModel : HelpViewModelBase
 {
+    protected override string HelpKey => "cleanup";
+
     private readonly OperationsRepository _ops;
     private readonly PresetsRepository _presets;
     private readonly LocalizationRepository _loc;
@@ -26,6 +29,26 @@ public partial class CleanupViewModel : ObservableObject
     private readonly IQuarantineService _quarantine;
 
     private CancellationTokenSource? _cts;
+    private CleanupReport? _lastReport;
+    [ObservableProperty] private int _currentStage;
+    [ObservableProperty] private string _previewSizeText = "—";
+    [ObservableProperty] private string _resultSummary = "";
+    public bool CanEditSelection => !IsRunning;
+
+    private bool CanExportReport() => !IsRunning && _lastReport != null;
+
+    [RelayCommand(CanExecute = nameof(CanExportReport))]
+    private void ExportReport()
+    {
+        try
+        {
+            var path = ReportExport.ChoosePath("Cleaner-cleanup");
+            if (path == null || _lastReport == null) return;
+            _lastReport.Save(path);
+            StatusText = Loc.F("report.saved", path);
+        }
+        catch (Exception ex) { StatusText = Loc.T("t.oshibka") + ex.Message; }
+    }
 
     public ObservableCollection<CleanupPresetViewModel> Presets { get; } = new();
     public ObservableCollection<CleanupCategoryViewModel> Categories { get; } = new();
@@ -37,7 +60,7 @@ public partial class CleanupViewModel : ObservableObject
     private bool _isRunning;
 
     [ObservableProperty]
-    private string _statusText = "Готово";
+    private string _statusText = Loc.T("t.gotovo");
 
     [ObservableProperty]
     private string _bytesFreedText = "";
@@ -52,8 +75,8 @@ public partial class CleanupViewModel : ObservableObject
 
     /// <summary>Текст кнопки «Запустить» с счётчиком (или без, если 0).</summary>
     public string RunButtonText => CheckedCount <= 0
-        ? "Запустить"
-        : $"Запустить ({CheckedCount})";
+        ? Loc.T("t.zapustit")
+        : Loc.F("t.zapustit_2", CheckedCount);
 
     public CleanupViewModel(
         OperationsRepository ops,
@@ -163,7 +186,7 @@ public partial class CleanupViewModel : ObservableObject
 
         PresetNoteText = value.Note;
         OnPropertyChanged(nameof(HasPresetNote));
-        StatusText = $"Пресет: {value.Name}";
+        StatusText = Loc.F("t.preset", value.Name);
         UpdateCheckedCount();
     }
 
@@ -182,13 +205,16 @@ public partial class CleanupViewModel : ObservableObject
 
         if (selected.Count == 0)
         {
-            StatusText = "Ничего не выбрано";
+            StatusText = Loc.T("t.nichego_ne_vybrano");
             return;
         }
 
         IsRunning = true;
+        CurrentStage = 1;
+        PreviewSizeText = "—";
+        ResultSummary = "";
         BytesFreedText = "";
-        StatusText = "Анализ: проверяем, что будет очищено...";
+        StatusText = Loc.T("t.analiz_proveryaem_chto_budet_ochischeno");
         _cts = new CancellationTokenSource();
 
         try
@@ -209,19 +235,21 @@ public partial class CleanupViewModel : ObservableObject
                 dryRun: true);
 
             var scan = await Task.Run(() => _runner.Run(selected, scanCtx, token), token);
+            _lastReport = new CleanupReport { DryRun = true, Result = scan };
+            PreviewSizeText = FormatBytes(scan.PreviewBytes);
 
             if (scan.Canceled)
             {
-                StatusText = "Отменено: ничего не удалено";
+                StatusText = Loc.T("t.otmeneno_nichego_ne_udaleno");
                 return;
             }
 
             var hasNonFileOps = selectedOps.Any(o =>
                 o.Handler is not ("PathCleanup" or "PathCleanupRecursive" or "MultiPathCleanup"));
 
-            if (scan.BytesFreed <= 0 && !hasNonFileOps)
+            if (scan.PreviewBytes <= 0 && !hasNonFileOps)
             {
-                StatusText = "Нечего очищать: выбранные места уже чистые";
+                StatusText = Loc.T("t.nechego_ochischat_vybrannye_mesta_uzhe_chist");
                 return;
             }
 
@@ -231,20 +259,22 @@ public partial class CleanupViewModel : ObservableObject
                 .ToList();
 
             // Шаг 2. Подтверждение пользователя.
-            if (!ConfirmRun(selected.Count, scan.BytesFreed, dangerNames, hasNonFileOps))
+            CurrentStage = 2;
+            if (!await ConfirmRunAsync(selected.Count, scan.PreviewBytes, dangerNames, hasNonFileOps))
             {
-                StatusText = "Отменено: ничего не удалено";
+                StatusText = Loc.T("t.otmeneno_nichego_ne_udaleno");
                 return;
             }
 
             // Шаг 3. Настоящая очистка.
+            CurrentStage = 3;
             if (dangerNames.Count > 0)
             {
-                StatusText = "Создаём точку восстановления Windows...";
-                await SessionRestorePoint.EnsureAsync("перед очисткой");
+                StatusText = Loc.T("t.sozdaem_tochku_vosstanovleniya_windows");
+                if (!await SessionRestorePoint.EnsureAsync(Loc.T("t.pered_ochistkoy"))) return;
             }
 
-            StatusText = "Выполняется очистка...";
+            StatusText = Loc.T("t.vypolnyaetsya_ochistka");
             AppLog.Info($"Очистка: операций {selected.Count} ({string.Join(", ", selected)})");
 
             var ctx = new CleanupContext(
@@ -254,6 +284,8 @@ public partial class CleanupViewModel : ObservableObject
                 dryRun: false);
 
             var result = await Task.Run(() => _runner.Run(selected, ctx, token), token);
+            _lastReport = new CleanupReport { DryRun = false, Result = result, QuarantineDirectory = _quarantine.SessionDirectory };
+            ResultSummary = Loc.F("design.cleanup.result", result.FilesQuarantined, result.FilesSkipped, result.OperationsFailed);
 
             foreach (var outcome in result.Outcomes)
             {
@@ -265,23 +297,42 @@ public partial class CleanupViewModel : ObservableObject
                         $"ошибок {result.OperationsFailed}, освобождено {FormatBytes(result.BytesFreed)}");
 
             StatusText = result.Canceled
-                ? $"Отменено. Обработано операций: {result.OperationsRun}"
-                : $"Готово: удалено {result.FilesDeleted}, пропущено {result.FilesSkipped}, " +
-                  $"ошибок: {result.OperationsFailed}";
+                ? Loc.F("t.otmeneno_obrabotano_operaciy", result.OperationsRun)
+                : Loc.F("t.gotovo_udaleno_propuscheno", result.FilesQuarantined, result.FilesSkipped) +
+                  Loc.F("t.oshibok", result.OperationsFailed);
 
-            BytesFreedText = "Освобождено: " + FormatBytes(result.BytesFreed);
+            if (result.OperationsRun > 0)
+            {
+                UserSettings.AddCleanup(new CleanupHistoryEntry
+                {
+                    Time = DateTime.Now,
+                    BytesFreed = result.BytesFreed,
+                    BytesQuarantined = result.BytesQuarantined,
+                    FilesQuarantined = result.FilesQuarantined,
+                    Operations = result.OperationsRun,
+                    FilesDeleted = result.FilesDeleted,
+                    FilesSkipped = result.FilesSkipped,
+                    OperationsFailed = result.OperationsFailed,
+                    Canceled = result.Canceled,
+                    DurationMs = (long)result.Duration.TotalMilliseconds,
+                    Outcomes = result.Outcomes.ToList()
+                });
+            }
+
+            await AnimateFreedAsync(result.BytesQuarantined);
         }
         catch (OperationCanceledException)
         {
-            StatusText = "Отменено";
+            StatusText = Loc.T("t.otmeneno");
         }
         catch (Exception ex)
         {
             AppLog.Error("Ошибка очистки", ex);
-            StatusText = "Ошибка: " + ex.Message;
+            StatusText = Loc.T("t.oshibka") + ex.Message;
         }
         finally
         {
+            CurrentStage = 4;
             IsRunning = false;
             _cts?.Dispose();
             _cts = null;
@@ -290,43 +341,58 @@ public partial class CleanupViewModel : ObservableObject
     }
 
     /// <summary>Окно подтверждения перед настоящей очисткой.</summary>
-    private static bool ConfirmRun(int operationsCount, long bytes, IReadOnlyList<string> dangerNames, bool hasNonFileOps)
+    private static async Task<bool> ConfirmRunAsync(int operationsCount, long bytes, IReadOnlyList<string> dangerNames, bool hasNonFileOps)
     {
         var sb = new System.Text.StringBuilder();
-        sb.AppendLine($"Выбрано операций: {operationsCount}.");
-        sb.AppendLine($"Ориентировочно будет освобождено: {FormatBytes(bytes)}.");
+        sb.AppendLine(Loc.F("t.vybrano_operaciy", operationsCount));
+        sb.AppendLine(Loc.F("t.orientirovochno_budet_osvobozhdeno", FormatBytes(bytes)));
         sb.AppendLine();
 
         if (dangerNames.Count > 0)
         {
-            sb.AppendLine("Среди выбранного есть операции повышенного риска:");
+            sb.AppendLine(Loc.T("t.sredi_vybrannogo_est_operacii_povyshennogo_r"));
             foreach (var name in dangerNames)
                 sb.AppendLine("  • " + name);
             sb.AppendLine();
-            sb.AppendLine("Перед очисткой будет создана точка восстановления Windows (если включена защита системы).");
+            sb.AppendLine(Loc.T("t.pered_ochistkoy_budet_sozdana_tochka_vosstan"));
             sb.AppendLine();
         }
 
-        sb.AppendLine("Удаляемые файлы сначала попадают в карантин — их можно вернуть на странице «Приватность».");
+        sb.AppendLine(Loc.T("t.udalyaemye_fayly_snachala_popadayut_v_karant"));
 
         if (hasNonFileOps)
         {
             sb.AppendLine();
-            sb.AppendLine("Часть операций (реестр, системные команды, Windows.old) может не иметь отката.");
+            sb.AppendLine(Loc.T("t.chast_operaciy_reestr_sistemnye_komandy_wind"));
         }
 
         sb.AppendLine();
-        sb.Append("Продолжить?");
+        sb.Append(Loc.T("t.prodolzhit"));
 
-        var result = System.Windows.MessageBox.Show(
-            sb.ToString(),
-            "Подтверждение очистки",
-            System.Windows.MessageBoxButton.YesNo,
-            dangerNames.Count > 0
-                ? System.Windows.MessageBoxImage.Warning
-                : System.Windows.MessageBoxImage.Question);
+        return await Dialogs.ConfirmAsync(Loc.T("t.podtverzhdenie_ochistki"), sb.ToString(), dangerNames.Count > 0);
+    }
 
-        return result == System.Windows.MessageBoxResult.Yes;
+    /// <summary>Анимированный счётчик освобождённого места (ease-out, ~0.8 с).</summary>
+    private async Task AnimateFreedAsync(long bytes)
+    {
+        var label = Loc.T("cleanup.quarantined");
+
+        if (bytes <= 0 || !Motion.Enabled)
+        {
+            BytesFreedText = label + FormatBytes(bytes);
+            return;
+        }
+
+        const int frames = 20;
+        for (var i = 1; i <= frames; i++)
+        {
+            var t = i / (double)frames;
+            var eased = 1 - Math.Pow(1 - t, 3);
+            BytesFreedText = label + FormatBytes((long)(bytes * eased));
+            await Task.Delay(40);
+        }
+
+        BytesFreedText = label + FormatBytes(bytes);
     }
 
     private bool CanRun() => !IsRunning;
@@ -342,8 +408,10 @@ public partial class CleanupViewModel : ObservableObject
 
     partial void OnIsRunningChanged(bool value)
     {
+        OnPropertyChanged(nameof(CanEditSelection));
         RunCommand.NotifyCanExecuteChanged();
         CancelCommand.NotifyCanExecuteChanged();
+        ExportReportCommand.NotifyCanExecuteChanged();
     }
 
     partial void OnCheckedCountChanged(int value)
@@ -357,6 +425,12 @@ public partial class CleanupViewModel : ObservableObject
 
     public void UpdateCheckedCount()
     {
+        if (!IsRunning)
+        {
+            CurrentStage = 0;
+            PreviewSizeText = "—";
+            ResultSummary = "";
+        }
         CheckedCount = Categories
             .SelectMany(c => c.Operations)
             .Count(o => o.IsChecked);

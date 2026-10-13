@@ -20,7 +20,8 @@ public enum BackupType
     ExpandString,
     MultiString,
     Binary,
-    Remove
+    Remove,
+    Command
 }
 
 public sealed class BackupEntry
@@ -31,6 +32,8 @@ public sealed class BackupEntry
     [JsonPropertyName("type")] public string Type { get; set; } = "DWord";
     [JsonPropertyName("category")] public string Category { get; set; } = "General";
     [JsonPropertyName("when")] public string When { get; set; } = "";
+    [JsonPropertyName("wasRunning")] public bool? WasRunning { get; set; }
+    [JsonPropertyName("keyExisted")] public bool? KeyExisted { get; set; }
 
     [JsonIgnore] public bool IsService => Type == "Service";
 }
@@ -38,10 +41,11 @@ public sealed class BackupEntry
 public interface IBackupService
 {
     void SaveBeforeChange(string backupKey, string hive, string subKey, string name, string category = "General");
-    void SaveServiceBeforeChange(string backupKey, string serviceName, string oldStartType, string category = "General");
+    void SaveServiceBeforeChange(string backupKey, string serviceName, string oldStartType, string category = "General", bool? wasRunning = null);
     void SaveRaw(string backupKey, string path, string name, object? oldValue, BackupType type, string category = "General");
 
-    bool RestoreByKey(string backupKey);
+    bool RestoreByKey(string backupKey, bool retainBackup = false);
+    void RemoveEntries(IEnumerable<string> keys);
     bool RestoreService(string serviceName);
     (int Restored, int Failed) RestoreAll();
 
@@ -58,6 +62,8 @@ public sealed class BackupService : IBackupService
 {
     private readonly Dictionary<string, BackupEntry> _entries = new();
     private readonly object _lock = new();
+    private readonly IRegistryAccess _registry;
+    private readonly ICommandExecutor _commands;
 
     public string BackupFilePath { get; }
 
@@ -71,8 +77,10 @@ public sealed class BackupService : IBackupService
         get { lock (_lock) return new Dictionary<string, BackupEntry>(_entries); }
     }
 
-    public BackupService(string? backupFilePath = null)
+    public BackupService(string? backupFilePath = null, IRegistryAccess? registry = null, ICommandExecutor? commands = null)
     {
+        _registry = registry ?? new WindowsRegistryAccess();
+        _commands = commands ?? new SystemCommandExecutor();
         if (string.IsNullOrWhiteSpace(backupFilePath))
         {
             var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
@@ -95,8 +103,8 @@ public sealed class BackupService : IBackupService
             if (_entries.ContainsKey(backupKey)) return;
 
             var path = $"{hive}\\{subKey}";
-            var oldValue = RegistryHelper.GetValue(hive, subKey, name);
-            var kind = RegistryHelper.GetValueKind(hive, subKey, name);
+            var oldValue = _registry.GetValue(hive, subKey, name);
+            var kind = _registry.GetValueKind(hive, subKey, name);
 
             BackupEntry entry;
             if (kind == null)
@@ -136,13 +144,13 @@ public sealed class BackupService : IBackupService
                     When = DateTime.UtcNow.ToString("o")
                 };
             }
+            entry.KeyExisted = _registry.KeyExists(hive, subKey);
 
-            _entries[backupKey] = entry;
-            Save();
+            PersistNew(backupKey, entry);
         }
     }
 
-    public void SaveServiceBeforeChange(string backupKey, string serviceName, string oldStartType, string category = "General")
+    public void SaveServiceBeforeChange(string backupKey, string serviceName, string oldStartType, string category = "General", bool? wasRunning = null)
     {
         if (string.IsNullOrWhiteSpace(backupKey)) throw new ArgumentException("backupKey is required");
 
@@ -150,16 +158,16 @@ public sealed class BackupService : IBackupService
         {
             if (_entries.ContainsKey(backupKey)) return;
 
-            _entries[backupKey] = new BackupEntry
+            PersistNew(backupKey, new BackupEntry
             {
                 Path = "",
                 Name = serviceName,
                 OldValue = JsonSerializer.SerializeToElement(oldStartType),
+                WasRunning = wasRunning,
                 Type = "Service",
                 Category = category,
                 When = DateTime.UtcNow.ToString("o")
-            };
-            Save();
+            });
         }
     }
 
@@ -169,94 +177,92 @@ public sealed class BackupService : IBackupService
         {
             if (_entries.ContainsKey(backupKey)) return;
 
-            _entries[backupKey] = new BackupEntry
+            PersistNew(backupKey, new BackupEntry
             {
                 Path = path,
                 Name = name,
-                OldValue = oldValue == null ? null : JsonSerializer.SerializeToElement(oldValue),
+                OldValue = oldValue == null ? null : JsonSerializer.SerializeToElement(
+                    type == BackupType.Binary && oldValue is byte[] bytes ? Convert.ToHexString(bytes) : oldValue),
                 Type = type.ToString(),
                 Category = category,
                 When = DateTime.UtcNow.ToString("o")
-            };
-            Save();
+            });
         }
     }
 
     // ---------- Restore ----------
 
-    public bool RestoreByKey(string backupKey)
+    public bool RestoreByKey(string backupKey, bool retainBackup = false)
     {
-        BackupEntry? entry;
         lock (_lock)
         {
-            if (!_entries.TryGetValue(backupKey, out entry)) return false;
-        }
-
-        var ok = RestoreEntry(entry);
-        if (ok)
-        {
-            lock (_lock)
+            if (!_entries.TryGetValue(backupKey, out var entry)) return false;
+            if (!RestoreEntry(entry)) return false;
+            if (retainBackup) return true;
+            _entries.Remove(backupKey);
+            try { Save(); return true; }
+            catch (Exception ex)
             {
-                _entries.Remove(backupKey);
-                Save();
+                _entries[backupKey] = entry;
+                CoreLog.Warn("Restored value but could not persist recovery progress", ex);
+                return false;
             }
         }
-        return ok;
+    }
+
+    public void RemoveEntries(IEnumerable<string> keys)
+    {
+        lock (_lock)
+        {
+            var saved = new Dictionary<string, BackupEntry>(_entries);
+            foreach (var key in keys) _entries.Remove(key);
+            try { Save(); }
+            catch { _entries.Clear(); foreach (var item in saved) _entries[item.Key] = item.Value; throw; }
+        }
     }
 
     public bool RestoreService(string serviceName)
     {
-        BackupEntry? entry;
         lock (_lock)
         {
-            entry = _entries.Values.FirstOrDefault(e => e.IsService && e.Name == serviceName);
-            if (entry == null) return false;
+            var key = _entries.FirstOrDefault(kv => kv.Value.IsService && kv.Value.Name == serviceName).Key;
+            return key != null && RestoreByKey(key);
         }
-
-        var ok = RestoreEntry(entry);
-        if (ok)
-        {
-            lock (_lock)
-            {
-                var key = _entries.First(kv => kv.Value == entry).Key;
-                _entries.Remove(key);
-                Save();
-            }
-        }
-        return ok;
     }
 
     public (int Restored, int Failed) RestoreAll()
     {
-        BackupEntry[] snapshot;
-        lock (_lock) snapshot = _entries.Values.ToArray();
-
+        string[] snapshot;
+        lock (_lock) snapshot = _entries.Keys.Reverse().ToArray();
         int ok = 0, fail = 0;
-        foreach (var e in snapshot)
-        {
-            if (RestoreEntry(e)) ok++;
-            else fail++;
-        }
-
-        if (fail == 0)
-        {
-            lock (_lock)
-            {
-                _entries.Clear();
-                Save();
-            }
-        }
+        foreach (var key in snapshot)
+            if (RestoreByKey(key)) ok++; else fail++;
         return (ok, fail);
     }
 
-    private static bool RestoreEntry(BackupEntry e)
+    private bool RestoreEntry(BackupEntry e)
     {
         try
         {
             if (e.IsService)
             {
                 var startType = e.OldValue?.GetString() ?? "Automatic";
-                return SetServiceStartType(e.Name, startType);
+                if (!System.Text.RegularExpressions.Regex.IsMatch(e.Name, @"^[A-Za-z0-9_.-]+$")) return false;
+                if (!SetServiceStartType(e.Name, startType)) return false;
+                if (e.WasRunning == null) return true;
+                var script = "$ErrorActionPreference='Stop'; $s=Get-Service -Name '" + e.Name + "'; " +
+                    (e.WasRunning.Value
+                        ? "if($s.Status -ne 'Running'){$s.Start()}; $s.WaitForStatus('Running',[TimeSpan]::FromSeconds(20))"
+                        : "if($s.Status -ne 'Stopped'){$s.Stop()}; $s.WaitForStatus('Stopped',[TimeSpan]::FromSeconds(20))");
+                return _commands.Run("powershell.exe", "-NoProfile -NonInteractive -EncodedCommand " +
+                    Convert.ToBase64String(Encoding.Unicode.GetBytes(script)), 30000).Success;
+            }
+
+            if (e.Type == nameof(BackupType.Command))
+            {
+                var restore = e.OldValue?.Deserialize<CommandRestore>();
+                return restore != null && CommandBackup.IsAllowed(restore)
+                    && _commands.Run(restore.FileName, restore.Arguments, 120000).Success;
             }
 
             if (string.IsNullOrWhiteSpace(e.Path)) return false;
@@ -268,7 +274,9 @@ public sealed class BackupService : IBackupService
 
             if (e.Type == BackupType.Remove.ToString())
             {
-                RegistryHelper.DeleteValue(hive, subKey, e.Name);
+                _registry.DeleteValue(hive, subKey, e.Name);
+                if (e.KeyExisted == false && _registry.GetValueNames(hive, subKey).Count == 0 && _registry.GetSubKeyNames(hive, subKey).Count == 0)
+                    if (_registry.KeyExists(hive, subKey) && !_registry.DeleteKey(hive, subKey, recursive: false)) return false;
                 return true;
             }
 
@@ -292,7 +300,7 @@ public sealed class BackupService : IBackupService
                 _ => throw new InvalidOperationException($"Unsupported backup type: {e.Type}")
             };
 
-            RegistryHelper.SetValue(hive, subKey, e.Name, value, MapBackupTypeToKind(kind), createKeyIfMissing: true);
+            _registry.SetValue(hive, subKey, e.Name, value, MapBackupTypeToKind(kind), createKeyIfMissing: true);
             return true;
         }
         catch { return false; }
@@ -323,8 +331,9 @@ public sealed class BackupService : IBackupService
     {
         lock (_lock)
         {
+            var saved = _entries.ToArray();
             _entries.Clear();
-            Save();
+            try { Save(); } catch { foreach (var item in saved) _entries[item.Key] = item.Value; throw; }
         }
     }
 
@@ -341,7 +350,7 @@ public sealed class BackupService : IBackupService
             {
                 foreach (var e in _entries.Values)
                 {
-                    if (e.IsService) continue;
+                    if (e.IsService || e.Type == nameof(BackupType.Command)) continue;
                     if (string.IsNullOrWhiteSpace(e.Path)) continue;
                     if (!byPath.ContainsKey(e.Path)) byPath[e.Path] = new();
                     byPath[e.Path].Add(e);
@@ -353,7 +362,7 @@ public sealed class BackupService : IBackupService
                 sb.AppendLine($"[{ToRegPath(path)}]");
                 foreach (var e in list)
                 {
-                    var namePart = string.IsNullOrEmpty(e.Name) ? "@" : $"\"{e.Name}\"";
+                    var namePart = string.IsNullOrEmpty(e.Name) ? "@" : $"\"{EscapeRegString(e.Name)}\"";
                     if (e.Type == BackupType.Remove.ToString())
                         sb.AppendLine($"{namePart}=-");
                     else
@@ -377,10 +386,12 @@ public sealed class BackupService : IBackupService
         {
             if (!File.Exists(BackupFilePath)) return;
             var json = File.ReadAllText(BackupFilePath);
-            if (string.IsNullOrWhiteSpace(json)) return;
+            if (string.IsNullOrWhiteSpace(json)) throw new InvalidDataException("Empty backup file.");
 
             var doc = JsonSerializer.Deserialize<Dictionary<string, BackupEntry>>(json);
-            if (doc == null) return;
+            if (doc == null || doc.Any(kv => string.IsNullOrWhiteSpace(kv.Key) || kv.Value == null || kv.Value.Name == null ||
+                kv.Value.Path == null || kv.Value.Type == null))
+                throw new InvalidDataException("Invalid backup entries.");
 
             lock (_lock)
             {
@@ -388,20 +399,19 @@ public sealed class BackupService : IBackupService
                 foreach (var (k, v) in doc) _entries[k] = v;
             }
         }
-        catch (Exception logEx) { CoreLog.Warn("Бэкап: ошибка при выполнении операции", logEx); }
+        catch (Exception logEx) { throw new IOException("Cannot read backup; existing recovery data must be preserved.", logEx); }
     }
 
     private void Save()
     {
-        try
-        {
-            var tmp = BackupFilePath + ".tmp";
-            var json = JsonSerializer.Serialize(_entries, new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(tmp, json);
-            File.Copy(tmp, BackupFilePath, overwrite: true);
-            File.Delete(tmp);
-        }
-        catch (Exception logEx) { CoreLog.Warn("Бэкап: ошибка при выполнении операции", logEx); }
+        AtomicFile.Write(BackupFilePath, JsonSerializer.Serialize(_entries, new JsonSerializerOptions { WriteIndented = true }));
+    }
+
+    private void PersistNew(string key, BackupEntry entry)
+    {
+        _entries.Add(key, entry);
+        try { Save(); }
+        catch { _entries.Remove(key); throw; }
     }
 
     // ---------- Helpers ----------
@@ -414,7 +424,7 @@ public sealed class BackupService : IBackupService
         RegistryValueKind.ExpandString => BackupType.ExpandString,
         RegistryValueKind.MultiString => BackupType.MultiString,
         RegistryValueKind.Binary => BackupType.Binary,
-        _ => BackupType.String
+        _ => throw new NotSupportedException("Cannot safely back up registry kind: " + kind)
     };
 
     private static RegistryValueKind MapBackupTypeToKind(BackupType type) => type switch
@@ -429,35 +439,24 @@ public sealed class BackupService : IBackupService
     };
 
     private static BackupType ParseBackupType(string s) =>
-        Enum.TryParse<BackupType>(s, ignoreCase: true, out var t) ? t : BackupType.String;
+        Enum.TryParse<BackupType>(s, ignoreCase: true, out var t) && Enum.IsDefined(t)
+            ? t : throw new InvalidDataException("Unsupported backup type: " + s);
 
-    private static bool SetServiceStartType(string serviceName, string startType)
+    private bool SetServiceStartType(string serviceName, string startType)
     {
         var scArg = startType?.ToLowerInvariant() switch
         {
             "automatic" or "auto" => "auto",
+            "automaticdelayed" => "delayed-auto",
             "manual" => "demand",
             "disabled" => "disabled",
-            _ => "auto"
+            "boot" => "boot",
+            "system" => "system",
+            _ => throw new InvalidOperationException("Unknown saved service start type")
         };
 
-        try
-        {
-            var psi = new ProcessStartInfo
-            {
-                FileName = "sc.exe",
-                Arguments = $"config \"{serviceName}\" start= {scArg}",
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true
-            };
-            using var p = Process.Start(psi);
-            if (p == null) return false;
-            p.WaitForExit(5000);
-            return p.ExitCode == 0;
-        }
-        catch { return false; }
+        if (ServiceHelper.IsProtected(serviceName) && scArg == "disabled") return false;
+        return _commands.Run("sc.exe", $"config \"{serviceName}\" start= {scArg}", 15000).Success;
     }
 
     private static string ToRegPath(string hiveKey)
@@ -486,14 +485,16 @@ public sealed class BackupService : IBackupService
         return type switch
         {
             BackupType.DWord => $"dword:{e.OldValue.Value.GetInt32():x8}",
-            BackupType.QWord => $"hex(b):{string.Concat(BitConverter.GetBytes(e.OldValue.Value.GetInt64()).Select(b => b.ToString("x2")))}",
+            BackupType.QWord => $"hex(b):{Hex(BitConverter.GetBytes(e.OldValue.Value.GetInt64()))}",
             BackupType.String => $"\"{EscapeRegString(e.OldValue.Value.GetString() ?? "")}\"",
-            BackupType.ExpandString => $"hex(2):{string.Concat(Encoding.Unicode.GetBytes(e.OldValue.Value.GetString() + "\0").Select(b => b.ToString("x2")))}",
-            BackupType.MultiString => $"hex(7):{string.Concat(Encoding.Unicode.GetBytes(string.Join("\0", e.OldValue.Value.EnumerateArray().Select(x => x.GetString())) + "\0\0").Select(b => b.ToString("x2")))}",
-            BackupType.Binary => $"hex:{string.Concat(ParseBinary(e.OldValue.Value).Select(b => b.ToString("x2")))}",
+            BackupType.ExpandString => $"hex(2):{Hex(Encoding.Unicode.GetBytes(e.OldValue.Value.GetString() + "\0"))}",
+            BackupType.MultiString => $"hex(7):{Hex(Encoding.Unicode.GetBytes(string.Join("\0", e.OldValue.Value.EnumerateArray().Select(x => x.GetString())) + "\0\0"))}",
+            BackupType.Binary => $"hex:{Hex(ParseBinary(e.OldValue.Value))}",
             _ => "\"\""
         };
     }
+
+    private static string Hex(byte[] bytes) => string.Join(",", bytes.Select(b => b.ToString("x2")));
 
     private static string EscapeRegString(string s) =>
         s.Replace("\\", "\\\\").Replace("\"", "\\\"");

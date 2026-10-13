@@ -1,3 +1,4 @@
+using Cleaner.App.Localization;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -13,8 +14,12 @@ using Wpf.Ui.Controls;
 
 namespace Cleaner.App.ViewModels;
 
-public partial class OptimizeViewModel : ObservableObject
+public partial class OptimizeViewModel : HelpViewModelBase
 {
+    protected override string HelpKey => "optimize";
+
+    public string SubtitleText => Loc.F("ui.optimize.subtitle", _tweaks.Tweaks.Count);
+
     private readonly IOptimizeService _optimize;
     private readonly TweakRepository _tweaks;
     private readonly PresetsRepository _presets;
@@ -23,6 +28,24 @@ public partial class OptimizeViewModel : ObservableObject
 
     public ObservableCollection<OptimizePresetViewModel> Presets { get; } = new();
     public ObservableCollection<OptimizeCategoryViewModel> Categories { get; } = new();
+    [ObservableProperty] private string _searchText = "";
+    [ObservableProperty] private bool _appliedOnly;
+    public bool HasNoSearchResults => Categories.All(c => !c.HasVisibleTweaks);
+    partial void OnSearchTextChanged(string value) => ApplySearch();
+    partial void OnAppliedOnlyChanged(bool value) => ApplySearch();
+    private void ApplySearch()
+    {
+        var query = SearchText.Trim();
+        foreach (var category in Categories)
+        {
+            foreach (var tweak in category.Tweaks)
+                tweak.IsVisible = (!AppliedOnly || tweak.IsApplied) &&
+                    (query.Length == 0 || (tweak.Name + " " + tweak.Short + " " + tweak.Description + " " + tweak.Key)
+                        .Contains(query, StringComparison.OrdinalIgnoreCase));
+            category.RefreshCounters();
+        }
+        OnPropertyChanged(nameof(HasNoSearchResults));
+    }
 
     [ObservableProperty]
     private OptimizePresetViewModel? _selectedPreset;
@@ -31,7 +54,7 @@ public partial class OptimizeViewModel : ObservableObject
     private bool _isBusy;
 
     [ObservableProperty]
-    private string _statusText = "Готово";
+    private string _statusText = Loc.T("t.gotovo");
 
     [ObservableProperty]
     private string _presetNoteText = "";
@@ -49,7 +72,7 @@ public partial class OptimizeViewModel : ObservableObject
 
     public string PendingRebootText => PendingRebootCount == 0
         ? ""
-        : $"⚠ Требуется перезагрузка: {PendingRebootCount}";
+        : Loc.F("t.trebuetsya_perezagruzka", PendingRebootCount);
 
     public OptimizeViewModel(
         IOptimizeService optimize,
@@ -124,6 +147,7 @@ public partial class OptimizeViewModel : ObservableObject
                 {
                     catVm.RefreshCounters();
                     UpdatePendingRebootCount();
+                    ApplySearch();
                 }
             };
             catVm.Tweaks.Add(tw);
@@ -132,12 +156,12 @@ public partial class OptimizeViewModel : ObservableObject
 
     private static string CategoryName(string key) => key switch
     {
-        "perf" => "Производительность",
-        "privacy" => "Приватность",
+        "perf" => Loc.T("t.proizvoditelnost"),
+        "privacy" => Loc.T("t.privatnost"),
         "win11" => "Windows 11",
-        "network" => "Сеть",
-        "maint" => "Обслуживание",
-        "games" => "Игры",
+        "network" => Loc.T("t.set"),
+        "maint" => Loc.T("t.obsluzhivanie"),
+        "games" => Loc.T("t.igry"),
         _ => key
     };
 
@@ -158,50 +182,55 @@ public partial class OptimizeViewModel : ObservableObject
 
     private async Task OnToggleTweakAsync(OptimizeTweakViewModel tweak, bool apply)
     {
+        if (IsBusy) { RefreshAll(); return; }
         IsBusy = true;
         try
         {
             if (apply && !string.Equals(tweak.Level, "safe", StringComparison.OrdinalIgnoreCase))
             {
-                if (!ConfirmTweak(tweak))
+                if (!await ConfirmTweakAsync(tweak))
                 {
                     tweak.SetAppliedSilently(false, false);
-                    StatusText = $"Отменено: {tweak.Name}";
+                    StatusText = Loc.F("t.otmeneno_2", tweak.Name);
                     return;
                 }
 
-                StatusText = "Создаём точку восстановления Windows...";
-                await SessionRestorePoint.EnsureAsync($"перед применением «{tweak.Name}»");
+                StatusText = Loc.T("t.sozdaem_tochku_vosstanovleniya_windows");
+                if (!await SessionRestorePoint.EnsureAsync(Loc.F("t.pered_primeneniem", tweak.Name)))
+                { RefreshAll(); return; }
             }
 
             var result = await Task.Run(() => apply ? _optimize.Apply(tweak.Key) : _optimize.Unapply(tweak.Key));
 
             if (result.Success)
             {
+                tweak.LastError = null;
                 tweak.SetAppliedSilently(
                     _optimize.IsAppliedByCleaner(tweak.Key),
                     _optimize.IsPendingReboot(tweak.Key));
-                StatusText = apply ? $"Применено: {tweak.Name}" : $"Отключено: {tweak.Name}";
-                _notify.Success(tweak.Name, apply ? "Твик применён" : "Твик отключён");
+                StatusText = apply ? Loc.F("t.primeneno", tweak.Name) : Loc.F("t.otklyucheno", tweak.Name);
+                _notify.Success(tweak.Name, apply ? Loc.T("t.tvik_primenen") : Loc.T("t.tvik_otklyuchen"));
             }
             else
             {
+                tweak.LastError = result.Error == null ? null : Loc.T(result.Error);
                 tweak.SetAppliedSilently(
                     _optimize.IsAppliedByCleaner(tweak.Key),
                     _optimize.IsPendingReboot(tweak.Key));
 
-                StatusText = "Ошибка: " + result.Error;
-                _notify.Error(tweak.Name, result.Error ?? "Не удалось выполнить");
+                StatusText = Loc.T("t.oshibka") + tweak.LastError;
+                _notify.Error(tweak.Name, tweak.LastError ?? Loc.T("t.ne_udalos_vypolnit"));
             }
         }
         catch (Exception ex)
         {
-            tweak.SetAppliedSilently(false, false);
-            StatusText = "Ошибка: " + ex.Message;
+            RefreshAll();
+            StatusText = Loc.T("t.oshibka") + ex.Message;
             _notify.Error(tweak.Name, ex.Message);
         }
         finally
         {
+            RefreshAll();
             IsBusy = false;
             UpdatePendingRebootCount();
             await Task.CompletedTask;
@@ -229,8 +258,8 @@ public partial class OptimizeViewModel : ObservableObject
 
         PresetNoteText = value.Key switch
         {
-            "safe" => "Включит все твики уровня «безопасно». Безопасный пресет для любого ПК.",
-            _ => $"Пресет «{value.Name}». Нажмите «Применить пресет», чтобы включить все его твики."
+            "safe" => Loc.T("t.vklyuchit_vse_tviki_urovnya_bezopasno_bezopa"),
+            _ => Loc.F("t.preset_nazhmite_primenit_preset_chtoby_vklyu", value.Name)
         };
 
         var conflictKeys = ResolvePresetKeys(value);
@@ -238,7 +267,7 @@ public partial class OptimizeViewModel : ObservableObject
         ConflictText = conflicts.Count == 0
             ? ""
             : string.Join("  ",
-                conflicts.Select(c => _loc.Has(c.MessageKey) ? _loc[c.MessageKey] : $"Конфликт: {c.A} ↔ {c.B}"));
+                conflicts.Select(c => _loc.Has(c.MessageKey) ? _loc[c.MessageKey] : Loc.F("t.konflikt", c.A, c.B)));
 
         OnPropertyChanged(nameof(HasPresetNote));
         OnPropertyChanged(nameof(HasConflict));
@@ -260,11 +289,11 @@ public partial class OptimizeViewModel : ObservableObject
     //  Команды
     // ------------------------------------------------------------------
 
-    private static bool ConfirmTweak(OptimizeTweakViewModel tweak)
+    private static async Task<bool> ConfirmTweakAsync(OptimizeTweakViewModel tweak)
     {
         var sb = new System.Text.StringBuilder();
         sb.AppendLine($"«{tweak.Name}»");
-        sb.AppendLine($"Уровень риска: {tweak.LevelLabel}.");
+        sb.AppendLine(Loc.F("t.uroven_riska", tweak.LevelLabel));
 
         if (tweak.HasWarn)
         {
@@ -275,59 +304,51 @@ public partial class OptimizeViewModel : ObservableObject
         if (tweak.RequiresReboot)
         {
             sb.AppendLine();
-            sb.AppendLine("Для применения потребуется перезагрузка.");
+            sb.AppendLine(Loc.T("t.dlya_primeneniya_potrebuetsya_perezagruzka"));
         }
 
         sb.AppendLine();
-        sb.AppendLine("Перед изменением будет создана точка восстановления Windows (если включена защита системы). " +
-                      "Изменение можно отключить этим же переключателем.");
+        sb.AppendLine(Loc.T("t.pered_izmeneniem_budet_sozdana_tochka_vossta") +
+                      Loc.T("t.izmenenie_mozhno_otklyuchit_etim_zhe_perekly"));
         sb.AppendLine();
-        sb.Append("Применить?");
+        sb.Append(Loc.T("t.primenit"));
 
-        return System.Windows.MessageBox.Show(
+        return await Dialogs.ConfirmAsync(
+            Loc.T("t.podtverzhdenie_izmeneniya"),
             sb.ToString(),
-            "Подтверждение изменения",
-            System.Windows.MessageBoxButton.YesNo,
-            string.Equals(tweak.Level, "danger", StringComparison.OrdinalIgnoreCase)
-                ? System.Windows.MessageBoxImage.Warning
-                : System.Windows.MessageBoxImage.Question) == System.Windows.MessageBoxResult.Yes;
+            string.Equals(tweak.Level, "danger", StringComparison.OrdinalIgnoreCase));
     }
 
-    private static bool ConfirmPreset(string presetName, int total, int risky)
+    private static async Task<bool> ConfirmPresetAsync(string presetName, int total, int risky)
     {
         var sb = new System.Text.StringBuilder();
-        sb.AppendLine($"Пресет «{presetName}»: будет применено твиков — {total}.");
+        sb.AppendLine(Loc.F("t.preset_budet_primeneno_tvikov", presetName, total));
 
         if (risky > 0)
         {
-            sb.AppendLine($"Из них с повышенным риском: {risky}.");
+            sb.AppendLine(Loc.F("t.iz_nih_s_povyshennym_riskom", risky));
             sb.AppendLine();
-            sb.AppendLine("Перед применением будет создана точка восстановления Windows (если включена защита системы).");
+            sb.AppendLine(Loc.T("t.pered_primeneniem_budet_sozdana_tochka_vosst"));
         }
 
         sb.AppendLine();
-        sb.AppendLine("Любой твик потом можно отключить отдельно, а кнопка отката вернёт исходные значения.");
+        sb.AppendLine(Loc.T("t.lyuboy_tvik_potom_mozhno_otklyuchit_otdelno"));
         sb.AppendLine();
-        sb.Append("Применить пресет?");
+        sb.Append(Loc.T("t.primenit_preset"));
 
-        return System.Windows.MessageBox.Show(
-            sb.ToString(),
-            "Подтверждение пресета",
-            System.Windows.MessageBoxButton.YesNo,
-            risky > 0
-                ? System.Windows.MessageBoxImage.Warning
-                : System.Windows.MessageBoxImage.Question) == System.Windows.MessageBoxResult.Yes;
+        return await Dialogs.ConfirmAsync(Loc.T("t.podtverzhdenie_preseta"), sb.ToString(), risky > 0);
     }
 
     [RelayCommand(CanExecute = nameof(CanRun))]
     private async Task ApplyPresetAsync()
     {
-        if (SelectedPreset is null) return;
+        if (SelectedPreset is null || IsBusy) return;
+        var preset = SelectedPreset;
 
-        var keys = ResolvePresetKeys(SelectedPreset);
+        var keys = ResolvePresetKeys(preset);
         if (keys.Count == 0)
         {
-            StatusText = "Пресет пуст";
+            StatusText = Loc.T("t.preset_pust");
             return;
         }
 
@@ -337,20 +358,19 @@ public partial class OptimizeViewModel : ObservableObject
             return d != null && !string.Equals(d.Level, "safe", StringComparison.OrdinalIgnoreCase);
         });
 
-        if (!ConfirmPreset(SelectedPreset.Name, keys.Count, riskyCount))
-        {
-            StatusText = "Отменено: ничего не изменено";
-            return;
-        }
-
         IsBusy = true;
         int ok = 0, failed = 0;
         try
         {
+            if (!await ConfirmPresetAsync(preset.Name, keys.Count, riskyCount))
+            {
+                StatusText = Loc.T("t.otmeneno_nichego_ne_izmeneno");
+                return;
+            }
             if (riskyCount > 0)
             {
-                StatusText = "Создаём точку восстановления Windows...";
-                await SessionRestorePoint.EnsureAsync($"перед применением пресета «{SelectedPreset.Name}»");
+                StatusText = Loc.T("t.sozdaem_tochku_vosstanovleniya_windows");
+                if (!await SessionRestorePoint.EnsureAsync(Loc.F("t.pered_primeneniem_preseta", preset.Name))) return;
             }
 
             foreach (var key in keys)
@@ -367,22 +387,23 @@ public partial class OptimizeViewModel : ObservableObject
                         tw.SetAppliedSilently(true, _optimize.IsPendingReboot(key));
                         ok++;
                     }
-                    else { failed++; }
+                    else { failed++; tw.LastError = result.Error == null ? null : Loc.T(result.Error); }
                 }
                 finally { tw.IsBusy = false; }
             }
 
-            StatusText = $"Пресет «{SelectedPreset.Name}»: применено {ok}, ошибок {failed}";
+            StatusText = Loc.F("t.preset_primeneno_oshibok", preset.Name, ok, failed);
 
             if (failed == 0)
-                _notify.Success($"Пресет «{SelectedPreset.Name}»", $"Применено твиков: {ok}");
+                _notify.Success(Loc.F("t.preset_2", preset.Name), Loc.F("t.primeneno_tvikov", ok));
             else
-                _notify.Warning($"Пресет «{SelectedPreset.Name}»", $"Успешно: {ok}, ошибок: {failed}");
+                _notify.Warning(Loc.F("t.preset_2", preset.Name), Loc.F("t.uspeshno_oshibok", ok, failed));
 
             await Task.CompletedTask;
         }
         finally
         {
+            RefreshAll();
             IsBusy = false;
             UpdatePendingRebootCount();
             RefreshAllCounters();
@@ -396,12 +417,12 @@ public partial class OptimizeViewModel : ObservableObject
         try
         {
             var (restored, failed) = await Task.Run(() => _optimize.RollbackAll());
-            StatusText = $"Откат: восстановлено {restored}, ошибок {failed}";
+            StatusText = Loc.F("t.otkat_vosstanovleno_oshibok", restored, failed);
 
             if (failed == 0)
-                _notify.Success("Откат выполнен", $"Восстановлено: {restored}");
+                _notify.Success(Loc.T("t.otkat_vypolnen"), Loc.F("t.vosstanovleno", restored));
             else
-                _notify.Error("Откат с ошибками", $"Восстановлено: {restored}, ошибок: {failed}");
+                _notify.Error(Loc.T("t.otkat_s_oshibkami"), Loc.F("t.vosstanovleno_oshibok", restored, failed));
         }
         finally
         {
@@ -411,13 +432,24 @@ public partial class OptimizeViewModel : ObservableObject
     }
 
     [RelayCommand(CanExecute = nameof(CanRun))]
-    private void Refresh()
+    private async Task RefreshAsync()
     {
-        RefreshAll();
-        StatusText = "Состояние обновлено";
+        if (IsBusy) return;
+        IsBusy = true;
+        try
+        {
+            RefreshAll();
+            var owned = Categories.SelectMany(c => c.Tweaks).Where(t => t.IsApplied && !t.IsPendingReboot).ToList();
+            var matches = await Task.Run(() => owned.ToDictionary(t => t.Key, t => _optimize.GetState(t.Key)));
+            foreach (var tweak in owned)
+                tweak.LastError = matches[tweak.Key] ? null : Loc.T("optimize.state.drift");
+            StatusText = Loc.T("t.sostoyanie_obnovleno");
+        }
+        catch (Exception ex) { StatusText = Loc.T("t.oshibka") + ex.Message; }
+        finally { IsBusy = false; }
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanRun))]
     private void ClearPreset()
     {
         SelectedPreset = null;
@@ -425,13 +457,15 @@ public partial class OptimizeViewModel : ObservableObject
         ConflictText = "";
         OnPropertyChanged(nameof(HasPresetNote));
         OnPropertyChanged(nameof(HasConflict));
-        StatusText = "Пресет не выбран";
+        StatusText = Loc.T("t.preset_ne_vybran");
     }
 
     private bool CanRun() => !IsBusy;
 
     partial void OnIsBusyChanged(bool value)
     {
+        foreach (var tw in Categories.SelectMany(c => c.Tweaks)) tw.IsOperationBusy = value;
+        ClearPresetCommand.NotifyCanExecuteChanged();
         ApplyPresetCommand.NotifyCanExecuteChanged();
         RollbackAllCommand.NotifyCanExecuteChanged();
         RefreshCommand.NotifyCanExecuteChanged();
