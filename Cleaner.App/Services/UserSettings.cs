@@ -12,6 +12,19 @@ namespace Cleaner.App.Services;
 /// </summary>
 public sealed class CleanupHistoryEntry
 {
+    public static CleanupHistoryEntry FromReport(Cleaner.Core.Services.Cleanup.CleanupReport report, string kind, string? error = null)
+    {
+        var r = report.Result;
+        return new() { Time = report.CreatedUtc, Kind = kind, ErrorText = error, Report = report, QuarantineDirectory = report.QuarantineDirectory,
+            BytesFreed = r.BytesFreed, BytesQuarantined = r.BytesQuarantined, FilesQuarantined = r.FilesQuarantined,
+            Operations = r.OperationsRun, FilesDeleted = r.FilesDeleted, FilesSkipped = r.FilesSkipped, OperationsFailed = r.OperationsFailed,
+            Canceled = r.Canceled || kind == "canceled", DurationMs = (long)r.Duration.TotalMilliseconds, Outcomes = r.Outcomes.ToList() };
+    }
+    public string Id { get; set; } = Guid.NewGuid().ToString("N");
+    public string Kind { get; set; } = "applied";
+    public string? ErrorText { get; set; }
+    public string? QuarantineDirectory { get; set; }
+    public Cleaner.Core.Services.Cleanup.CleanupReport? Report { get; set; }
     public DateTime Time { get; set; }
     public long BytesFreed { get; set; }
     public long BytesQuarantined { get; set; }
@@ -47,7 +60,19 @@ public static class UserSettings
     }
 
     public static string GetAccent() => Load().Accent is "teal" or "violet" ? Load().Accent : "blue";
-    public static string GetStartPage() => Load().StartPage is "optimize" or "startup" or "system" or "privacy" or "disk" ? Load().StartPage : "cleanup";
+    public static string GetStartPage() => Load().StartPage is "optimize" or "startup" or "system" or "privacy" or "disk" or "history" or "whatsnew" ? Load().StartPage : "cleanup";
+    public static string GetDensity() => Load().Density;
+    public static void SetDensity(string value) { lock (Gate) { Load().Density = value == "comfortable" ? value : "compact"; } Save(); }
+    public static WindowPlacement? GetWindow() => Load().Window;
+    public static void SetWindow(WindowPlacement value) { lock (Gate) { Load().Window = value; } Save(); }
+    public static IReadOnlyList<UserCleanupPreset> GetCleanupPresets() => Load().CleanupPresets.ToArray();
+    public static UserCleanupPreset SaveCleanupPreset(string name, IEnumerable<string> keys, IEnumerable<string> allowed)
+    {
+        UserCleanupPreset preset;
+        lock (Gate) { preset = Store.UpsertCleanupPreset(name, keys, allowed); }
+        Changed?.Invoke(); return preset;
+    }
+    public static void DeleteCleanupPreset(string id) { lock (Gate) { Store.DeleteCleanupPreset(id); } Changed?.Invoke(); }
     public static bool GetAnimations() => Load().Animations;
     public static bool GetShowMetrics() => Load().ShowMetrics;
     public static void SetAppearance(string accent, bool animations, bool showMetrics)
@@ -62,7 +87,7 @@ public static class UserSettings
     }
     public static void SetStartPage(string page)
     {
-        lock (Gate) { Load().StartPage = page is "optimize" or "startup" or "system" or "privacy" or "disk" ? page : "cleanup"; }
+        lock (Gate) { Load().StartPage = page is "optimize" or "startup" or "system" or "privacy" or "disk" or "history" or "whatsnew" ? page : "cleanup"; }
         Save();
     }
     public static void ResetHints()

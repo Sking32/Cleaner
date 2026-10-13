@@ -60,12 +60,30 @@ public sealed class QuarantineDeletionTests : IDisposable
     }
 
     [Fact]
+    public void RepeatedDirectoryMovesCommitBeforeReadOnlyDeletion()
+    {
+        for (var i = 0; i < 100; i++)
+        {
+            MakeFile(Path.Combine("batch" + i, "nested", "data.txt"));
+            var quarantine = new QuarantineService(Session);
+            var entry = quarantine.MoveToQuarantine(Path.Combine(_root, "source", "batch" + i), "fixture")!;
+            Assert.NotNull(entry);
+            Assert.False(entry.Pending, "Final journal update pending at iteration " + i + "; see CoreLog diagnostics.");
+            Assert.False(Assert.Single(new QuarantineService(Session).Entries).Pending);
+            MakeReadOnly(Path.Combine(Session, entry.StoredName, "nested", "data.txt"));
+            Assert.Equal(1, quarantine.ClearAll());
+            Assert.False(Directory.Exists(Session));
+        }
+    }
+
+    [Fact]
     public void ClearAllDeletesReadOnlyFilesAndNestedDirectories()
     {
         var original = MakeFile(Path.Combine("folder", "nested", "read-only.txt"));
         var sourceDirectory = Path.Combine(_root, "source", "folder");
         var quarantine = new QuarantineService(Session);
         var entry = quarantine.MoveToQuarantine(sourceDirectory, "fixture")!;
+        Assert.False(entry.Pending, "The fixture move did not commit its journal; see CoreLog diagnostics.");
         var storedDirectory = Path.Combine(Session, entry.StoredName);
         MakeReadOnly(Path.Combine(storedDirectory, "nested", "read-only.txt"));
         MakeReadOnly(Path.Combine(storedDirectory, "nested"));

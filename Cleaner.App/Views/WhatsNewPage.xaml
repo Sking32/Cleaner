@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml" xmlns:loc="clr-namespace:Cleaner.App.Localization" x:Class="Cleaner.App.Views.WhatsNewPage" Background="{DynamicResource BgBaseBrush}" Title="{loc:Loc news.title}">
+    <Page.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </Page.Resources>
+    <Grid Margin="24,20,24,18">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <StackPanel>
+            <TextBlock Text="{loc:Loc news.title}" Style="{StaticResource PageTitleStyle}"/>
+            <TextBlock Text="{Binding CurrentVersion}" Foreground="{DynamicResource AccentBrush}" FontSize="18" Margin="0,8,0,0"/>
+            <TextBlock Text="{loc:Loc news.subtitle}" Style="{StaticResource PageSubtitleStyle}" Margin="0,8,0,18"/>
+        </StackPanel>
+        <ui:InfoBar Grid.Row="1" Title="{loc:Loc news.load.failed}" Message="{Binding ErrorText}" IsOpen="{Binding HasError, Mode=OneWay}" IsClosable="False" Severity="Warning"/>
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="240"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Border Style="{StaticResource CardStyle}" Padding="8" Margin="0,0,14,0">
+                <ListBox ItemContainerStyle="{StaticResource SessionItemStyle}" ItemsSource="{Binding Releases}" SelectedItem="{Binding SelectedRelease}" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Margin="6,10">
+                                <TextBlock Text="{Binding Version}" FontSize="16" FontWeight="SemiBold"/>
+                                <TextBlock Text="{Binding DateText}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" Margin="0,4,0,0"/>
+                                <TextBlock Text="{loc:Loc news.current}" Foreground="{DynamicResource AccentBrush}" Margin="0,5,0,0" Visibility="{Binding IsCurrent, Converter={StaticResource BoolToVis}}"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Border>
+            <Border Grid.Column="1" Style="{StaticResource CardStyle}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel>
+                        <TextBlock Text="{Binding SelectedRelease.Title}" FontSize="24" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                        <TextBlock Text="{Binding SelectedRelease.Summary}" Style="{StaticResource PageSubtitleStyle}" Margin="0,10,0,24"/>
+                        <ItemsControl ItemsSource="{Binding SelectedRelease.Groups}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Visibility="{Binding HasItems, Converter={StaticResource BoolToVis}}" Margin="0,0,0,22">
+                                        <TextBlock Text="{Binding Title}" Style="{StaticResource SectionLabelStyle}" Margin="0,0,0,8"/>
+                                        <ItemsControl ItemsSource="{Binding Items}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Grid Margin="0,5">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="20"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Text="•" Foreground="{DynamicResource AccentBrush}"/>
+                                                        <TextBlock Grid.Column="1" Text="{Binding}" TextWrapping="Wrap"/>
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+    </Grid>
+</Page>

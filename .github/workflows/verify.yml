@@ -1,0 +1,46 @@
+name: Verify and package beta
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+      - name: Restore and audit every dependency
+        run: |
+          dotnet restore Cleaner.slnx -p:NuGetAudit=true -p:NuGetAuditMode=all '-warnaserror:NU1900;NU1901;NU1902;NU1903;NU1904'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Build
+        run: dotnet build Cleaner.slnx --no-restore --nologo -m:1
+      - name: Run isolated tests (no Windows integration)
+        run: ./run-isolated-tests.ps1 -NoBuild
+      - name: Build fixture UI host
+        run: dotnet build tools/VisualPreview/Cleaner.VisualPreview.csproj --nologo -m:1
+      - name: Check button bindings and navigation on fixture data
+        run: |
+          dotnet tools/VisualPreview/bin/Debug/net10.0-windows/Cleaner.VisualPreview.dll --bindings-only
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          dotnet tools/VisualPreview/bin/Debug/net10.0-windows/Cleaner.VisualPreview.dll en --bindings-only
+      - name: Package portable x64 beta
+        run: ./build-preview.ps1
+      - uses: actions/upload-artifact@v7
+        with:
+          name: Cleaner-beta-win-x64
+          path: |
+            artifacts/preview/*/*.zip
+            artifacts/preview/*/*.sha256
+          if-no-files-found: error
+          retention-days: 14

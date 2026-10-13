@@ -6,6 +6,7 @@
                 <ui:ControlsDictionary />
                 <ResourceDictionary Source="Themes/Tokens.xaml" />
             </ResourceDictionary.MergedDictionaries>
+            <Thickness x:Key="OperationRowPadding">10,6</Thickness>
             <!-- === Базовые стили === -->
             <!-- WPF-UI 4.3.0 resolves its pressed Foreground against TemplatedParent.
                  A button inside a DataTemplate has a ContentPresenter as that parent.
@@ -84,7 +85,7 @@
             </Style>
             <!-- === Строка операции/твика (hover-подсветка) === -->
             <Style x:Key="RowBorderStyle" TargetType="Border">
-                <Setter Property="Padding" Value="14,12" />
+                <Setter Property="Padding" Value="{DynamicResource OperationRowPadding}" />
                 <Setter Property="CornerRadius" Value="8" />
                 <Setter Property="Background" Value="Transparent" />
                 <Style.Triggers>
@@ -95,7 +96,7 @@
             </Style>
             <!-- === Базовые компоненты (на токенах) === -->
             <Style x:Key="CompactRowStyle" TargetType="Border" BasedOn="{StaticResource RowBorderStyle}">
-                <Setter Property="Padding" Value="10,6" />
+                <Setter Property="Padding" Value="{DynamicResource OperationRowPadding}" />
             </Style>
             <Style x:Key="CompactExpanderStyle" TargetType="Expander">
                 <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
@@ -196,12 +197,12 @@
             </Style>
             <Style x:Key="NavItemStyle" TargetType="ListBoxItem">
                 <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                <Setter Property="Margin" Value="0,3" />
+                <Setter Property="Margin" Value="0,2" />
                 <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="ListBoxItem">
-                            <Border x:Name="Surface" Background="Transparent" CornerRadius="10" Padding="14,13">
+                            <Border x:Name="Surface" Background="Transparent" CornerRadius="10" Padding="14,9">
                                 <Grid>
                                     <Border x:Name="Marker" Width="3" Height="18" HorizontalAlignment="Left" Margin="-14,0,0,0" CornerRadius="2" Background="Transparent" />
                                     <ContentPresenter VerticalAlignment="Center" />

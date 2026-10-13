@@ -12,9 +12,10 @@ public static class AppLog
 {
     private static readonly object Gate = new();
 
-    public static string LogDirectory { get; } = Path.Combine(
+    public static string LogDirectory { get; private set; } = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "Cleaner", "logs");
+    internal static void UsePreviewDirectory(string path) => LogDirectory = Path.GetFullPath(path);
 
     public static void Info(string message) => Write("INFO", message, null);
     public static void Warn(string message) => Write("WARN", message, null);

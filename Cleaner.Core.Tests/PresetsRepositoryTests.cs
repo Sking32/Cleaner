@@ -7,6 +7,15 @@ namespace Cleaner.Core.Tests;
 public class PresetsRepositoryTests
 {
     [Fact]
+    public void GentleAndStandardCleanupExcludeSystemCommandsAndIrreversibleDeletion()
+    {
+        var ops = new OperationsRepository(); var presets = new PresetsRepository();
+        var fileHandlers = new[] { "PathCleanup", "PathCleanupRecursive", "MultiPathCleanup", "BrowserProfiles", "FirefoxProfiles", "ObsLogs", "JumpLists", "ActivityHistory", "ThumbnailCache" };
+        foreach (var name in new[] { "soft", "std" })
+            Assert.All(presets.CleanupPresets[name].Keys, key => Assert.Contains(ops.GetByKey(key)!.Handler, fileHandlers));
+        Assert.DoesNotContain("downloads_smart", presets.CleanupPresets["deep"].Keys);
+    }
+    [Fact]
     public void Loads_Three_Cleanup_Presets()
     {
         var repo = new PresetsRepository();

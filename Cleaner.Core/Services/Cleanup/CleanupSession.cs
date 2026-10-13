@@ -21,7 +21,12 @@ public sealed class CleanupSessionResult
     public bool Canceled { get; init; }
     public IReadOnlyList<CleanupSkip> SkipDetails { get; init; } = Array.Empty<CleanupSkip>();
     public int OmittedSkipDetails { get; init; }
+    public IReadOnlyList<CleanupPreviewFile> PreviewFiles { get; init; } = Array.Empty<CleanupPreviewFile>();
+    public IReadOnlyDictionary<string, int> PreviewFileCounts { get; init; } = new Dictionary<string, int>();
+    public int OmittedPreviewFiles { get; init; }
 }
+
+public sealed record CleanupPreviewFile(string OperationKey, string Path, long Size);
 
 public sealed class OperationOutcome
 {

@@ -40,6 +40,7 @@ internal static class Program
             if (Directory.Exists(current) && (File.GetAttributes(current) & FileAttributes.ReparsePoint) != 0)
                 throw new InvalidOperationException("Preview output may not use junctions or symbolic links.");
         Directory.CreateDirectory(root);
+        AppLog.UsePreviewDirectory(Path.Combine(root, "logs"));
         Environment.SetEnvironmentVariable("TEMP", root);
         Environment.SetEnvironmentVariable("TMP", root);
         var store = new AppSettingsStore(Path.Combine(root, "settings.json"));
@@ -67,14 +68,22 @@ internal static class Program
         var system = new SystemPage { DataContext = SystemFixture() };
         var disk = new DiskPage { DataContext = DiskFixture(root) };
         var settings = new SettingsPage(new SettingsViewModel());
+        var history = new HistoryPage(new HistoryViewModel(() => new[] { CleanupHistoryEntry.FromReport(new Cleaner.Core.Services.Cleanup.CleanupReport { DryRun = true, Result = new() { OperationsRun = 2, PreviewBytes = 1048576, Outcomes = new[] { new Cleaner.Core.Services.Cleanup.OperationOutcome { Key = "temp_user", Handler = "PathCleanup", Success = true, PreviewBytes = 1048576 } } } }, "preview") }));
+        var news = new WhatsNewPage(new WhatsNewViewModel());
+        if (((WhatsNewViewModel)news.DataContext).HasError) throw new InvalidOperationException(((WhatsNewViewModel)news.DataContext).ErrorText);
         Console.WriteLine("Pages loaded");
-        var window = new MainWindow(cleanup, optimize, startup, system, privacy, disk, settings, null!, new SnackbarService());
+        var window = new MainWindow(cleanup, optimize, startup, system, privacy, disk, settings, history, news, null!, new SnackbarService());
         var frame = (Frame)window.FindName("RootFrame");
         var navigation = (ListBox)window.FindName("RootNavigation");
+        var titleBar = (TitleBar)window.FindName("AppTitleBar");
+        if (titleBar.Title != "Cleaner · " + AppVersion.Current || window.Title != titleBar.Title)
+            throw new InvalidOperationException("The header and window title must show the assembly version.");
+        if (navigation.Items.Cast<ListBoxItem>().Any(i => (string)i.Tag is "history" or "whatsnew") || navigation.Items.Count != 6)
+            throw new InvalidOperationException("History and release notes must be separate from the six primary tools.");
         ((Border)window.FindName("StatusBarHost")).DataContext = new { CpuText = "CPU · 8%", RamText = "RAM · 6.7 / 16 GB", DiskText = "C: · 128 GB" };
         Console.WriteLine("Shell loaded");
         // No Show(), Run(), startup code, real filesystem operations or OS mutations.
-        foreach (var (tag, page) in new (string, Page)[] { ("cleanup", cleanup), ("privacy", privacy), ("optimize", optimize), ("startup", startup), ("system", system), ("disk", disk), ("settings", settings) })
+        foreach (var (tag, page) in new (string, Page)[] { ("cleanup", cleanup), ("privacy", privacy), ("optimize", optimize), ("startup", startup), ("system", system), ("disk", disk), ("settings", settings), ("history", history), ("whatsnew", news) })
         {
             Console.WriteLine("Rendering " + tag);
             navigation.SelectedItem = navigation.Items.Cast<ListBoxItem>().FirstOrDefault(i => (string)i.Tag == tag);
@@ -90,6 +99,14 @@ internal static class Program
                 var visual = (FrameworkElement)window.Content;
                 visual.Measure(new Size(width, height)); visual.Arrange(new Rect(0, 0, width, height));
                 visual.UpdateLayout();
+                if (width == 1120)
+                    foreach (var name in new[] { "HistoryButton", "WhatsNewButton", "SettingsButton" })
+                    {
+                        var button = (FrameworkElement)window.FindName(name);
+                        var bounds = button.TransformToAncestor(visual).TransformBounds(new Rect(button.RenderSize));
+                        if (button.ActualHeight < 20 || bounds.Top < 0 || bounds.Bottom > height || bounds.Right > width)
+                            throw new InvalidOperationException("Secondary navigation is clipped: " + name);
+                    }
                 if (width == 1120 && tag is "cleanup" or "optimize" or "system")
                 {
                     var rowStyle = app.Resources["CompactRowStyle"];
@@ -103,7 +120,7 @@ internal static class Program
                         return bounds.Top >= 0 && bounds.Bottom <= viewport.ActualHeight;
                     });
                     Console.WriteLine($"{tag}: {visible} complete rows visible at 1120x700.");
-                    if (visible < (tag == "system" ? 6 : tag == "cleanup" ? 4 : 3))
+                    if (visible < (tag == "system" ? 7 : tag == "cleanup" ? 4 : 3))
                         throw new InvalidOperationException("The compact layout shows too few complete rows: " + tag);
                 }
                 Pump(500);
@@ -113,6 +130,19 @@ internal static class Program
                 var encoder = new PngBitmapEncoder(); encoder.Frames.Add(BitmapFrame.Create(bitmap));
                 using var file = File.Create(Path.Combine(root, $"{tag}-{width}x{height}-{scale:0}x.png"));
                 encoder.Save(file);
+            }
+            if (tag == "cleanup")
+            {
+                var tabs = (TabControl)cleanup.FindName("OperationTabs");
+                tabs.SelectedIndex = 1; Pump(200);
+                var visual = (FrameworkElement)window.Content;
+                visual.Measure(new Size(1120, 700)); visual.Arrange(new Rect(0, 0, 1120, 700)); visual.UpdateLayout();
+                if (!Descendants(cleanup).OfType<System.Windows.Controls.TextBlock>().Any(t => t.Text == Loc.T("op.temp_user.name")))
+                    throw new InvalidOperationException("Analysis result fixture was not displayed.");
+                var bitmap = new RenderTargetBitmap(1120, 700, 96, 96, PixelFormats.Pbgra32); bitmap.Render(visual);
+                var encoder = new PngBitmapEncoder(); encoder.Frames.Add(BitmapFrame.Create(bitmap));
+                using (var file = File.Create(Path.Combine(root, "cleanup-preview-1120x700-1x.png"))) encoder.Save(file);
+                tabs.SelectedIndex = 0;
             }
         }
         CheckPressedButtons((FrameworkElement)window.Content);
@@ -130,14 +160,33 @@ internal static class Program
         Pump(100);
         if (!ReferenceEquals(frame.Content, settings) || navigation.SelectedItem != null)
             throw new InvalidOperationException("The settings button did not navigate independently.");
+        foreach (var (name, page) in new[] { ("HistoryButton", (Page)history), ("WhatsNewButton", news) })
+        {
+            navigation.SelectedIndex = 0; Pump(100);
+            var button = (Wpf.Ui.Controls.Button)window.FindName(name);
+            button.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent)); Pump(100);
+            if (!ReferenceEquals(frame.Content, page) || navigation.SelectedItem != null ||
+                !ReferenceEquals(button.Background, app.Resources["AccentSoftBrush"]))
+                throw new InvalidOperationException("Secondary navigation did not select its page: " + name);
+        }
+        if (Descendants(system).OfType<System.Windows.Controls.TextBlock>().Any(t =>
+            BindingOperations.GetBinding(t, System.Windows.Controls.TextBlock.TextProperty)?.Path?.Path.StartsWith("StatusBar.", StringComparison.Ordinal) == true))
+            throw new InvalidOperationException("System must not duplicate live metrics from the header.");
         var details = (Expander)system.FindName("SystemDetails");
         if (details.IsExpanded) throw new InvalidOperationException("System details must start collapsed.");
         details.IsExpanded = true;
         frame.Navigate(system); Pump(100);
         ((FrameworkElement)window.Content).UpdateLayout();
         details.IsExpanded = false;
-        Console.WriteLine("Settings navigation and system details checks passed.");
+        Console.WriteLine("Header version, secondary navigation and system details checks passed.");
         var settingsVm = (SettingsViewModel)settings.DataContext;
+        settingsVm.Density = "comfortable";
+        if ((Thickness)app.Resources["OperationRowPadding"] != new Thickness(14, 10, 14, 10))
+            throw new InvalidOperationException("Comfortable density was not applied.");
+        var densityRow = Descendants(system).OfType<Border>().First(row => ReferenceEquals(row.Style, app.Resources["CompactRowStyle"]));
+        if (densityRow.Padding != new Thickness(14, 10, 14, 10)) throw new InvalidOperationException("Existing rows did not react to density changes.");
+        settingsVm.Density = "compact";
+        if (densityRow.Padding != new Thickness(10, 6, 10, 6)) throw new InvalidOperationException("Compact density was not restored.");
         settingsVm.Accent = "teal";
         settingsVm.ShowMetrics = false;
         settingsVm.StartPage = "privacy";
@@ -254,6 +303,10 @@ internal static class Program
         }).Where(c => c.Operations.Length > 0).ToArray();
         vm.CheckedCount = 12; vm.PreviewSizeText = "1.24 GB"; vm.CurrentStage = 0; vm.CanEditSelection = true;
         vm.RunButtonText = Loc.F("t.zapustit_2", 12); vm.HasPresetNote = false; vm.ResultSummary = "";
+        vm.CustomPresets = Array.Empty<UserCleanupPreset>(); vm.PresetEditorOpen = false; vm.ResultTabIndex = 0; vm.HasResults = true;
+        vm.PreviewNote = Loc.F("preview.sample.note", 0, 0); vm.CategorySummary = Loc.T("section.sec.quick.name") + ": 1 MB";
+        vm.ResultRows = new[] { new CleanupDetailRow(new Cleaner.Core.Services.Cleanup.OperationOutcome { Key = "temp_user", Handler = "PathCleanup", Success = true, PreviewBytes = 1048576 }, repo, true) };
+        vm.CompactSummary = Loc.F("preview.compact", 12, "1.24 GB");
         vm.BytesFreedText = ""; return vm;
     }
     private static object PrivacyFixture(string root)

@@ -27,5 +27,10 @@ internal static class IsolatedTestEnvironment
         var actual = Path.GetFullPath(Path.GetTempPath()).TrimEnd(Path.DirectorySeparatorChar);
         if (!actual.Equals(root.TrimEnd(Path.DirectorySeparatorChar), StringComparison.OrdinalIgnoreCase))
             throw new InvalidOperationException("Test Temp isolation could not be established; tests aborted.");
+        Cleaner.Core.Services.CoreLog.Sink = (_, message, exception) =>
+        {
+            if (message.Contains("final journal update pending", StringComparison.Ordinal))
+                Console.Error.WriteLine(message + Environment.NewLine + exception);
+        };
     }
 }

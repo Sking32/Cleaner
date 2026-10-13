@@ -21,8 +21,11 @@ public partial class SettingsViewModel : ObservableObject
     {
         new SettingsChoice("cleanup", Loc.T("t.ochistka")), new SettingsChoice("optimize", Loc.T("t.optimizaciya")),
         new SettingsChoice("startup", Loc.T("ui.startup.nav")), new SettingsChoice("system", Loc.T("t.sistema")),
-        new SettingsChoice("privacy", Loc.T("design.recovery")), new SettingsChoice("disk", Loc.T("t.disk"))
+        new SettingsChoice("privacy", Loc.T("design.recovery")), new SettingsChoice("disk", Loc.T("t.disk")), new SettingsChoice("history", Loc.T("history.title")), new SettingsChoice("whatsnew", Loc.T("news.title"))
     };
+    public IReadOnlyList<SettingsChoice> Densities { get; } = new[] { new SettingsChoice("compact", Loc.T("settings.density.compact")), new SettingsChoice("comfortable", Loc.T("settings.density.comfortable")) };
+    [ObservableProperty] private string _density = UserSettings.GetDensity();
+    partial void OnDensityChanged(string value) { UserSettings.SetDensity(value); Appearance.Apply(); Saved(); }
     [ObservableProperty] private string _language = UserSettings.GetLanguage();
     [ObservableProperty] private string _accent = UserSettings.GetAccent();
     [ObservableProperty] private string _startPage = UserSettings.GetStartPage();
@@ -30,7 +33,7 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private bool _showMetrics = UserSettings.GetShowMetrics();
     [ObservableProperty] private string _statusText = Loc.T("settings.saved.auto");
     public bool RestartRequired => Language != Loc.Language;
-    public string VersionText => "Cleaner · " + (typeof(App).Assembly.GetName().Version?.ToString(3) ?? "1.0.0");
+    public string VersionText => "Cleaner · " + AppVersion.Current;
     public string DataDirectory => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Cleaner");
     public string LogDirectory => AppLog.LogDirectory;
     public SettingsViewModel() => Saved();

@@ -30,11 +30,13 @@ public sealed class CleanupRunner : ICleanupRunner
 {
     private readonly ICleanupService _cleanup;
     private readonly PresetsRepository _presets;
+    private readonly OperationsRepository? _operations;
 
-    public CleanupRunner(ICleanupService cleanup, PresetsRepository presets)
+    public CleanupRunner(ICleanupService cleanup, PresetsRepository presets, OperationsRepository? operations = null)
     {
         _cleanup = cleanup ?? throw new ArgumentNullException(nameof(cleanup));
         _presets = presets ?? throw new ArgumentNullException(nameof(presets));
+        _operations = operations;
     }
 
     public CleanupSessionResult RunPreset(
@@ -97,6 +99,7 @@ public sealed class CleanupRunner : ICleanupRunner
             outcomes.Add(new OperationOutcome
             {
                 Key = key,
+                Handler = _operations?.GetByKey(key)?.Handler ?? "",
                 Success = result.Success,
                 BytesFreed = result.BytesFreed,
                 PreviewBytes = result.PreviewBytes,
@@ -135,7 +138,10 @@ public sealed class CleanupRunner : ICleanupRunner
             Outcomes = outcomes,
             Canceled = canceled,
             SkipDetails = ctx.SkipDetails,
-            OmittedSkipDetails = ctx.OmittedSkipDetails
+            OmittedSkipDetails = ctx.OmittedSkipDetails,
+            PreviewFiles = ctx.PreviewFiles,
+            PreviewFileCounts = ctx.PreviewFileCounts,
+            OmittedPreviewFiles = ctx.OmittedPreviewFiles
         };
     }
 

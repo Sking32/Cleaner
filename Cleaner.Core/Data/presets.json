@@ -1,11 +1,14 @@
-﻿{
+{
   "schemaVersion": 1,
   "cleanupPresets": {
     "soft": {
       "nameKey": "preset.soft.name",
       "shortKey": "preset.soft.short",
       "noteKey": "preset.soft.note",
-      "keys": [ "temp_user", "temp_sys", "dns", "recycle", "wer_user" ]
+      "keys": [
+        "temp_user",
+        "wer_user"
+      ]
     },
     "std": {
       "nameKey": "preset.std.name",
@@ -14,8 +17,6 @@
       "keys": [
         "temp_user",
         "temp_sys",
-        "dns",
-        "recycle",
         "wer_user",
         "prefetch",
         "wer_sys",
@@ -24,10 +25,8 @@
         "livekernel",
         "cbs",
         "notifications",
-        "dodelivery",
         "downloadedprog",
         "recent",
-        "windows_store",
         "onedrive",
         "npm_cache",
         "pip_cache",
@@ -83,7 +82,6 @@
         "slack",
         "notion",
         "obs_logs",
-        "downloads_smart",
         "wupdate",
         "winsxs"
       ]
@@ -92,23 +90,66 @@
   "optimizePresets": {
     "gamer": {
       "nameKey": "optpreset.gamer",
-      "keys": [ "GameMode", "HAGS", "XboxGameBar", "BackgroundApps", "NetworkThrottle", "PowerPlan", "FullscreenOpts", "GamePowerThrottling" ]
+      "keys": [
+        "GameMode",
+        "XboxGameBar"
+      ]
     },
     "privacy": {
       "nameKey": "optpreset.privacy",
-      "keys": [ "Telemetry", "AdvertisingId", "ActivityHistory", "Cortana", "XboxGameBar", "BingSearch", "LockScreenAds", "Copilot", "Recall", "Feedback", "Location", "DiagnosticData", "InkingTyping", "SpeechRecognition", "UpdateP2P" ]
+      "keys": [
+        "Telemetry",
+        "AdvertisingId",
+        "ActivityHistory",
+        "Cortana",
+        "XboxGameBar",
+        "BingSearch",
+        "LockScreenAds",
+        "Copilot",
+        "Recall",
+        "Feedback",
+        "Location",
+        "DiagnosticData",
+        "InkingTyping",
+        "SpeechRecognition",
+        "UpdateP2P"
+      ]
     },
     "perf": {
       "nameKey": "optpreset.perf",
-      "keys": [ "VisualFx", "Transparency", "StartupDelay", "MenuDelay", "BackgroundApps", "NetworkThrottle", "SysMain", "Prefetch", "AutoMaintenance", "DefenderScanLimit", "WerSvc", "SearchIndexing", "PowerThrottling" ]
+      "keys": [
+        "VisualFx",
+        "Transparency",
+        "StartupDelay",
+        "MenuDelay"
+      ]
     },
     "win11": {
       "nameKey": "optpreset.win11",
-      "keys": [ "ClassicContext", "Widgets", "SearchHighlights", "StartRecommendations", "Tips", "ConsumerFeatures", "TaskbarAlign", "SearchBox", "ChatIcon", "TaskView", "EndTask" ]
+      "keys": [
+        "ClassicContext",
+        "Widgets",
+        "SearchHighlights",
+        "StartRecommendations",
+        "Tips",
+        "ConsumerFeatures",
+        "TaskbarAlign",
+        "SearchBox",
+        "ChatIcon",
+        "TaskView",
+        "EndTask"
+      ]
     },
     "dev": {
       "nameKey": "optpreset.dev",
-      "keys": [ "VisualFx", "StartupDelay", "MenuDelay", "BackgroundApps", "StorageSense", "Tips", "ConsumerFeatures", "EdgePreload" ]
+      "keys": [
+        "VisualFx",
+        "StartupDelay",
+        "MenuDelay",
+        "Tips",
+        "ConsumerFeatures",
+        "EdgePreload"
+      ]
     },
     "safe": {
       "nameKey": "optpreset.safe",

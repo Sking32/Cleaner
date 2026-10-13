@@ -9,6 +9,19 @@ namespace Cleaner.Core.Services.Cleanup;
 /// </summary>
 public sealed class CleanupContext
 {
+    private readonly List<CleanupPreviewFile> _previewFiles = new();
+    private readonly Dictionary<string, int> _previewCounts = new(StringComparer.OrdinalIgnoreCase);
+    public IReadOnlyList<CleanupPreviewFile> PreviewFiles => _previewFiles.ToArray();
+    public IReadOnlyDictionary<string, int> PreviewFileCounts => new Dictionary<string, int>(_previewCounts, StringComparer.OrdinalIgnoreCase);
+    public int OmittedPreviewFiles { get; private set; }
+    public void RecordPreviewFile(string operationKey, string path, long size)
+    {
+        if (!DryRun) return;
+        _previewCounts.TryGetValue(operationKey, out var count);
+        _previewCounts[operationKey] = count + 1;
+        if (count < 5 && _previewFiles.Count < 250) _previewFiles.Add(new(operationKey, path, size));
+        else OmittedPreviewFiles++;
+    }
     private readonly List<CleanupSkip> _skips = new();
     public IReadOnlyList<CleanupSkip> SkipDetails => _skips.ToArray();
     public int OmittedSkipDetails { get; private set; }
