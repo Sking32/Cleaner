@@ -11,6 +11,8 @@ using Cleaner.App.ViewModels;
 using Cleaner.App.Views;
 using Wpf.Ui;
 using Wpf.Ui.Controls;
+using Cleaner.Core.Services;
+using System.Windows.Threading;
 
 namespace Cleaner.App;
 
@@ -32,6 +34,42 @@ public partial class MainWindow : FluentWindow
     private TaskCompletionSource<bool>? _dialogTcs;
     private IInputElement? _focusBeforeDialog;
     private List<PaletteCommand> _paletteAll = new();
+    private readonly InAppCleanupSchedule _autoSchedule = new();
+    private DispatcherTimer? _autoTimer;
+    private bool _autoTickRunning;
+
+    public void StartAutoCleanup()
+    {
+        if (Application.Current is not App || _autoTimer != null) return;
+        _autoTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(30) };
+        _autoTimer.Tick += OnAutoCleanupTick;
+        UserSettings.Changed += UpdateAutoCleanupSchedule;
+        UpdateAutoCleanupSchedule();
+        _autoTimer.Start();
+        Closed += (_, _) => { _autoTimer.Stop(); _autoTimer.Tick -= OnAutoCleanupTick; UserSettings.Changed -= UpdateAutoCleanupSchedule; };
+    }
+    private void UpdateAutoCleanupSchedule()
+    {
+        _autoSchedule.TryBegin(DateTimeOffset.UtcNow, UserSettings.GetAutoCleanupEnabled(), UserSettings.GetAutoCleanupInterval(), busy: true);
+        if (_settingsPage.DataContext is SettingsViewModel settings)
+            settings.AutomationStatus = _autoSchedule.NextRun is { } next ? Loc.F("automation.next", next.ToLocalTime().ToString("g")) : Loc.T("automation.off");
+    }
+    private async void OnAutoCleanupTick(object? sender, EventArgs args)
+    {
+        if (_autoTickRunning) return;
+        var busy = IsOperationActive || UserSettings.NeedsSafetyNotice || SafetyOverlay.Visibility == Visibility.Visible
+            || DialogOverlay.Visibility == Visibility.Visible || PaletteOverlay.Visibility == Visibility.Visible;
+        if (!_autoSchedule.TryBegin(DateTimeOffset.UtcNow, UserSettings.GetAutoCleanupEnabled(), UserSettings.GetAutoCleanupInterval(), busy))
+        { UpdateAutoCleanupSchedule(); return; }
+        _autoTickRunning = true;
+        try
+        {
+            NavigateTo("cleanup");
+            if (_cleanupPage.DataContext is CleanupViewModel cleanup) await cleanup.RunAutomaticAsync();
+        }
+        catch (Exception ex) { AppLog.Error("Automatic cleanup timer failed", ex); }
+        finally { _autoTickRunning = false; UpdateAutoCleanupSchedule(); }
+    }
 
     internal sealed record PaletteCommand(string Title, Action Run);
 

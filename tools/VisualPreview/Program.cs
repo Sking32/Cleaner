@@ -67,7 +67,8 @@ internal static class Program
         var startup = new StartupPage { DataContext = StartupFixture() };
         var system = new SystemPage { DataContext = SystemFixture() };
         var disk = new DiskPage { DataContext = DiskFixture(root) };
-        var settings = new SettingsPage(new SettingsViewModel());
+        var fixtureStartup = new FixtureStartup();
+        var settings = new SettingsPage(new SettingsViewModel(fixtureStartup));
         var history = new HistoryPage(new HistoryViewModel(() => new[] { CleanupHistoryEntry.FromReport(new Cleaner.Core.Services.Cleanup.CleanupReport { DryRun = true, Result = new() { OperationsRun = 2, PreviewBytes = 1048576, Outcomes = new[] { new Cleaner.Core.Services.Cleanup.OperationOutcome { Key = "temp_user", Handler = "PathCleanup", Success = true, PreviewBytes = 1048576 } } } }, "preview") }));
         var news = new WhatsNewPage(new WhatsNewViewModel());
         if (((WhatsNewViewModel)news.DataContext).HasError) throw new InvalidOperationException(((WhatsNewViewModel)news.DataContext).ErrorText);
@@ -102,6 +103,15 @@ internal static class Program
                 var visual = (FrameworkElement)window.Content;
                 visual.Measure(new Size(width, height)); visual.Arrange(new Rect(0, 0, width, height));
                 visual.UpdateLayout();
+                if (tag == "disk")
+                {
+                    var map = (FrameworkElement)disk.FindName("DiskMap");
+                    var detail = Descendants(disk).OfType<System.Windows.Controls.TextBlock>().First(t =>
+                        BindingOperations.GetBinding(t, System.Windows.Controls.TextBlock.TextProperty)?.Path?.Path == "MapSelectionText");
+                    var mapBottom = map.TranslatePoint(new Point(0, map.ActualHeight), visual).Y;
+                    if (mapBottom > detail.TranslatePoint(new Point(), visual).Y)
+                        throw new InvalidOperationException("The disk map overlaps its full-path details at this window size.");
+                }
                 if (width == 1120)
                     foreach (var name in new[] { "HistoryButton", "WhatsNewButton", "SettingsButton" })
                     {
@@ -147,6 +157,18 @@ internal static class Program
                 using (var file = File.Create(Path.Combine(root, "cleanup-preview-1120x700-1x.png"))) encoder.Save(file);
                 tabs.SelectedIndex = 0;
             }
+            if (tag == "settings" && !args.Contains("--bindings-only"))
+            {
+                var scroll = Descendants(settings).OfType<ScrollViewer>().First();
+                var heading = Descendants(settings).OfType<System.Windows.Controls.TextBlock>().First(t => t.Text == Loc.T("automation.title"));
+                scroll.ScrollToVerticalOffset(heading.TranslatePoint(new Point(), (UIElement)scroll.Content).Y - 10); Pump(100);
+                var visual = (FrameworkElement)window.Content;
+                visual.Measure(new Size(1120, 700)); visual.Arrange(new Rect(0, 0, 1120, 700)); visual.UpdateLayout();
+                var bitmap = new RenderTargetBitmap(1120, 700, 96, 96, PixelFormats.Pbgra32); bitmap.Render(visual);
+                var encoder = new PngBitmapEncoder(); encoder.Frames.Add(BitmapFrame.Create(bitmap));
+                using (var file = File.Create(Path.Combine(root, "settings-automation-1120x700-1x.png"))) encoder.Save(file);
+                scroll.ScrollToTop();
+            }
         }
         CheckPressedButtons((FrameworkElement)window.Content);
         File.WriteAllLines(Path.Combine(root, "binding-diagnostics.txt"), bindingTrace.Messages);
@@ -183,6 +205,18 @@ internal static class Program
         details.IsExpanded = false;
         Console.WriteLine("Header version, secondary navigation and system details checks passed.");
         var settingsVm = (SettingsViewModel)settings.DataContext;
+        settingsVm.StartWithWindows = true;
+        if (!fixtureStartup.IsEnabled) throw new InvalidOperationException("Startup toggle did not update its in-memory fixture.");
+        settingsVm.StartWithWindows = false;
+        if (fixtureStartup.IsEnabled) throw new InvalidOperationException("Startup toggle did not turn off its in-memory fixture.");
+        settingsVm.AutoCleanupInterval = "60"; settingsVm.AutoCleanupEnabled = true;
+        if (!UserSettings.GetAutoCleanupEnabled() || UserSettings.GetAutoCleanupInterval() != 60)
+            throw new InvalidOperationException("Automatic cleanup preferences did not save in the fixture profile.");
+        settingsVm.AutoCleanupEnabled = false;
+        window.StartAutoCleanup();
+        if (typeof(MainWindow).GetField("_autoTimer", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(window) != null)
+            throw new InvalidOperationException("The preview host must never start production automatic cleanup.");
+        Console.WriteLine("Automation bindings passed with in-memory startup and isolated preferences; no real timer or registry.");
         settingsVm.Density = "comfortable";
         if ((Thickness)app.Resources["OperationRowPadding"] != new Thickness(14, 10, 14, 10))
             throw new InvalidOperationException("Comfortable density was not applied.");
@@ -317,6 +351,12 @@ internal static class Program
         public override void WriteLine(string? message) => Write(message);
     }
 
+    private sealed class FixtureStartup : IStartupRegistration
+    {
+        public bool IsEnabled { get; private set; }
+        public void SetEnabled(bool enabled) => IsEnabled = enabled;
+    }
+
     private static dynamic Bag(string page)
     {
         var bag = new ExpandoObject(); var values = (IDictionary<string, object?>)bag;
@@ -354,6 +394,10 @@ internal static class Program
             }).ToArray()
         }).Where(c => c.Operations.Length > 0).ToArray();
         vm.CheckedCount = 12; vm.PreviewSizeText = "1.24 GB"; vm.CurrentStage = 0; vm.CanEditSelection = true;
+        vm.FileModes = new[] { new CleanupModeChoice(Cleaner.Core.Services.Cleanup.CleanupFileMode.Quarantine, Loc.T("cleanup.mode.quarantine")),
+            new CleanupModeChoice(Cleaner.Core.Services.Cleanup.CleanupFileMode.PermanentDelete, Loc.T("cleanup.mode.delete")) };
+        vm.FileMode = Cleaner.Core.Services.Cleanup.CleanupFileMode.Quarantine;
+        vm.FileModeHint = Loc.T("cleanup.mode.quarantine.hint");
         vm.RunButtonText = Loc.F("t.zapustit_2", 12); vm.HasPresetNote = false; vm.ResultSummary = "";
         vm.CustomPresets = Array.Empty<UserCleanupPreset>(); vm.PresetEditorOpen = false; vm.ResultTabIndex = 0; vm.HasResults = true;
         vm.PreviewNote = Loc.F("preview.sample.note", 0, 0); vm.CategorySummary = Loc.T("section.sec.quick.name") + ": 1 MB";
@@ -424,7 +468,10 @@ internal static class Program
     {
         dynamic vm = Bag("Disk"); vm.CanSelectDrive = true; vm.IsScanning = false; vm.IsMutating = false;
         vm.Drives = new[] { new { Display = "Example drive · 512 GB", UsedPercent = 75.0 } }; vm.SelectedDrive = vm.Drives[0];
-        vm.TreemapNodes = new[] { new DiskTreeNode("Projects", Path.Combine(root, "Projects"), 600, true), new DiskTreeNode("Media", Path.Combine(root, "Media"), 400, true), new DiskTreeNode("Downloads", Path.Combine(root, "Downloads"), 220, true) };
+        vm.TreemapNodes = new[] { new DiskTreeNode("Projects — a folder with a very long name", Path.Combine(root, "Projects"), 600, true),
+            new DiskTreeNode("Media", Path.Combine(root, "Media"), 400, true), new DiskTreeNode("Downloads", Path.Combine(root, "Downloads"), 220, true),
+            new DiskTreeNode("very-long-file-name.log", Path.Combine(root, "fixture.log"), 18, false) };
+        vm.MapSelectionText = vm.TreemapNodes[0].Name + "\n" + vm.TreemapNodes[0].Path;
         vm.HasNoTreemap = false; vm.IsTreemapBusy = false; vm.HasShadowText = false; vm.HasNoResults = false;
         vm.Breadcrumbs = new[] { new { Title = "Example drive" } }; vm.SummaryText = "Preview · 3 folders"; vm.ProgressText = ""; return vm;
     }

@@ -3,6 +3,7 @@ using Cleaner.App.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.IO;
+using Cleaner.Core.Services;
 
 namespace Cleaner.App.ViewModels;
 
@@ -10,6 +11,39 @@ public sealed record SettingsChoice(string Key, string Label);
 
 public partial class SettingsViewModel : ObservableObject
 {
+    private readonly IStartupRegistration? _startup;
+    private bool _restoringAutomation;
+    public IReadOnlyList<SettingsChoice> CleanupIntervals { get; } = new[]
+    { new SettingsChoice("60", Loc.T("automation.hour")), new SettingsChoice("360", Loc.T("automation.six.hours")),
+      new SettingsChoice("1440", Loc.T("automation.day")), new SettingsChoice("10080", Loc.T("automation.week")) };
+    [ObservableProperty] private bool _autoCleanupEnabled = UserSettings.GetAutoCleanupEnabled();
+    [ObservableProperty] private string _autoCleanupInterval = UserSettings.GetAutoCleanupInterval().ToString(System.Globalization.CultureInfo.InvariantCulture);
+    [ObservableProperty] private bool _startWithWindows;
+    [ObservableProperty] private string _automationStatus = Loc.T("automation.off");
+    partial void OnAutoCleanupEnabledChanged(bool value) => SaveAutomation();
+    partial void OnAutoCleanupIntervalChanged(string value) => SaveAutomation();
+    private void SaveAutomation()
+    {
+        if (_restoringAutomation) return;
+        if (!int.TryParse(AutoCleanupInterval, out var minutes) || !UserSettings.SetAutoCleanup(AutoCleanupEnabled, minutes))
+        {
+            _restoringAutomation = true;
+            AutoCleanupEnabled = UserSettings.GetAutoCleanupEnabled();
+            AutoCleanupInterval = UserSettings.GetAutoCleanupInterval().ToString(System.Globalization.CultureInfo.InvariantCulture);
+            _restoringAutomation = false;
+        }
+        Saved();
+    }
+    partial void OnStartWithWindowsChanged(bool value)
+    {
+        if (_restoringAutomation || _startup == null) return;
+        try { _startup.SetEnabled(value); Saved(); }
+        catch (Exception ex)
+        {
+            _restoringAutomation = true; StartWithWindows = !value; _restoringAutomation = false;
+            StatusText = Loc.T("startup.registration.failed") + " " + Loc.T(ex.Message);
+        }
+    }
     public IReadOnlyList<SettingsChoice> Languages { get; } = new[] { new SettingsChoice("auto", Loc.T("settings.language.auto")), new SettingsChoice("ru", "Русский"), new SettingsChoice("en", "English") };
     public IReadOnlyList<SettingsChoice> Accents { get; } = new[]
     {
@@ -39,7 +73,13 @@ public partial class SettingsViewModel : ObservableObject
     public string VersionText => "Cleaner · " + AppVersion.Current;
     public string DataDirectory => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Cleaner");
     public string LogDirectory => AppLog.LogDirectory;
-    public SettingsViewModel() => Saved();
+    public SettingsViewModel(IStartupRegistration? startup = null)
+    {
+        _startup = startup;
+        try { _startWithWindows = startup?.IsEnabled == true; }
+        catch (Exception ex) { StatusText = Loc.T("startup.registration.failed") + " " + ex.Message; return; }
+        Saved();
+    }
 
     partial void OnLanguageChanged(string value)
     {

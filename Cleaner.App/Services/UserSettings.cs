@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text.Json;
+using Cleaner.Core.Services;
 
 namespace Cleaner.App.Services;
 
@@ -46,6 +47,22 @@ public static class UserSettings
     public static event Action? Changed;
     public static event Action? HintsReset;
     public static string? LastSaveError => Store.LastError;
+    public static bool GetAutoCleanupEnabled() => Load().AutoCleanupEnabled;
+    public static int GetAutoCleanupInterval() => Load().AutoCleanupIntervalMinutes;
+    public static bool SetAutoCleanup(bool enabled, int minutes)
+    {
+        if (!InAppCleanupSchedule.AllowedMinutes.Contains(minutes)) return false;
+        lock (Gate)
+        {
+            var data = Load();
+            var previousEnabled = data.AutoCleanupEnabled;
+            var previousMinutes = data.AutoCleanupIntervalMinutes;
+            data.AutoCleanupEnabled = enabled; data.AutoCleanupIntervalMinutes = minutes;
+            if (!Store.Save()) { data.AutoCleanupEnabled = previousEnabled; data.AutoCleanupIntervalMinutes = previousMinutes; return false; }
+        }
+        Changed?.Invoke();
+        return true;
+    }
     private static AppSettingsData Load() => Store.Load();
     // The visual preview host supplies a fixture before loading any XAML or view model.
     internal static void UsePreviewStore(AppSettingsStore store) { lock (Gate) { Store = store; } }

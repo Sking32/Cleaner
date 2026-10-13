@@ -2,12 +2,12 @@
 
 [Русский](README.ru.md) · English
 
-**Current beta: 1.1.0-beta.4.** A desktop app for inspecting cleanup candidates, reviewing Windows tweaks, managing startup entries and services, and recovering quarantined files. This is a test release: system changes still need validation on real Windows installations. Cleaner does not promise to speed up every computer.
+**Current beta: 1.1.0-beta.5.** A desktop app for inspecting cleanup candidates, reviewing Windows tweaks, managing startup entries and services, and recovering quarantined files. This is a test release: system changes still need validation on real Windows installations. Cleaner does not promise to speed up every computer.
 
 ## Download and start
 
-1. Open [Releases](https://github.com/Sking32/Cleaner/releases) and choose the beta you want to test. Download `Cleaner-1.1.0-beta.4-win-x64.zip` under **Assets**, rather than GitHub’s automatic “Source code” archives.
-2. Optional: download the `.zip.sha256` file to check the ZIP's integrity. In PowerShell: `Get-FileHash -Algorithm SHA256 .\Cleaner-1.1.0-beta.4-win-x64.zip`. Compare the result with that file. The checksum is not needed to run Cleaner and does not prove the software is safe.
+1. Open [Releases](https://github.com/Sking32/Cleaner/releases) and choose the beta you want to test. Download `Cleaner-1.1.0-beta.5-win-x64.zip` under **Assets**, rather than GitHub’s automatic “Source code” archives.
+2. Optional: download the `.zip.sha256` file to check the ZIP's integrity. In PowerShell: `Get-FileHash -Algorithm SHA256 .\Cleaner-1.1.0-beta.5-win-x64.zip`. Compare the result with that file. The checksum is not needed to run Cleaner and does not prove the software is safe.
 3. Extract the entire archive into an ordinary writable folder. Keep `Data` beside `Cleaner.App.exe`; do not run directly from the ZIP.
 4. Start `Cleaner.App.exe`. The portable x64 package includes .NET. It targets Windows with the required .NET 10/WPF support; compatibility with individual system actions is not yet verified across all Windows builds. ARM64 needs a separate build and testing; macOS and Linux are not supported.
 
@@ -30,7 +30,13 @@ First launch follows the Windows **display language**: Russian → Russian, Engl
 
 Start with navigation, window sizes, search, settings, language, the version in the header, **History**, and **What’s new?** in the lower sidebar. `Ctrl+K` opens command search.
 
-In **Cleanup**, choose **Analyze without cleaning** and review sizes, sample paths and skipped items. Analysis reads data without moving or deleting files. Real cleanup is a separate action. Regular files normally move to quarantine: a move on the same drive does not free disk space. Some system cleanup actions delete permanently. Deleting quarantine permanently removes its contents.
+In **Cleanup**, choose **Analyze without cleaning** and review sizes, sample paths and skipped items. Analysis reads data without moving or deleting files. Choose **Quarantine** (default) or **Permanent deletion** before starting real cleanup and review the confirmation. Quarantine on the same drive does not free disk space; permanent deletion skips quarantine and cannot be undone by Cleaner. Some system cleanup actions remain permanent regardless of the file mode. Deleting quarantine permanently removes its contents. Busy files are skipped without forcing unlocks; new reports include the reason and Windows details.
+
+In **Disk**, right-click a map cell to open its location in Explorer. Smaller cells show compact labels; hover to read the full name, path and size, also displayed below the map.
+
+**Settings → Automation** offers two independent options, both off by default. **Start with Windows** registers only Cleaner in the current user's startup list and starts it minimized after the safety notice has been acknowledged. Keep the app in a permanent folder; after moving it or replacing it from a new ZIP, re-enable this option from the new copy. Windows can delay or disable startup; check Task Manager's Startup apps.
+
+**Automatic cleanup** runs only while Cleaner is open, every hour, 6 hours, day or week. It quarantines files in `%LOCALAPPDATA%\Temp` whose creation and last modification are both older than 24 hours. It respects exclusions and protection checks, skips busy files, and records results in History. It never permanently deletes these files, even when manual cleanup uses that mode. It does not empty the Recycle Bin, scan Downloads or browser caches, or change services or registry settings. The interval restarts on app launch or interval change, waits while another operation or dialog is active, and does not replay missed runs.
 
 Use a disposable Windows VM with a snapshot for system tweaks, service changes and other unfamiliar actions. Cancellation stops further work; it does not undo changes already made. Do not assume a “low risk” label guarantees safety for every computer.
 

@@ -30,6 +30,7 @@ public sealed record CleanupPreviewFile(string OperationKey, string Path, long S
 
 public sealed class OperationOutcome
 {
+    public CleanupFileMode FileMode { get; init; }
     public string Key { get; init; } = "";
     public string Handler { get; init; } = "";
     public bool Success { get; init; }

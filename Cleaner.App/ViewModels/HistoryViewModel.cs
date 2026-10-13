@@ -14,14 +14,14 @@ public sealed class HistoryItem
     public HistoryItem(CleanupHistoryEntry entry) => Entry = entry;
     public string TimeText => Entry.Time.ToLocalTime().ToString("g", System.Globalization.CultureInfo.GetCultureInfo(Loc.Language));
     public string StatusText => Loc.T("history.kind." + (Entry.Kind is "preview" or "declined" or "failed" or "canceled" ? Entry.Kind
-        : Entry.Canceled ? "canceled" : Entry.OperationsFailed > 0 ? "partial" : "applied"));
+        : Entry.Canceled ? "canceled" : Entry.OperationsFailed > 0 ? "partial" : Entry.Kind == "automatic" ? "automatic" : "applied"));
     public string SummaryText => Loc.F("history.summary", Entry.Operations, CleanupDetailRow.FormatBytes(Entry.BytesQuarantined), Entry.OperationsFailed);
     public bool HasError => !string.IsNullOrWhiteSpace(Entry.ErrorText);
     public string ErrorText => Entry.ErrorText ?? "";
     public bool HasSession => !string.IsNullOrWhiteSpace(Entry.QuarantineDirectory);
     public string SessionDirectory => Entry.QuarantineDirectory ?? "";
     public bool IsLegacy => Entry.Report == null;
-    public string TotalsText => Entry.Report?.DryRun == true ? Loc.F("history.preview.totals", CleanupDetailRow.FormatBytes(Entry.Report.Result.PreviewBytes), Entry.FilesSkipped, Entry.DurationMs / 1000.0) : Loc.F("history.totals", CleanupDetailRow.FormatBytes(Entry.BytesFreed), Entry.FilesQuarantined, Entry.FilesSkipped, Entry.DurationMs / 1000.0);
+    public string TotalsText => Entry.Report?.DryRun == true ? Loc.F("history.preview.totals", CleanupDetailRow.FormatBytes(Entry.Report.Result.PreviewBytes), Entry.FilesSkipped, Entry.DurationMs / 1000.0) : Loc.F("history.totals.full", CleanupDetailRow.FormatBytes(Entry.BytesFreed), Entry.FilesQuarantined, Entry.FilesDeleted, Entry.FilesSkipped, Entry.DurationMs / 1000.0);
     public IReadOnlyList<CleanupDetailRow> Outcomes => (Entry.Report?.Result.Outcomes ?? Entry.Outcomes).Where(o => o != null).Select(o => new CleanupDetailRow(o, null, Entry.Report?.DryRun == true, Entry.Report?.Result)).ToArray();
     public CleanupReport ExportReport => Entry.Report ?? new CleanupReport { CreatedUtc = Entry.Time.ToUniversalTime(), QuarantineDirectory = Entry.QuarantineDirectory,
         Result = new CleanupSessionResult { BytesFreed = Entry.BytesFreed, BytesQuarantined = Entry.BytesQuarantined, FilesQuarantined = Entry.FilesQuarantined,

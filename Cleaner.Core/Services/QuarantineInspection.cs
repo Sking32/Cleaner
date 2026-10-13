@@ -55,9 +55,10 @@ public sealed partial class QuarantineService
             return new() { Directory = directory, Id = Path.GetFileName(directory), CreatedUtc = created,
                 Health = QuarantineHealth.InvalidManifest, CanRestore = false, Issues = new[] { ex.Message } };
         }
-        var health = QuarantineHealth.Healthy;
+        var health = manifest.DeletionInProgress ? QuarantineHealth.DeletionInterrupted : QuarantineHealth.Healthy;
         var issues = new List<string>();
         void Issue(string message) { if (issues.Count < 100) issues.Add(message); }
+        if (manifest.DeletionInProgress) Issue("Interrupted permanent deletion; remaining entries can be deleted again.");
         var known = manifest.Entries.Select(e => e.StoredName).Append("manifest.json").ToHashSet(StringComparer.OrdinalIgnoreCase);
         foreach (var unknown in Directory.GetFileSystemEntries(directory).Where(p => !known.Contains(Path.GetFileName(p))))
         {
@@ -69,7 +70,7 @@ public sealed partial class QuarantineService
             token.ThrowIfCancellationRequested();
             if (entry.Pending || entry.RestorePath != null)
             {
-                if (health == QuarantineHealth.Healthy) health = QuarantineHealth.NeedsRecovery;
+                if (health is QuarantineHealth.Healthy or QuarantineHealth.DeletionInterrupted) health = QuarantineHealth.NeedsRecovery;
                 Issue("Interrupted operation: " + entry.StoredName);
             }
             var stored = Path.Combine(directory, entry.StoredName);
@@ -81,9 +82,13 @@ public sealed partial class QuarantineService
                     throw new IOException("Stored item type differs from the manifest.");
                 if (verifyContents && entry.IsDirectory) RejectTreeLinks(stored, token);
             }
+            catch (Exception ex) when (manifest.DeletionInProgress && ex is (FileNotFoundException or DirectoryNotFoundException))
+            {
+                // The deletion checkpoint may still list items already deleted before a crash.
+            }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
             {
-                if (health == QuarantineHealth.Healthy) health = QuarantineHealth.NeedsRecovery;
+                if (health is QuarantineHealth.Healthy or QuarantineHealth.DeletionInterrupted) health = QuarantineHealth.NeedsRecovery;
                 Issue(entry.StoredName + ": " + ex.Message);
             }
         }
@@ -92,7 +97,7 @@ public sealed partial class QuarantineService
             Directory = directory, Id = string.IsNullOrEmpty(manifest.SessionId) ? Path.GetFileName(directory) : manifest.SessionId,
             CreatedUtc = DateTime.TryParse(manifest.CreatedUtc, out var date) ? date.ToUniversalTime() : created,
             Count = manifest.Entries.Count, TotalSizeBytes = manifest.Entries.Sum(e => e.SizeBytes),
-            Health = health, Issues = issues
+            Health = health, Issues = issues, CanRestore = !manifest.DeletionInProgress
         };
     }
 }

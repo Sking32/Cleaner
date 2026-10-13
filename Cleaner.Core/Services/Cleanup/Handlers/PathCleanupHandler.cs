@@ -74,8 +74,8 @@ public sealed class PathCleanupHandler : ICleanupHandler
         return new CleanupOperationResult
         {
             Success = errors.Count == 0,
-            BytesFreed = 0, PreviewBytes = ctx.DryRun ? bytes : 0, BytesQuarantined = ctx.DryRun ? 0 : bytes,
-            FilesDeleted = 0, FilesQuarantined = deleted,
+            BytesFreed = !ctx.DryRun && ctx.FileMode == CleanupFileMode.PermanentDelete ? bytes : 0, PreviewBytes = ctx.DryRun ? bytes : 0, BytesQuarantined = !ctx.DryRun && ctx.FileMode == CleanupFileMode.Quarantine ? bytes : 0,
+            FilesDeleted = ctx.FileMode == CleanupFileMode.PermanentDelete ? deleted : 0, FilesQuarantined = ctx.FileMode == CleanupFileMode.Quarantine ? deleted : 0,
             FilesSkipped = skipped,
             Errors = errors
         };
@@ -109,6 +109,17 @@ public sealed class PathCleanupHandler : ICleanupHandler
             return (0, 0, 1);
         }
 
+        if (ctx.IsCancellationRequested) return (0, 0, 0);
+        try
+        {
+            if (!File.Exists(path)) { ctx.RecordSkip(opKey, path, "missing"); return (0, 0, 1); }
+            if (ctx.MinimumFileAge > TimeSpan.Zero &&
+                (DateTime.UtcNow - File.GetLastWriteTimeUtc(path) < ctx.MinimumFileAge ||
+                 DateTime.UtcNow - File.GetCreationTimeUtc(path) < ctx.MinimumFileAge))
+            { ctx.RecordSkip(opKey, path, "too_recent"); return (0, 0, 1); }
+        }
+        catch (Exception ex) { ctx.RecordSkip(opKey, path, FileFailure.Classify(ex), ex.Message); return (0, 0, 1); }
+
         long size = TryGetFileSize(path);
 
         if (ctx.DryRun)
@@ -118,19 +129,34 @@ public sealed class PathCleanupHandler : ICleanupHandler
             return (size, 0, 0);
         }
 
-        QuarantineEntry? entry;
-        try { entry = ctx.Quarantine.MoveToQuarantine(path, "Cleanup"); }
-        catch (Exception ex) { errors.Add(path + ": " + ex.Message); ctx.RecordSkip(opKey, path, "quarantine_failed"); return (0, 0, 1); }
-        if (entry != null)
+        try
         {
-            ctx.Report(opKey, "PathCleanup", path, 0, 0, "quarantine");
-            return (size, 1, 0);
+            if (ctx.IsCancellationRequested) return (0, 0, 0);
+            if (ctx.FileMode == CleanupFileMode.PermanentDelete)
+            {
+                // No forced unlock, ACL changes, recursive delete or quarantine fallback.
+                if (!ctx.Safety.Check(path).IsSafe || ctx.Whitelist.IsWhitelisted(path))
+                { ctx.RecordSkip(opKey, path, "safety"); return (0, 0, 1); }
+                File.Delete(path);
+                ctx.Report(opKey, "PathCleanup", path, 1, size, "deleted");
+                return (size, 1, 0);
+            }
+            var result = ctx.Quarantine.MoveToQuarantineDetailed(path, "Cleanup");
+            if (result.Entry != null)
+            {
+                ctx.Report(opKey, "PathCleanup", path, 1, 0, "quarantine");
+                return (size, 1, 0);
+            }
+            var reason = result.Reason ?? "quarantine_failed";
+            ctx.RecordSkip(opKey, path, reason, result.Detail);
+            if (!FileFailure.IsExpectedSkip(reason)) errors.Add(path + ": " + reason + (result.Detail == null ? "" : " — " + result.Detail));
         }
-
-        // Карантин не смог принять файл (занят, нет доступа, нет места).
-        // Безопасный выбор — пропустить его, а не удалять безвозвратно.
-        errors.Add(path + ": cannot move to quarantine");
-        ctx.RecordSkip(opKey, path, "quarantine_failed");
+        catch (Exception ex)
+        {
+            var reason = FileFailure.Classify(ex);
+            ctx.RecordSkip(opKey, path, reason, ex.Message);
+            if (!FileFailure.IsExpectedSkip(reason)) errors.Add(path + ": " + ex.Message);
+        }
         return (0, 0, 1);
     }
 
@@ -176,7 +202,7 @@ public sealed class PathCleanupHandler : ICleanupHandler
             }
         }
 
-        if (deleteSelf && !ctx.DryRun && !ctx.IsCancellationRequested)
+        if (deleteSelf && !ctx.DryRun && !ctx.IsCancellationRequested && ctx.MinimumFileAge == TimeSpan.Zero)
         {
             try { Directory.Delete(directory, recursive: false); }
             catch { /* папка непустая из-за скипов — ок */ }

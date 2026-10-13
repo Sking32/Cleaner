@@ -57,6 +57,20 @@ public class CleanupRunnerTests : IDisposable
     }
 
     [Fact]
+    public void RunnerPreservesFileModeAndMinimumAgeWhenLinkingCancellation()
+    {
+        var old = Path.Combine(_tempDir, "old.txt"); File.WriteAllText(old, "fixture");
+        File.SetCreationTimeUtc(old, DateTime.UtcNow.AddDays(-2)); File.SetLastWriteTimeUtc(old, DateTime.UtcNow.AddDays(-2));
+        var fresh = Path.Combine(_tempDir, "fresh.txt"); File.WriteAllText(fresh, "fixture");
+        var context = new CleanupContext(_safety, _whitelist, _quarantine, fileMode: CleanupFileMode.PermanentDelete,
+            minimumFileAge: TimeSpan.FromDays(1), commands: new FakeCommands());
+        var result = _runner.Run(new[] { "temp_user" }, context);
+        Assert.Equal(1, result.FilesDeleted); Assert.Equal(0, result.FilesQuarantined);
+        Assert.False(File.Exists(old)); Assert.True(File.Exists(fresh));
+        Assert.Equal(CleanupFileMode.PermanentDelete, Assert.Single(result.Outcomes).FileMode);
+    }
+
+    [Fact]
     public void Unknown_Preset_Returns_Zero()
     {
         Assert.Throws<ArgumentException>(() => _runner.RunPreset("no-such-preset", Ctx()));

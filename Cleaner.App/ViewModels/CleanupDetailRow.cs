@@ -22,8 +22,8 @@ public sealed class CleanupDetailRow
         Name = op != null ? Loc.T(op.NameKey) : Loc.T("op." + outcome.Key + ".name");
         if (Name.StartsWith("op.", StringComparison.Ordinal)) Name = outcome.Key;
         var handler = !string.IsNullOrEmpty(outcome.Handler) ? outcome.Handler : op?.Handler ?? "";
-        MethodText = Loc.T(handler.Length == 0 ? "preview.method.unknown" : IsQuarantined(handler) ? "preview.method.quarantine"
-            : handler is "FontCache" or "WindowsUpdateCache" ? "preview.method.mixed" : "preview.method.system");
+        MethodText = Loc.T(handler.Length == 0 ? "preview.method.unknown" : IsQuarantined(handler) ? outcome.FileMode == CleanupFileMode.PermanentDelete ? "preview.method.delete" : "preview.method.quarantine"
+            : handler is "FontCache" or "WindowsUpdateCache" ? outcome.FileMode == CleanupFileMode.PermanentDelete ? "preview.method.mixed.delete" : "preview.method.mixed" : "preview.method.system");
         SizeText = preview && outcome.PreviewBytes == 0 && !IsQuarantined(handler) ? Loc.T("preview.unknown.size") : FormatBytes(preview ? outcome.PreviewBytes : outcome.BytesQuarantined + outcome.BytesFreed);
         StatusText = Loc.T(outcome.Canceled ? "history.kind.canceled" : !outcome.Success ? "history.kind.failed" : preview ? "history.kind.preview" : "history.kind.applied");
         var lines = new List<string>();
@@ -33,7 +33,7 @@ public sealed class CleanupDetailRow
         {
             if (session.PreviewFileCounts?.TryGetValue(outcome.Key, out var count) == true) lines.Add(Loc.F("preview.file.count", count));
             lines.AddRange((session.PreviewFiles ?? Array.Empty<CleanupPreviewFile>()).Where(f => f != null && f.OperationKey == outcome.Key).Select(f => f.Path + " · " + FormatBytes(f.Size)));
-            lines.AddRange((session.SkipDetails ?? Array.Empty<CleanupSkip>()).Where(f => f.OperationKey == outcome.Key).Select(f => Loc.T("preview.skip." + f.Reason) + ": " + f.Path));
+            lines.AddRange((session.SkipDetails ?? Array.Empty<CleanupSkip>()).Where(f => f.OperationKey == outcome.Key).Select(f => Loc.T("preview.skip." + f.Reason) + ": " + f.Path + (string.IsNullOrEmpty(f.Detail) ? "" : " — " + f.Detail)));
         }
         DetailsText = lines.Count > 0 ? string.Join(Environment.NewLine, lines) : Loc.T("preview.no.details");
     }

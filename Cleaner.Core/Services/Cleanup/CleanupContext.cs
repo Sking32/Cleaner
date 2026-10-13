@@ -3,6 +3,8 @@ using System.Threading;
 
 namespace Cleaner.Core.Services.Cleanup;
 
+public enum CleanupFileMode { Quarantine, PermanentDelete }
+
 /// <summary>
 /// Окружение, передаваемое в каждый <see cref="ICleanupHandler"/>.
 /// Содержит safety/whitelist/quarantine + прогресс + токен отмены.
@@ -25,9 +27,9 @@ public sealed class CleanupContext
     private readonly List<CleanupSkip> _skips = new();
     public IReadOnlyList<CleanupSkip> SkipDetails => _skips.ToArray();
     public int OmittedSkipDetails { get; private set; }
-    public void RecordSkip(string operationKey, string path, string reason)
+    public void RecordSkip(string operationKey, string path, string reason, string? detail = null)
     {
-        if (_skips.Count < 250) _skips.Add(new(operationKey, path, reason));
+        if (_skips.Count < 250) _skips.Add(new(operationKey, path, reason, detail));
         else OmittedSkipDetails++;
     }
     public ISafetyService Safety { get; }
@@ -43,6 +45,8 @@ public sealed class CleanupContext
     /// Используется для preview и для CLI-режима без --apply.
     /// </summary>
     public bool DryRun { get; }
+    public CleanupFileMode FileMode { get; }
+    public TimeSpan MinimumFileAge { get; }
 
     public CleanupContext(
         ISafetyService safety,
@@ -52,7 +56,9 @@ public sealed class CleanupContext
         CancellationToken cancellationToken = default,
         bool dryRun = false,
         ICommandExecutor? commands = null,
-        Cleaner.Core.Registry.IRegistryAccess? registry = null)
+        Cleaner.Core.Registry.IRegistryAccess? registry = null,
+        CleanupFileMode fileMode = CleanupFileMode.Quarantine,
+        TimeSpan minimumFileAge = default)
     {
         Safety = safety ?? throw new ArgumentNullException(nameof(safety));
         Whitelist = whitelist ?? throw new ArgumentNullException(nameof(whitelist));
@@ -62,6 +68,10 @@ public sealed class CleanupContext
         DryRun = dryRun;
         Commands = commands ?? new SystemCommandExecutor();
         Registry = registry ?? new Cleaner.Core.Registry.WindowsRegistryAccess();
+        if (!Enum.IsDefined(fileMode)) throw new ArgumentOutOfRangeException(nameof(fileMode));
+        if (minimumFileAge < TimeSpan.Zero) throw new ArgumentOutOfRangeException(nameof(minimumFileAge));
+        FileMode = fileMode;
+        MinimumFileAge = minimumFileAge;
     }
 
     /// <summary>Удобный helper для отчёта прогресса из handler'а.</summary>
