@@ -231,7 +231,7 @@ public partial class SystemViewModel : HelpViewModelBase
         {
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
             {
-                FileName = "shutdown",
+                FileName = SystemExecutable.Resolve("shutdown"),
                 Arguments = "/r /t 30 /c \"Cleaner\"",
                 CreateNoWindow = true,
                 UseShellExecute = false

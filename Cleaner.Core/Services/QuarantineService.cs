@@ -582,15 +582,12 @@ public sealed partial class QuarantineService : IQuarantineService
             RejectLinks(target);
             if (!new SafetyService(freshMinutes: 0, protectPersonalFolders: false).CheckForCleanup(target, entry.Category).IsSafe)
                 return "Restoring protected system paths requires manual recovery.";
-            var parent = Path.GetDirectoryName(target);
-            if (!string.IsNullOrEmpty(parent)) Directory.CreateDirectory(parent);
-
-            if (File.Exists(target) || Directory.Exists(target))
-                return "Restore destination already exists: " + target;
-
             cancellationToken.ThrowIfCancellationRequested();
-            if (entry.IsDirectory) { RejectTreeLinks(stored, cancellationToken); Directory.Move(stored, target); }
-            else File.Move(stored, target);
+            using var verified = VerifiedFile.OpenForRestore(stored, entry.IsDirectory);
+            if (entry.IsDirectory) RejectTreeLinks(stored, cancellationToken);
+            // Destination ancestors stay held through parent recreation and a no-overwrite
+            // rename of the verified source handle. Failure keeps the recovery journal intact.
+            verified.MoveForRestore(target);
 
             return null;
         }

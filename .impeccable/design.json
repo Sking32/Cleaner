@@ -1,0 +1,345 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-15T16:58:20.5189741Z",
+  "title": "Design System: Cleaner — Graphite",
+  "extensions": {
+    "colorMeta": {
+      "accent-dark": {
+        "role": "primary",
+        "displayName": "Accent Dark"
+      },
+      "accent-light": {
+        "role": "primary",
+        "displayName": "Accent Light"
+      },
+      "accent-soft-dark": {
+        "role": "primary",
+        "displayName": "Accent Soft Dark"
+      },
+      "accent-soft-light": {
+        "role": "primary",
+        "displayName": "Accent Soft Light"
+      },
+      "accent-teal-dark": {
+        "role": "primary",
+        "displayName": "Accent Teal Dark"
+      },
+      "accent-teal-light": {
+        "role": "primary",
+        "displayName": "Accent Teal Light"
+      },
+      "accent-violet-dark": {
+        "role": "primary",
+        "displayName": "Accent Violet Dark"
+      },
+      "accent-violet-light": {
+        "role": "primary",
+        "displayName": "Accent Violet Light"
+      },
+      "primary-foreground-dark": {
+        "role": "primary",
+        "displayName": "Primary Foreground Dark"
+      },
+      "primary-foreground-light": {
+        "role": "primary",
+        "displayName": "Primary Foreground Light"
+      },
+      "safe-dark": {
+        "role": "secondary",
+        "displayName": "Safe Dark"
+      },
+      "safe-light": {
+        "role": "secondary",
+        "displayName": "Safe Light"
+      },
+      "caution-dark": {
+        "role": "secondary",
+        "displayName": "Caution Dark"
+      },
+      "caution-light": {
+        "role": "secondary",
+        "displayName": "Caution Light"
+      },
+      "danger-dark": {
+        "role": "secondary",
+        "displayName": "Danger Dark"
+      },
+      "danger-light": {
+        "role": "secondary",
+        "displayName": "Danger Light"
+      },
+      "info-dark": {
+        "role": "secondary",
+        "displayName": "Info Dark"
+      },
+      "info-light": {
+        "role": "secondary",
+        "displayName": "Info Light"
+      },
+      "bg-base-dark": {
+        "role": "neutral",
+        "displayName": "Bg Base Dark"
+      },
+      "bg-base-light": {
+        "role": "neutral",
+        "displayName": "Bg Base Light"
+      },
+      "bg-elevated-dark": {
+        "role": "neutral",
+        "displayName": "Bg Elevated Dark"
+      },
+      "bg-elevated-light": {
+        "role": "neutral",
+        "displayName": "Bg Elevated Light"
+      },
+      "bg-overlay-dark": {
+        "role": "neutral",
+        "displayName": "Bg Overlay Dark"
+      },
+      "bg-overlay-light": {
+        "role": "neutral",
+        "displayName": "Bg Overlay Light"
+      },
+      "bg-hover-dark": {
+        "role": "neutral",
+        "displayName": "Bg Hover Dark"
+      },
+      "bg-hover-light": {
+        "role": "neutral",
+        "displayName": "Bg Hover Light"
+      },
+      "border-subtle-dark": {
+        "role": "neutral",
+        "displayName": "Border Subtle Dark"
+      },
+      "border-subtle-light": {
+        "role": "neutral",
+        "displayName": "Border Subtle Light"
+      },
+      "border-strong-dark": {
+        "role": "neutral",
+        "displayName": "Border Strong Dark"
+      },
+      "border-strong-light": {
+        "role": "neutral",
+        "displayName": "Border Strong Light"
+      },
+      "text-primary-dark": {
+        "role": "neutral",
+        "displayName": "Text Primary Dark"
+      },
+      "text-primary-light": {
+        "role": "neutral",
+        "displayName": "Text Primary Light"
+      },
+      "text-secondary-dark": {
+        "role": "neutral",
+        "displayName": "Text Secondary Dark"
+      },
+      "text-secondary-light": {
+        "role": "neutral",
+        "displayName": "Text Secondary Light"
+      },
+      "text-muted-dark": {
+        "role": "neutral",
+        "displayName": "Text Muted Dark"
+      },
+      "text-muted-light": {
+        "role": "neutral",
+        "displayName": "Text Muted Light"
+      },
+      "navigation-dark": {
+        "role": "neutral",
+        "displayName": "Navigation Dark"
+      },
+      "navigation-light": {
+        "role": "neutral",
+        "displayName": "Navigation Light"
+      },
+      "badge-dark": {
+        "role": "neutral",
+        "displayName": "Badge Dark"
+      },
+      "badge-light": {
+        "role": "neutral",
+        "displayName": "Badge Light"
+      },
+      "row-hover-dark": {
+        "role": "neutral",
+        "displayName": "Row Hover Dark"
+      },
+      "row-hover-light": {
+        "role": "neutral",
+        "displayName": "Row Hover Light"
+      },
+      "category-icon-dark": {
+        "role": "neutral",
+        "displayName": "Category Icon Dark"
+      },
+      "category-icon-light": {
+        "role": "neutral",
+        "displayName": "Category Icon Light"
+      },
+      "gauge-track-dark": {
+        "role": "neutral",
+        "displayName": "Gauge Track Dark"
+      },
+      "gauge-track-light": {
+        "role": "neutral",
+        "displayName": "Gauge Track Light"
+      }
+    },
+    "typographyMeta": {
+      "body": {
+        "purpose": "Operation names and wrapping subtitles.",
+        "displayName": "Body"
+      },
+      "title": {
+        "purpose": "Semibold category names and compact section values.",
+        "displayName": "Category title"
+      },
+      "headline": {
+        "purpose": "Shared PageTitleStyle.",
+        "displayName": "Page headline"
+      },
+      "mono": {
+        "purpose": "Identifiers and paths; some rows explicitly select Consolas.",
+        "displayName": "Technical text"
+      },
+      "caption": {
+        "purpose": "Title-bar metrics and section labels.",
+        "displayName": "Caption"
+      },
+      "label": {
+        "purpose": "Table headings, metadata and hints.",
+        "displayName": "Compact label"
+      }
+    },
+    "shadows": [
+      {
+        "name": "overlay",
+        "value": "0 12px 40px rgba(0,0,0,0.45)",
+        "purpose": "CSS preview translation of ShadowLg: WPF blur 40, depth 12, direction 270, black opacity .45; command palette and confirmation dialog."
+      }
+    ],
+    "motion": [],
+    "breakpoints": [
+      {
+        "value": "860px",
+        "name": "cleanup-inline-summary"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Action — Dark",
+      "refersTo": "button-primary-dark",
+      "css": ".ds-primary-dark{font-family:\"Segoe UI Variable Text\",\"Segoe UI\";background:#72B9F0;color:#102333;border:2px solid transparent;border-radius:6px;padding:8px 14px;cursor:pointer}.ds-primary-dark:hover{opacity:.9}.ds-primary-dark:active{opacity:.75}.ds-primary-dark:focus-visible{outline:none;border-color:#F3F6FA}.ds-primary-dark:disabled{opacity:.45;cursor:default}",
+      "kind": "button",
+      "description": "Cleanup run-button instance. App.xaml supplies the template and states; padding comes from CleanupPage.xaml. Preview uses default blue.",
+      "html": "<button class=\"ds-primary-dark\">Run selected operations</button>"
+    },
+    {
+      "name": "Primary Action — Light",
+      "refersTo": "button-primary-light",
+      "css": ".ds-primary-light{font-family:\"Segoe UI Variable Text\",\"Segoe UI\";background:#126AC1;color:#FFFFFF;border:2px solid transparent;border-radius:6px;padding:8px 14px;cursor:pointer}.ds-primary-light:hover{opacity:.9}.ds-primary-light:active{opacity:.75}.ds-primary-light:focus-visible{outline:none;border-color:#172B42}.ds-primary-light:disabled{opacity:.45;cursor:default}",
+      "kind": "button",
+      "description": "The same source primary action with runtime light-theme fill, foreground and focus border.",
+      "html": "<button class=\"ds-primary-light\">Run selected operations</button>"
+    },
+    {
+      "name": "Preset Chip",
+      "refersTo": "preset-chip-dark",
+      "css": ".ds-preset{font-family:\"Segoe UI Variable Text\",\"Segoe UI\";font-size:13px;font-weight:600;color:#F3F6FA;background:#2A3541;border:1px solid #374657;border-radius:6px;padding:6px 12px;margin:0 8px 8px 0;cursor:pointer}.ds-preset:hover{background:#344455;border-color:#62778E}.ds-preset[aria-pressed=\"true\"]{background:rgba(114,185,240,.12549019607843137);border-color:#72B9F0}.ds-preset:focus-visible{outline:none;border-color:#F3F6FA}.ds-preset:focus-within{border-color:#F3F6FA}",
+      "kind": "chip",
+      "description": "PresetChipStyle with the semibold 13-unit preset label. aria-pressed previews selection. Keyboard focus within uses the primary-text border, including when selected.",
+      "html": "<button class=\"ds-preset\" aria-pressed=\"false\">Preset</button><button class=\"ds-preset\" aria-pressed=\"true\">Selected preset</button>"
+    },
+    {
+      "name": "Card — Dark",
+      "refersTo": "card-dark",
+      "css": ".ds-card-dark{font-family:\"Segoe UI Variable Text\",\"Segoe UI\";color:#F3F6FA;background:#232C36;border:1px solid #374657;border-radius:6px;padding:16px}",
+      "kind": "card",
+      "description": "The shared resting CardStyle, without a shadow. Text follows the shell family and primary foreground.",
+      "html": "<div class=\"ds-card-dark\">Content</div>"
+    },
+    {
+      "name": "Card — Light",
+      "refersTo": "card-light",
+      "css": ".ds-card-light{font-family:\"Segoe UI Variable Text\",\"Segoe UI\";color:#172B42;background:#FFFFFF;border:1px solid #D5DFEB;border-radius:6px;padding:16px}",
+      "kind": "card",
+      "description": "The shared CardStyle after the runtime light palette is applied.",
+      "html": "<div class=\"ds-card-light\">Content</div>"
+    },
+    {
+      "name": "Horizontal Navigation",
+      "refersTo": "navigation-item-dark",
+      "css": ".ds-nav{display:flex;background:#222C37}.ds-nav-item{position:relative;font-family:\"Segoe UI Variable Text\",\"Segoe UI\";font-size:12px;color:#C2CFDD;background:transparent;border:1px solid transparent;border-radius:0;padding:12px 10px}.ds-nav-item:hover{background:#344455}.ds-nav-item[aria-current=\"page\"]{background:rgba(114,185,240,.12549019607843137);color:#72B9F0}.ds-nav-item[aria-current=\"page\"]::after{content:\"\";position:absolute;left:8px;right:8px;bottom:0;height:3px;background:#72B9F0}.ds-nav-item:focus-visible{outline:none;border-color:#72B9F0}.ds-nav-item:disabled{opacity:.45}",
+      "kind": "nav",
+      "description": "Label/state translation of NavItemStyle on the runtime navigation surface. Fluent symbols remain native WPF assets and are omitted here rather than substituted with glyphs.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Tools\"><button class=\"ds-nav-item\" aria-current=\"page\">Cleanup</button><button class=\"ds-nav-item\">Optimization</button><button class=\"ds-nav-item\">Startup</button></nav>"
+    },
+    {
+      "name": "Recovery Session Item",
+      "refersTo": "session-item-dark",
+      "css": ".ds-session{display:block;text-align:left;font-family:\"Segoe UI Variable Text\",\"Segoe UI\";color:#F3F6FA;background:#2A3541;border:1px solid transparent;border-radius:10px;padding:14px;margin-bottom:8px}.ds-session:hover{border-color:#62778E}.ds-session[aria-pressed=\"true\"]{background:rgba(114,185,240,.12549019607843137);border-color:#72B9F0}.ds-session:focus-visible{outline:none;border-color:#72B9F0}",
+      "kind": "custom",
+      "description": "SessionItemStyle: bordered on hover/focus, soft-accent selected state. Content is an illustrative label, not operational data.",
+      "html": "<button class=\"ds-session\" aria-pressed=\"false\">Recovery session</button>"
+    },
+    {
+      "kind": "input",
+      "name": "Read-only Diagnostic Field",
+      "description": "Explicit local TextBox overrides from cleanup/history detail: selectable, read-only, wrapped, transparent and borderless. Native editable-field chrome, sizing and keyboard focus are not reconstructed.",
+      "html": "<textarea class=\"ds-readonly\" readonly aria-label=\"Diagnostic details\">Diagnostic details</textarea>",
+      "css": ".ds-readonly{font-family:\"Segoe UI Variable Text\",\"Segoe UI\";background:transparent;border:0;white-space:pre-wrap;margin-top:6px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Graphite",
+    "overview": "A compact Windows workspace that makes the next action and its consequences easy to identify. The approved dark and light Graphite references establish matte surfaces, cool blue actions, native Windows typography and horizontal navigation. Selection, analysis, review, confirmation, execution and an honest result define the journey; decoration leaves room for useful data.\n\nDense tables, restrained corners and explanatory text support people without technical knowledge. Fluent line icons accompany commands and destinations. Both themes share the hierarchy; accent and density remain independent preferences. Preserve real commands, presets, exclusions, cancellation, recovery, safety notices and opt-in automation when extending a surface.\n\nThis record describes source, not completed Windows visual certification. Authority: `Cleaner.App/Services/Appearance.cs`, `Themes/Tokens.xaml`, `App.xaml`, `MainWindow.xaml` and all nine page XAML files. Runtime colors supersede older startup values in `Tokens.xaml`. The approved finish still requires actual Russian/English, both-theme, small/normal-window, keyboard, empty/error and 100–200% scaling checks; this record does not establish that those checks passed.",
+    "keyCharacteristics": [
+      "Matte graphite and pale neutral surfaces with semantic theme brushes.",
+      "Compact horizontal navigation and data-focused rows.",
+      "Native Windows type and Fluent line icons.",
+      "Explicit consequences, readable status text and distinct recovery semantics."
+    ],
+    "rules": [
+      {
+        "name": "The Paired Theme Rule",
+        "body": "Resolve theme-sensitive colors through dynamic semantic brushes; switch fill, text, border and state treatments together.",
+        "section": "colors"
+      },
+      {
+        "name": "The Explained Status Rule",
+        "body": "Warnings, compatibility and irreversible actions require explanatory text or icons; color alone cannot carry their meaning.",
+        "section": "colors"
+      },
+      {
+        "name": "The Consequence Column Rule",
+        "body": "Keep operation names and consequences distinct through primary/secondary text, aligned columns and expandable detail.",
+        "section": "typography"
+      },
+      {
+        "name": "The Overlay Depth Rule",
+        "body": "Reserve the observed large shadow for temporary overlays; resting tables and cards communicate hierarchy through tone and borders.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** use dynamic semantic brushes and switch the full light/dark state together.",
+      "**Do** retain horizontal destinations, a separate utility zone and a standalone settings gear.",
+      "**Do** use compact rows, aligned consequence columns and expandable supporting detail.",
+      "**Do** pair status colors with meaningful text or icons and retain explicit confirmation for consequential actions.",
+      "**Do** preserve native Windows typography, Fluent line icons, keyboard interaction and accessible names.",
+      "**Do** verify languages, themes, density, constrained windows and 100–200% scaling against actual output."
+    ],
+    "donts": [
+      "**Don't** use mock values, health scores, invented delays or performance guarantees as visual content.",
+      "**Don't** report same-volume quarantined bytes as reclaimed space or merge them with permanently deleted bytes.",
+      "**Don't** copy startup fallback colors over the runtime palette or use stale brush names to introduce decorative gradients.",
+      "**Don't** turn dormant methods or unused resources into rules for new surfaces.",
+      "**Don't** replace native controls or safety behavior with rasterized interface imagery.\r"
+    ]
+  }
+}

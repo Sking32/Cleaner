@@ -1,166 +1,168 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Page xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml" xmlns:loc="clr-namespace:Cleaner.App.Localization" x:Class="Cleaner.App.Views.SettingsPage" Title="{loc:Loc settings.title}" Background="{DynamicResource BgBaseBrush}">
     <Page.Resources>
-        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/><Style x:Key="CompactSettingHintStyle" TargetType="TextBlock" BasedOn="{StaticResource SettingHintStyle}"><Setter Property="Margin" Value="0,2,0,0"/><Setter Property="FontSize" Value="12"/></Style>
     </Page.Resources>
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-        <StackPanel Margin="32,28,32,24" MaxWidth="1000" HorizontalAlignment="Stretch">
+        <StackPanel Margin="20,16,20,16" MaxWidth="1120" HorizontalAlignment="Stretch">
             <TextBlock Text="{loc:Loc settings.title}" Style="{StaticResource PageTitleStyle}"/>
-            <TextBlock Text="{loc:Loc settings.subtitle}" Style="{StaticResource PageSubtitleStyle}" Margin="0,8,0,26"/>
-            <TextBlock Text="{loc:Loc settings.appearance}" Style="{StaticResource SectionLabelStyle}" Margin="0,0,0,10"/>
-            <Border Style="{StaticResource CardStyle}">
+            <TextBlock Text="{loc:Loc settings.subtitle}" Style="{StaticResource PageSubtitleStyle}" Margin="0,4,0,10"/>
+            <TextBlock Text="{loc:Loc settings.appearance}" Style="{StaticResource SectionLabelStyle}" Margin="0,0,0,6"/>
+            <Border Style="{StaticResource CardStyle}" Padding="10">
                 <StackPanel>
-                    <Grid Margin="0,0,0,18">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="210"/>
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Margin="0,0,20,0">
-                            <TextBlock Text="{loc:Loc settings.density}" FontWeight="SemiBold"/>
-                            <TextBlock Text="{loc:Loc settings.density.hint}" Style="{StaticResource SettingHintStyle}"/>
-                        </StackPanel>
-                        <ComboBox Grid.Column="1" ItemsSource="{Binding Densities}" DisplayMemberPath="Label" SelectedValuePath="Key" SelectedValue="{Binding Density}" VerticalAlignment="Center"/>
-                    </Grid>
-                    <Border Style="{StaticResource DividerStyle}" Margin="0,0,0,18"/>
-                    <Grid Margin="0,0,0,18">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="210"/>
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Margin="0,0,20,0">
-                            <TextBlock Text="{loc:Loc settings.accent}" FontWeight="SemiBold"/>
-                            <TextBlock Text="{loc:Loc settings.accent.hint}" Style="{StaticResource SettingHintStyle}"/>
-                        </StackPanel>
-                        <ComboBox Grid.Column="1" ItemsSource="{Binding Accents}" DisplayMemberPath="Label" SelectedValuePath="Key" SelectedValue="{Binding Accent, Mode=TwoWay}" VerticalAlignment="Center"/>
-                    </Grid>
-                    <Border Style="{StaticResource DividerStyle}"/>
-                    <Grid Margin="0,18">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Margin="0,0,20,0">
-                            <TextBlock Text="{loc:Loc settings.animations}" FontWeight="SemiBold"/>
-                            <TextBlock Text="{loc:Loc settings.animations.hint}" Style="{StaticResource SettingHintStyle}"/>
-                        </StackPanel>
-                        <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding Animations, Mode=TwoWay}" OnContent="" OffContent="" VerticalAlignment="Center"/>
-                    </Grid>
-                    <Border Style="{StaticResource DividerStyle}"/>
-                    <Grid Margin="0,18,0,0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Margin="0,0,20,0">
-                            <TextBlock Text="{loc:Loc settings.metrics}" FontWeight="SemiBold"/>
-                            <TextBlock Text="{loc:Loc settings.metrics.hint}" Style="{StaticResource SettingHintStyle}"/>
-                        </StackPanel>
-                        <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding ShowMetrics, Mode=TwoWay}" OnContent="" OffContent="" VerticalAlignment="Center"/>
-                    </Grid>
-                </StackPanel>
-            </Border>
-            <TextBlock Text="{loc:Loc settings.general}" Style="{StaticResource SectionLabelStyle}" Margin="0,26,0,10"/>
-            <Border Style="{StaticResource CardStyle}" Margin="0,0,0,12">
-                <StackPanel>
-                    <TextBlock Text="{Binding VersionText}" FontWeight="SemiBold"/>
-                    <TextBlock Text="{loc:Loc updates.hint}" Style="{StaticResource SettingHintStyle}"/>
-                    <WrapPanel Margin="0,12,0,0"><ui:Button Content="{loc:Loc updates.check}" Command="{Binding CheckUpdatesCommand}" Margin="0,0,8,0"/><ui:Button Content="GitHub Releases" Command="{Binding OpenReleasesCommand}"/></WrapPanel>
-                    <TextBlock Text="{Binding UpdateStatus}" Style="{StaticResource SettingHintStyle}"/>
-                </StackPanel>
-            </Border>
-            <Border Style="{StaticResource CardStyle}" Margin="0,0,0,12">
-                <Grid>
-                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                    <StackPanel Margin="0,0,20,0">
-                        <TextBlock Text="{loc:Loc settings.expert}" FontWeight="SemiBold"/>
-                        <TextBlock Text="{loc:Loc settings.expert.hint}" Style="{StaticResource SettingHintStyle}" TextWrapping="Wrap"/>
-                    </StackPanel>
-                    <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding ExpertMode, Mode=TwoWay}" OnContent="" OffContent="" VerticalAlignment="Center" AutomationProperties.Name="{loc:Loc settings.expert}"/>
-                </Grid>
-            </Border>
-            <Border Style="{StaticResource CardStyle}">
-                <StackPanel>
-                    <Grid Margin="0,0,0,18">
+<Grid Margin="0,0,0,6">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="210"/>
                         </Grid.ColumnDefinitions>
                         <StackPanel Margin="0,0,20,0">
                             <TextBlock Text="{loc:Loc settings.language}" FontWeight="SemiBold"/>
-                            <TextBlock Text="{loc:Loc settings.language.hint}" Style="{StaticResource SettingHintStyle}"/>
+                            <TextBlock Text="{loc:Loc settings.language.hint}" Style="{StaticResource CompactSettingHintStyle}"/>
                         </StackPanel>
                         <ComboBox Grid.Column="1" ItemsSource="{Binding Languages}" DisplayMemberPath="Label" SelectedValuePath="Key" SelectedValue="{Binding Language, Mode=TwoWay}" VerticalAlignment="Center"/>
+                    </Grid><ui:InfoBar Title="{loc:Loc settings.restart}" IsOpen="{Binding RestartRequired, Mode=OneWay}" IsClosable="False" Severity="Informational" Margin="0,0,0,16"/><Border Style="{StaticResource DividerStyle}" Margin="0,0,0,6"/><Grid Margin="0,0,0,6"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="210"/></Grid.ColumnDefinitions><StackPanel Margin="0,0,20,0"><TextBlock Text="{loc:Loc settings.theme}" FontWeight="SemiBold"/><TextBlock Text="{loc:Loc settings.theme.hint}" Style="{StaticResource CompactSettingHintStyle}"/></StackPanel><ComboBox x:Name="ThemeSelector" Grid.Column="1" ItemsSource="{Binding Themes}" DisplayMemberPath="Label" SelectedValuePath="Key" SelectedValue="{Binding Theme, Mode=TwoWay}" VerticalAlignment="Center" AutomationProperties.Name="{loc:Loc settings.theme}"/></Grid><Border Style="{StaticResource DividerStyle}" Margin="0,0,0,6"/>
+                    <Grid Margin="0,0,0,6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="210"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Margin="0,0,20,0">
+                            <TextBlock Text="{loc:Loc settings.density}" FontWeight="SemiBold"/>
+                            <TextBlock Text="{loc:Loc settings.density.hint}" Style="{StaticResource CompactSettingHintStyle}"/>
+                        </StackPanel>
+                        <ComboBox Grid.Column="1" ItemsSource="{Binding Densities}" DisplayMemberPath="Label" SelectedValuePath="Key" SelectedValue="{Binding Density}" VerticalAlignment="Center"/>
                     </Grid>
-                    <ui:InfoBar Title="{loc:Loc settings.restart}" IsOpen="{Binding RestartRequired, Mode=OneWay}" IsClosable="False" Severity="Informational" Margin="0,0,0,16"/>
+                    <Border Style="{StaticResource DividerStyle}" Margin="0,0,0,6"/>
+                    <Grid Margin="0,0,0,6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="210"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Margin="0,0,20,0">
+                            <TextBlock Text="{loc:Loc settings.accent}" FontWeight="SemiBold"/>
+                            <TextBlock Text="{loc:Loc settings.accent.hint}" Style="{StaticResource CompactSettingHintStyle}"/>
+                        </StackPanel>
+                        <ComboBox Grid.Column="1" ItemsSource="{Binding Accents}" DisplayMemberPath="Label" SelectedValuePath="Key" SelectedValue="{Binding Accent, Mode=TwoWay}" VerticalAlignment="Center"/>
+                    </Grid>
                     <Border Style="{StaticResource DividerStyle}"/>
-                    <Grid Margin="0,18,0,0">
+                    <Expander Header="{loc:Loc settings.appearance.extra}" Style="{StaticResource CompactExpanderStyle}"><StackPanel><Grid Margin="0,6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Margin="0,0,20,0">
+                            <TextBlock Text="{loc:Loc settings.animations}" FontWeight="SemiBold"/>
+                            <TextBlock Text="{loc:Loc settings.animations.hint}" Style="{StaticResource CompactSettingHintStyle}"/>
+                        </StackPanel>
+                        <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding Animations, Mode=TwoWay}" OnContent="" OffContent="" VerticalAlignment="Center"/>
+                    </Grid>
+                    <Border Style="{StaticResource DividerStyle}"/>
+                    <Grid Margin="0,6,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Margin="0,0,20,0">
+                            <TextBlock Text="{loc:Loc settings.metrics}" FontWeight="SemiBold"/>
+                            <TextBlock Text="{loc:Loc settings.metrics.hint}" Style="{StaticResource CompactSettingHintStyle}"/>
+                        </StackPanel>
+                        <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding ShowMetrics, Mode=TwoWay}" OnContent="" OffContent="" VerticalAlignment="Center"/>
+                    </Grid></StackPanel></Expander>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource CardStyle}" Padding="10">
+                <StackPanel>
+
+
+                    <Border Style="{StaticResource DividerStyle}"/>
+                    <Grid Margin="0,6,0,0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="210"/>
                         </Grid.ColumnDefinitions>
                         <StackPanel Margin="0,0,20,0">
                             <TextBlock Text="{loc:Loc settings.start}" FontWeight="SemiBold"/>
-                            <TextBlock Text="{loc:Loc settings.start.hint}" Style="{StaticResource SettingHintStyle}"/>
+                            <TextBlock Text="{loc:Loc settings.start.hint}" Style="{StaticResource CompactSettingHintStyle}"/>
                         </StackPanel>
                         <ComboBox Grid.Column="1" ItemsSource="{Binding StartPages}" DisplayMemberPath="Label" SelectedValuePath="Key" SelectedValue="{Binding StartPage, Mode=TwoWay}" VerticalAlignment="Center"/>
                     </Grid>
                 </StackPanel>
             </Border>
-            <TextBlock Text="{loc:Loc automation.title}" Style="{StaticResource SectionLabelStyle}" Margin="0,26,0,10"/>
-            <Border Style="{StaticResource CardStyle}" Margin="0,0,0,20">
+            <TextBlock Text="{loc:Loc automation.title}" Style="{StaticResource SectionLabelStyle}" Margin="0,16,0,6"/>
+            <Border Style="{StaticResource CardStyle}" Padding="10" Margin="0,0,0,20">
                 <StackPanel>
                     <Grid>
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                         <StackPanel Margin="0,0,20,0">
                             <TextBlock Text="{loc:Loc automation.startup}" FontWeight="SemiBold"/>
-                            <TextBlock Text="{loc:Loc automation.startup.hint}" Style="{StaticResource SettingHintStyle}"/>
+                            <TextBlock Text="{loc:Loc automation.startup.hint}" Style="{StaticResource CompactSettingHintStyle}"/>
                         </StackPanel>
                         <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding StartWithWindows, Mode=TwoWay}" OnContent="" OffContent="" VerticalAlignment="Center"/>
                     </Grid>
-                    <Border Style="{StaticResource DividerStyle}" Margin="0,18"/>
+                    <Border Style="{StaticResource DividerStyle}" Margin="0,6"/>
                     <Grid>
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                         <StackPanel Margin="0,0,20,0">
                             <TextBlock Text="{loc:Loc automation.cleanup}" FontWeight="SemiBold"/>
-                            <TextBlock Text="{loc:Loc automation.cleanup.hint}" Style="{StaticResource SettingHintStyle}"/>
+                            <TextBlock Text="{loc:Loc automation.cleanup.hint}" Style="{StaticResource CompactSettingHintStyle}"/>
                         </StackPanel>
                         <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding AutoCleanupEnabled, Mode=TwoWay}" OnContent="" OffContent="" VerticalAlignment="Center"/>
                     </Grid>
-                    <Grid Margin="0,18,0,0">
+                    <Grid Margin="0,6,0,0">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="210"/></Grid.ColumnDefinitions>
                         <TextBlock Text="{loc:Loc automation.interval}" VerticalAlignment="Center"/>
                         <ComboBox Grid.Column="1" ItemsSource="{Binding CleanupIntervals}" DisplayMemberPath="Label" SelectedValuePath="Key" SelectedValue="{Binding AutoCleanupInterval, Mode=TwoWay}" IsEnabled="{Binding AutoCleanupEnabled}"/>
                     </Grid>
-                    <TextBlock Text="{Binding AutomationStatus}" Style="{StaticResource SettingHintStyle}" Margin="0,12,0,0"/>
+                    <TextBlock Text="{Binding AutomationStatus}" Style="{StaticResource CompactSettingHintStyle}" Margin="0,6,0,0"/>
                 </StackPanel>
             </Border>
-            <TextBlock Text="{loc:Loc settings.storage.title}" Style="{StaticResource SectionLabelStyle}" Margin="0,6,0,10"/>
-            <Border Style="{StaticResource CardStyle}" Margin="0,0,0,20">
+<TextBlock Text="{loc:Loc settings.general}" Style="{StaticResource SectionLabelStyle}" Margin="0,16,0,6"/>
+            <Border Style="{StaticResource CardStyle}" Padding="10" Margin="0,0,0,6">
                 <StackPanel>
-                    <TextBlock Text="{loc:Loc settings.storage.hint}" Style="{StaticResource SettingHintStyle}"/>
-                    <ui:Button Content="{loc:Loc settings.storage.clear}" Icon="{ui:SymbolIcon Delete24}" Command="{Binding ClearOldLogsCommand}" Margin="0,12,0,0" HorizontalAlignment="Left"/>
-                    <TextBlock Text="{Binding MaintenanceStatus}" Style="{StaticResource SettingHintStyle}"/>
+                    <TextBlock Text="{Binding VersionText}" FontWeight="SemiBold"/>
+                    <TextBlock Text="{loc:Loc updates.hint}" Style="{StaticResource CompactSettingHintStyle}"/>
+                    <WrapPanel Margin="0,6,0,0"><ui:Button Content="{loc:Loc updates.check}" Command="{Binding CheckUpdatesCommand}" Margin="0,0,6,0"/><ui:Button Content="GitHub Releases" Command="{Binding OpenReleasesCommand}"/></WrapPanel>
+                    <TextBlock Text="{Binding UpdateStatus}" Style="{StaticResource CompactSettingHintStyle}"/>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource CardStyle}" Padding="10" Margin="0,0,0,6">
+                <Grid>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                    <StackPanel Margin="0,0,20,0">
+                        <TextBlock Text="{loc:Loc settings.expert}" FontWeight="SemiBold"/>
+                        <TextBlock Text="{loc:Loc settings.expert.hint}" Style="{StaticResource CompactSettingHintStyle}" TextWrapping="Wrap"/>
+                    </StackPanel>
+                    <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding ExpertMode, Mode=TwoWay}" OnContent="" OffContent="" VerticalAlignment="Center" AutomationProperties.Name="{loc:Loc settings.expert}"/>
+                </Grid>
+            </Border>
+
+            <TextBlock Text="{loc:Loc settings.storage.title}" Style="{StaticResource SectionLabelStyle}" Margin="0,6,0,10"/>
+            <Border Style="{StaticResource CardStyle}" Padding="10" Margin="0,0,0,20">
+                <StackPanel>
+                    <TextBlock Text="{loc:Loc settings.storage.hint}" Style="{StaticResource CompactSettingHintStyle}"/>
+                    <ui:Button Content="{loc:Loc settings.storage.clear}" Icon="{ui:SymbolIcon Delete24}" Command="{Binding ClearOldLogsCommand}" Margin="0,6,0,0" HorizontalAlignment="Left"/>
+                    <TextBlock Text="{Binding MaintenanceStatus}" Style="{StaticResource CompactSettingHintStyle}"/>
                 </StackPanel>
             </Border>
             <TextBlock Text="{loc:Loc settings.help}" Style="{StaticResource SectionLabelStyle}" Margin="0,6,0,10"/>
-            <Border Style="{StaticResource CardStyle}">
+            <Border Style="{StaticResource CardStyle}" Padding="10">
                 <StackPanel>
                     <TextBlock Text="{loc:Loc settings.hints}" FontWeight="SemiBold"/>
-                    <ui:Button Content="{loc:Loc safety.open}" Icon="{ui:SymbolIcon ShieldCheckmark24}" Command="{Binding ShowSafetyNoticeCommand}" Margin="0,12,0,12" HorizontalAlignment="Left"/>
-                    <TextBlock Text="{loc:Loc settings.hints.hint}" Style="{StaticResource SettingHintStyle}"/>
+                    <ui:Button Content="{loc:Loc safety.open}" Icon="{ui:SymbolIcon ShieldCheckmark24}" Command="{Binding ShowSafetyNoticeCommand}" Margin="0,6,0,6" HorizontalAlignment="Left"/>
+                    <TextBlock Text="{loc:Loc settings.hints.hint}" Style="{StaticResource CompactSettingHintStyle}"/>
                     <ui:Button Content="{loc:Loc settings.hints.reset}" Command="{Binding ResetHintsCommand}" Margin="0,14,0,0" HorizontalAlignment="Left"/>
-                    <TextBlock Text="{loc:Loc settings.keyboard}" Style="{StaticResource SettingHintStyle}" Margin="0,18,0,0"/>
+                    <TextBlock Text="{loc:Loc settings.keyboard}" Style="{StaticResource CompactSettingHintStyle}" Margin="0,6,0,0"/>
                 </StackPanel>
             </Border>
-            <TextBlock Text="{loc:Loc settings.about}" Style="{StaticResource SectionLabelStyle}" Margin="0,26,0,10"/>
-            <Border Style="{StaticResource CardStyle}">
+            <TextBlock Text="{loc:Loc settings.about}" Style="{StaticResource SectionLabelStyle}" Margin="0,16,0,6"/>
+            <Border Style="{StaticResource CardStyle}" Padding="10">
                 <StackPanel>
                     <TextBlock Text="{Binding VersionText}" FontSize="18" FontWeight="SemiBold"/>
-                    <TextBlock Text="{loc:Loc settings.data}" Style="{StaticResource SettingHintStyle}" Margin="0,16,0,4"/>
+                    <TextBlock Text="{loc:Loc settings.data}" Style="{StaticResource CompactSettingHintStyle}" Margin="0,16,0,4"/>
                     <TextBox Text="{Binding DataDirectory, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap"/>
-                    <TextBlock Text="{loc:Loc settings.logs}" Style="{StaticResource SettingHintStyle}" Margin="0,12,0,4"/>
+                    <TextBlock Text="{loc:Loc settings.logs}" Style="{StaticResource CompactSettingHintStyle}" Margin="0,6,0,4"/>
                     <TextBox Text="{Binding LogDirectory, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap"/>
-                    <TextBlock Text="{loc:Loc settings.safety}" Style="{StaticResource SettingHintStyle}" Margin="0,18,0,0"/>
+                    <TextBlock Text="{loc:Loc settings.safety}" Style="{StaticResource CompactSettingHintStyle}" Margin="0,6,0,0"/>
                 </StackPanel>
             </Border>
             <TextBlock Text="{Binding StatusText}" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap" Margin="0,20,0,0"/>

@@ -185,6 +185,8 @@ public partial class MainWindow : FluentWindow
     private void UpdatePreferences()
     {
         StatusBarHost.Visibility = UserSettings.GetShowMetrics() ? Visibility.Visible : Visibility.Collapsed;
+        AppTitleBar.ApplicationTheme = UserSettings.GetTheme() == "light"
+            ? Wpf.Ui.Appearance.ApplicationTheme.Light : Wpf.Ui.Appearance.ApplicationTheme.Dark;
     }
 
     public void ShowFirstRunSafetyIfNeeded(bool force = false)

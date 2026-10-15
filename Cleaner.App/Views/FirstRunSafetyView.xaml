@@ -1,5 +1,5 @@
-<UserControl x:Class="Cleaner.App.Views.FirstRunSafetyView" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml" xmlns:loc="clr-namespace:Cleaner.App.Localization" KeyboardNavigation.TabNavigation="Cycle" Foreground="{StaticResource TextPrimaryBrush}">
-    <Border MaxWidth="680" MaxHeight="600" HorizontalAlignment="Center" VerticalAlignment="Stretch" Padding="24" Background="{StaticResource BgOverlayBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="{StaticResource RadiusXl}">
+<UserControl x:Class="Cleaner.App.Views.FirstRunSafetyView" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml" xmlns:loc="clr-namespace:Cleaner.App.Localization" KeyboardNavigation.TabNavigation="Cycle" Foreground="{DynamicResource TextPrimaryBrush}">
+    <Border MaxWidth="680" MaxHeight="600" HorizontalAlignment="Center" VerticalAlignment="Stretch" Padding="24" Background="{DynamicResource BgOverlayBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="{StaticResource RadiusXl}">
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -11,7 +11,7 @@
                     <ui:SymbolIcon Symbol="ShieldCheckmark24" Foreground="{DynamicResource AccentBrush}" FontSize="26" Margin="0,0,12,0"/>
                     <TextBlock Text="{loc:Loc safety.title}" FontSize="22" FontWeight="SemiBold" TextWrapping="Wrap"/>
                 </StackPanel>
-                <TextBlock Text="{loc:Loc safety.intro}" TextWrapping="Wrap" Margin="0,10,0,0" Foreground="{StaticResource TextSecondaryBrush}"/>
+                <TextBlock Text="{loc:Loc safety.intro}" TextWrapping="Wrap" Margin="0,10,0,0" Foreground="{DynamicResource TextSecondaryBrush}"/>
             </StackPanel>
             <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                 <StackPanel Margin="0,0,8,0">
@@ -21,8 +21,8 @@
                     <Border Style="{StaticResource CategoryCardStyle}" Padding="16">
                         <StackPanel>
                             <TextBlock Text="{loc:Loc safety.restore.title}" FontWeight="SemiBold" FontSize="15"/>
-                            <TextBlock Text="{loc:Loc safety.restore.explain}" TextWrapping="Wrap" Margin="0,8,0,10" Foreground="{StaticResource TextSecondaryBrush}"/>
-                            <TextBlock Text="{loc:Loc safety.restore.limits}" TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                            <TextBlock Text="{loc:Loc safety.restore.explain}" TextWrapping="Wrap" Margin="0,8,0,10" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            <TextBlock Text="{loc:Loc safety.restore.limits}" TextWrapping="Wrap" FontSize="12" Foreground="{DynamicResource TextMutedBrush}"/>
                         </StackPanel>
                     </Border>
                 </StackPanel>
@@ -33,7 +33,7 @@
                     <ui:Button x:Name="CreatePointButton" Content="{loc:Loc safety.create}" Icon="{ui:SymbolIcon ShieldCheckmark24}" Command="{Binding CreateRestorePointCommand}" Appearance="Primary" Style="{StaticResource PrimaryButtonStyle}" Margin="0,0,8,8" Padding="14,10"/>
                     <ui:Button x:Name="ContinueButton" Content="{loc:Loc safety.continue}" Command="{Binding ContinueCommand}" Padding="14,10" Margin="0,0,0,8"/>
                 </WrapPanel>
-                <TextBlock Text="{loc:Loc safety.reopen}" TextWrapping="Wrap" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                <TextBlock Text="{loc:Loc safety.reopen}" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
             </StackPanel>
         </Grid>
     </Border>

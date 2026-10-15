@@ -63,7 +63,7 @@ public partial class DiskViewModel : HelpViewModelBase
         {
             if (!System.IO.File.Exists(node!.Path) && !Directory.Exists(node.Path))
             { StatusText = Loc.T("disk.map.missing"); return; }
-            Process.Start(new ProcessStartInfo("explorer.exe") { Arguments = $"/select,\"{node.Path}\"", UseShellExecute = true });
+            Process.Start(new ProcessStartInfo(SystemExecutable.Resolve("explorer.exe")) { Arguments = $"/select,\"{node.Path}\"", UseShellExecute = true });
         }
         catch (Exception ex) { StatusText = Loc.T("t.oshibka") + ex.Message; }
     }
@@ -470,7 +470,7 @@ public partial class DiskViewModel : HelpViewModelBase
         {
             Process.Start(new ProcessStartInfo
             {
-                FileName = "explorer.exe",
+                FileName = SystemExecutable.Resolve("explorer.exe"),
                 Arguments = $"\"{item.Path}\"",
                 UseShellExecute = true
             });
@@ -486,7 +486,7 @@ public partial class DiskViewModel : HelpViewModelBase
         {
             Process.Start(new ProcessStartInfo
             {
-                FileName = "explorer.exe",
+                FileName = SystemExecutable.Resolve("explorer.exe"),
                 Arguments = $"/select,\"{item.Path}\"",
                 UseShellExecute = true
             });

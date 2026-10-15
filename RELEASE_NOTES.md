@@ -1,37 +1,39 @@
-# 🧪 Cleaner 1.1.0-beta.7.1 — пресеты и быстрый выбор / presets and quick selection
+# 🎨 Cleaner 1.1.0-rc.1 — Graphite
 
 ## 🇷🇺 Русский
 
-Небольшое обновление тестовой версии для Windows x64.
+Полный редизайн Cleaner для Windows x64. **Это кандидат в релиз для тестирования, а не подтверждённая стабильная версия.**
 
-- 🧹 Вернулись названия пресетов **Мягкая**, **Стандартная** и **Глубокая**. Их пересмотренный состав и профиль **Для игроков** сохранены.
-- ☑️ Кнопка **Все** выбирает доступные категории текущего режима; **Ничего** снимает все галочки. Выбор не запускает очистку.
-- 🛡️ Во время анализа и очистки изменение пресета и массовый выбор недоступны. Перед выполнением сохраняются анализ, проверка файлов и подтверждение.
-- 🔔 Проверка обновлений теперь распознаёт номера исправлений, например **beta.7.1**, и правильно сравнивает их с beta.7 и beta.8.
-- 🌐 Обновлены подсказки, инструкции RU/EN и история версий внутри приложения.
+- 🌗 Тёмная и светлая темы: переключение в настройках без перезапуска, с сохранением выбора.
+- 🧭 Верхняя навигация: основные инструменты отдельно от «Истории», «Что нового?» и настроек.
+- 🧹 Компактные списки очистки, оптимизаций, автозагрузки и служб; обновлены все девять страниц.
+- 📊 Обновлены полукруг заполнения диска, карта папок и история результатов. Карантин учитывается отдельно от освобождённого места.
+- 🛡️ Усилен запуск системных утилит и восстановление карантина по проверенным дескрипторам, без перезаписи существующих файлов.
+- 🌐 Обновлены справка RU/EN и история версий. Выбор пресетов, предварительный анализ и подтверждения сохранены.
 
-**Важно:** в экспертном режиме «Все» выбирает также системные действия с риском для работы Windows. Просмотрите категории и предупреждения перед подтверждением. Ручной Temp включает доступные файлы любого возраста и расширения — сначала закройте приложения. Карантин на том же диске не освобождает место; системные команды не поддерживают карантин. Это всё ещё бета: реальные испытания на целевых версиях Windows ещё предстоят.
+**Проверки:** сборка, изолированные автоматические тесты, рендеры RU/EN в обеих темах, проверка зависимостей и состава архива. Реальная матрица Windows, изменение DPI Windows и испытание с пятью неопытными пользователями ещё не завершены. Работа без ошибок на любом компьютере не обещается.
 
-📦 **Скачать:** в Assets выберите **Cleaner-1.1.0-beta.7.1-win-x64.zip**, распакуйте целиком и запустите **Cleaner.App.exe**. Папка **Data** должна оставаться рядом. .NET включён; EXE не подписан. SHA-256 необязателен. Не отключайте защиту Windows ради запуска.
+**Ограничения:** старые элементы карантина с восстановлением на другой том остаются в карантине для ручного восстановления. Не удаляйте такую сессию. Непроверенные системные операции в экспертном режиме могут нарушить работу Windows; испытывайте их только в отдельной VM со снимком. Карантин на том же диске не освобождает место. EXE не подписан; не отключайте защиту Windows ради запуска.
 
-Если предыдущая beta не показывает это обновление, скачайте ZIP вручную со страницы Releases: старые сборки могли не распознавать номер beta.7.1. Не запускайте разные версии одновременно; настройки и карантин используют общий профиль Cleaner.
+📦 В **Assets** скачайте **Cleaner-1.1.0-rc.1-win-x64.zip**, распакуйте целиком и запустите **Cleaner.App.exe**. Папку **Data** оставьте рядом; .NET включён. SHA-256 необязателен и предназначен для проверки совпадения архива. Архивы **Source code** не являются готовым приложением. Не запускайте старую и новую версии одновременно: профиль и карантин общие.
 
-📣 [Сообщить об ошибке](https://github.com/Sking32/Cleaner/issues/new/choose) · [Вопросы и впечатления](https://github.com/Sking32/Cleaner/discussions). Укажите версию Cleaner, build Windows, шаги и ожидаемый/фактический результат. Удалите личные данные из скриншотов и отчётов.
+💬 [Ошибка или предложение](https://github.com/Sking32/Cleaner/issues/new/choose) · [Вопросы и впечатления](https://github.com/Sking32/Cleaner/discussions). Укажите версию, build Windows, язык, масштаб, шаги и результат. Перед отправкой удалите личные данные из скриншотов и отчётов.
 
 ## 🇬🇧 English
 
-A small update to the Windows x64 test build.
+A complete Cleaner redesign for Windows x64. **This is a release candidate for testing, not a validated stable release.**
 
-- 🧹 Restored the **Soft**, **Standard** and **Deep** preset names. Their reviewed category selections and the **For gamers** profile are preserved.
-- ☑️ **All** selects available categories in the current mode; **None** clears all checkboxes. Selection alone never starts cleanup.
-- 🛡️ Preset changes and bulk selection are unavailable during analysis and cleanup. Analysis, file checks and confirmation remain required before execution.
-- 🔔 Update checks now recognize hotfix numbers such as **beta.7.1** and compare them correctly with beta.7 and beta.8.
-- 🌐 Updated tooltips, RU/EN guides and the in-app version history.
+- 🌗 Dark and light themes: switch in Settings without restarting; your choice is saved.
+- 🧭 Top navigation separates the main tools from History, What’s new? and Settings.
+- 🧹 Compact cleanup, optimization, startup and service lists; all nine pages have been redesigned.
+- 📊 Refreshed disk occupancy gauge, folder map and cleanup history. Quarantine is counted separately from freed space.
+- 🛡️ Hardened system utility execution and handle-based quarantine recovery without overwriting existing files.
+- 🌐 Updated RU/EN help and release history. Presets, analysis and confirmation steps are preserved.
 
-**Important:** expert-mode All also selects system actions that may affect Windows operation. Review categories and warnings before confirming. Manual Temp cleanup includes accessible files of any age and extension — close applications first. Same-drive quarantine does not reclaim space; system commands do not support quarantine. This remains a beta: validation on target Windows versions is still pending.
+**Validation:** builds, isolated automated tests, RU/EN renders in both themes, dependency and archive checks. The real Windows compatibility matrix, Windows DPI changes and trials with five novice users remain outstanding. Error-free operation on every computer is not promised.
 
-📦 **Download:** choose **Cleaner-1.1.0-beta.7.1-win-x64.zip** under Assets, extract the whole archive and run **Cleaner.App.exe** with **Data** beside it. .NET is included; the EXE is unsigned. SHA-256 verification is optional. Do not disable Windows protection to run the app.
+**Limitations:** legacy quarantine items restoring to another volume remain quarantined for manual recovery. Keep that session. Unverified Expert-mode system actions can disrupt Windows; test them only in a separate VM with a snapshot. Same-drive quarantine does not free space. The EXE is unsigned; do not disable Windows protection to run it.
 
-If an older beta does not show this update, download the ZIP manually from Releases: earlier builds may not recognize beta.7.1. Never run different versions together; Cleaner preferences and quarantine use a shared profile.
+📦 Under **Assets**, download **Cleaner-1.1.0-rc.1-win-x64.zip**, extract everything and run **Cleaner.App.exe**. Keep **Data** beside it; .NET is included. SHA-256 is optional and checks archive integrity. **Source code** archives are not the runnable application. Do not run old and new versions simultaneously: they share the same profile and quarantine.
 
-📣 [Report a bug](https://github.com/Sking32/Cleaner/issues/new/choose) · [Questions and impressions](https://github.com/Sking32/Cleaner/discussions). Include Cleaner version, Windows build, steps and expected/actual results. Remove private information from screenshots and reports.
+💬 [Report a bug or request a feature](https://github.com/Sking32/Cleaner/issues/new/choose) · [Questions and impressions](https://github.com/Sking32/Cleaner/discussions). Include version, Windows build, language, display scale, steps and results. Remove personal information from screenshots and reports before posting.

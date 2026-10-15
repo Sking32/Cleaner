@@ -23,7 +23,7 @@
                 </Style.Triggers>
             </Style>
             <Style TargetType="TextBlock">
-                <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
                 <Setter Property="TextOptions.TextFormattingMode" Value="Display" />
                 <Setter Property="TextOptions.TextRenderingMode" Value="ClearType" />
             </Style>
@@ -41,7 +41,7 @@
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="ListBoxItem">
-                            <Border x:Name="Bd" CornerRadius="10" Padding="12,6" Background="{DynamicResource BgOverlayBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" Cursor="Hand">
+                            <Border x:Name="Bd" CornerRadius="6" Padding="12,6" Background="{DynamicResource BgOverlayBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" Cursor="Hand">
                                 <ContentPresenter />
                             </Border>
                             <ControlTemplate.Triggers>
@@ -53,6 +53,9 @@
                                     <Setter TargetName="Bd" Property="Background" Value="{DynamicResource AccentSoftBrush}" />
                                     <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
                                 </Trigger>
+                                <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                                    <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource TextPrimaryBrush}" />
+                                </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
                     </Setter.Value>
@@ -60,10 +63,10 @@
             </Style>
             <!-- === КАРТОЧКА КАТЕГОРИИ (Border вокруг CardExpander) === -->
             <Style x:Key="CategoryCardStyle" TargetType="Border">
-                <Setter Property="Background" Value="{StaticResource CardBgBrush}" />
-                <Setter Property="BorderBrush" Value="{StaticResource CardBorderBrush}" />
+                <Setter Property="Background" Value="{DynamicResource CardBgBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource CardBorderBrush}" />
                 <Setter Property="BorderThickness" Value="1" />
-                <Setter Property="CornerRadius" Value="12" />
+                <Setter Property="CornerRadius" Value="6" />
                 <Setter Property="Padding" Value="4" />
             </Style>
             <!-- === Кружок-бейдж уровня === -->
@@ -80,7 +83,7 @@
                 <Setter Property="Width" Value="38" />
                 <Setter Property="Height" Value="38" />
                 <Setter Property="CornerRadius" Value="11" />
-                <Setter Property="Background" Value="{StaticResource CategoryIconBgBrush}" />
+                <Setter Property="Background" Value="{DynamicResource CategoryIconBgBrush}" />
                 <Setter Property="Margin" Value="0,0,12,0" />
             </Style>
             <!-- === Строка операции/твика (hover-подсветка) === -->
@@ -90,7 +93,7 @@
                 <Setter Property="Background" Value="Transparent" />
                 <Style.Triggers>
                     <Trigger Property="IsMouseOver" Value="True">
-                        <Setter Property="Background" Value="{StaticResource RowHoverBrush}" />
+                        <Setter Property="Background" Value="{DynamicResource RowHoverBrush}" />
                     </Trigger>
                 </Style.Triggers>
             </Style>
@@ -99,14 +102,14 @@
                 <Setter Property="Padding" Value="{DynamicResource OperationRowPadding}" />
             </Style>
             <Style x:Key="CompactExpanderStyle" TargetType="Expander">
-                <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
                 <Setter Property="Padding" Value="2" />
                 <Setter Property="HorizontalContentAlignment" Value="Stretch" />
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="Expander">
                             <StackPanel>
-                                <ToggleButton Content="{TemplateBinding Header}" ContentTemplate="{TemplateBinding HeaderTemplate}" Foreground="{TemplateBinding Foreground}" Padding="{TemplateBinding Padding}" IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" HorizontalContentAlignment="Stretch" AutomationProperties.Name="{Binding (AutomationProperties.Name), RelativeSource={RelativeSource TemplatedParent}}">
+                                <ToggleButton HorizontalAlignment="Stretch" Content="{TemplateBinding Header}" ContentTemplate="{TemplateBinding HeaderTemplate}" Foreground="{TemplateBinding Foreground}" Padding="{TemplateBinding Padding}" IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" HorizontalContentAlignment="Stretch" AutomationProperties.Name="{Binding (AutomationProperties.Name), RelativeSource={RelativeSource TemplatedParent}}">
                                     <ToggleButton.Template>
                                         <ControlTemplate TargetType="ToggleButton">
                                             <Border x:Name="HeaderSurface" Padding="{TemplateBinding Padding}" Background="Transparent" BorderBrush="Transparent" BorderThickness="1" CornerRadius="6">
@@ -148,36 +151,55 @@
                 <Setter Property="Padding" Value="10,7" />
             </Style>
             <Style x:Key="CardStyle" TargetType="Border">
-                <Setter Property="Background" Value="{StaticResource BgElevatedBrush}" />
-                <Setter Property="BorderBrush" Value="{StaticResource BorderSubtleBrush}" />
+                <Setter Property="Background" Value="{DynamicResource BgElevatedBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource BorderSubtleBrush}" />
                 <Setter Property="BorderThickness" Value="1" />
-                <Setter Property="CornerRadius" Value="{StaticResource RadiusLg}" />
+                <Setter Property="CornerRadius" Value="6" />
                 <Setter Property="Padding" Value="16" />
             </Style>
             <Style x:Key="SectionLabelStyle" TargetType="TextBlock">
                 <Setter Property="FontSize" Value="{StaticResource FontSizeCaption}" />
                 <Setter Property="FontWeight" Value="SemiBold" />
-                <Setter Property="Foreground" Value="{StaticResource TextTertiaryBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource TextTertiaryBrush}" />
             </Style>
             <!-- Числа — герои интерфейса: крупные, с цифрами одинаковой ширины -->
             <Style x:Key="NumberTextStyle" TargetType="TextBlock">
                 <Setter Property="FontSize" Value="{StaticResource FontSizeDisplay}" />
                 <Setter Property="FontWeight" Value="SemiBold" />
-                <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
                 <Setter Property="Typography.NumeralAlignment" Value="Tabular" />
             </Style>
             <Style x:Key="PageTitleStyle" TargetType="TextBlock">
                 <Setter Property="FontFamily" Value="{StaticResource FontDisplay}" />
-                <Setter Property="FontSize" Value="32" />
+                <Setter Property="FontSize" Value="24" />
                 <Setter Property="FontWeight" Value="SemiBold" />
-                <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
             </Style>
             <Style x:Key="PrimaryButtonStyle" TargetType="ui:Button" BasedOn="{StaticResource {x:Type ui:Button}}">
-                <Setter Property="Foreground" Value="#10141C" />
+                <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" /><Setter Property="Background" Value="{DynamicResource PrimaryFillBrush}" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ui:Button">
+                            <Border x:Name="PrimarySurface" Background="{DynamicResource PrimaryFillBrush}" BorderBrush="Transparent" BorderThickness="2" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" TextElement.Foreground="{DynamicResource PrimaryForegroundBrush}">
+                                    <ContentPresenter x:Name="PrimaryIcon" Content="{TemplateBinding Icon}" Margin="0,0,8,0" VerticalAlignment="Center" />
+                                    <ContentPresenter ContentSource="Content" RecognizesAccessKey="True" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="Icon" Value="{x:Null}"><Setter TargetName="PrimaryIcon" Property="Margin" Value="0" /></Trigger>
+                                <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="PrimarySurface" Property="Opacity" Value="0.9" /></Trigger>
+                                <Trigger Property="IsPressed" Value="True"><Setter TargetName="PrimarySurface" Property="Opacity" Value="0.75" /></Trigger>
+                                <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="PrimarySurface" Property="BorderBrush" Value="{DynamicResource TextPrimaryBrush}" /></Trigger>
+                                <Trigger Property="IsEnabled" Value="False"><Setter TargetName="PrimarySurface" Property="Opacity" Value="0.45" /></Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
                 <Setter Property="ContentTemplate">
                     <Setter.Value>
                         <DataTemplate>
-                            <TextBlock Text="{Binding}" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ui:Button}}" />
+                            <TextBlock Text="{Binding}" Foreground="{DynamicResource PrimaryForegroundBrush}" />
                         </DataTemplate>
                     </Setter.Value>
                 </Setter>
@@ -185,7 +207,7 @@
             <Style x:Key="PageSubtitleStyle" TargetType="TextBlock">
                 <Setter Property="FontSize" Value="13" />
                 <Setter Property="TextWrapping" Value="Wrap" />
-                <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
             </Style>
             <Style x:Key="SettingHintStyle" TargetType="TextBlock" BasedOn="{StaticResource PageSubtitleStyle}">
                 <Setter Property="Margin" Value="0,5,0,0" />
@@ -193,41 +215,25 @@
             </Style>
             <Style x:Key="DividerStyle" TargetType="Border">
                 <Setter Property="Height" Value="1" />
-                <Setter Property="Background" Value="{StaticResource BorderSubtleBrush}" />
+                <Setter Property="Background" Value="{DynamicResource BorderSubtleBrush}" />
             </Style>
             <Style x:Key="NavItemStyle" TargetType="ListBoxItem">
-                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                <Setter Property="Margin" Value="0,2" />
-                <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="ListBoxItem">
-                            <Border x:Name="Surface" Background="Transparent" CornerRadius="10" Padding="14,9">
-                                <Grid>
-                                    <Border x:Name="Marker" Width="3" Height="18" HorizontalAlignment="Left" Margin="-14,0,0,0" CornerRadius="2" Background="Transparent" />
-                                    <ContentPresenter VerticalAlignment="Center" />
-                                </Grid>
-                            </Border>
-                            <ControlTemplate.Triggers>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="Surface" Property="Background" Value="{StaticResource BgHoverBrush}" />
-                                </Trigger>
-                                <Trigger Property="IsSelected" Value="True">
-                                    <Setter TargetName="Surface" Property="Background" Value="{DynamicResource AccentSoftBrush}" />
-                                    <Setter TargetName="Marker" Property="Background" Value="{DynamicResource AccentBrush}" />
-                                    <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
-                                </Trigger>
-                                <Trigger Property="IsEnabled" Value="False">
-                                    <Setter Property="Opacity" Value="0.45" />
-                                </Trigger>
-                                <Trigger Property="IsKeyboardFocused" Value="True">
-                                    <Setter TargetName="Surface" Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
-                                    <Setter TargetName="Surface" Property="BorderThickness" Value="1" />
-                                </Trigger>
-                            </ControlTemplate.Triggers>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
+                <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+                <Setter Property="FontSize" Value="12"/><Setter Property="VerticalContentAlignment" Value="Center"/>
+                <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ListBoxItem">
+                    <Grid Background="Transparent">
+                        <Border x:Name="Surface" Background="Transparent" Padding="10,12" BorderBrush="Transparent" BorderThickness="1">
+                            <ContentPresenter VerticalAlignment="Center"/>
+                        </Border>
+                        <Border x:Name="Marker" Height="3" VerticalAlignment="Bottom" Background="Transparent" Margin="8,0"/>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Surface" Property="Background" Value="{DynamicResource BgHoverBrush}"/></Trigger>
+                        <Trigger Property="IsSelected" Value="True"><Setter TargetName="Surface" Property="Background" Value="{DynamicResource AccentSoftBrush}"/><Setter TargetName="Marker" Property="Background" Value="{DynamicResource AccentBrush}"/><Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/></Trigger>
+                        <Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.45"/></Trigger>
+                        <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="Surface" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/></Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate></Setter.Value></Setter>
             </Style>
             <Style x:Key="SessionItemStyle" TargetType="ListBoxItem">
                 <Setter Property="HorizontalContentAlignment" Value="Stretch" />
@@ -236,12 +242,12 @@
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="ListBoxItem">
-                            <Border x:Name="Surface" Background="{StaticResource BgOverlayBrush}" Padding="14" CornerRadius="10" BorderThickness="1" BorderBrush="Transparent">
+                            <Border x:Name="Surface" Background="{DynamicResource BgOverlayBrush}" Padding="14" CornerRadius="10" BorderThickness="1" BorderBrush="Transparent">
                                 <ContentPresenter />
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="Surface" Property="BorderBrush" Value="{StaticResource BorderStrongBrush}" />
+                                    <Setter TargetName="Surface" Property="BorderBrush" Value="{DynamicResource BorderStrongBrush}" />
                                 </Trigger>
                                 <Trigger Property="IsSelected" Value="True">
                                     <Setter TargetName="Surface" Property="Background" Value="{DynamicResource AccentSoftBrush}" />

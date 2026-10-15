@@ -95,11 +95,11 @@
         <GradientStop Color="#11FFFFFF" Offset="1"/>
     </LinearGradientBrush>
 
-    <!-- ===== Скругления: 6 / 10 / 14 / 20 ===== -->
+    <!-- Graphite: compact surfaces, with slightly softer dialogs. -->
     <CornerRadius x:Key="RadiusSm">6</CornerRadius>
-    <CornerRadius x:Key="RadiusMd">10</CornerRadius>
-    <CornerRadius x:Key="RadiusLg">14</CornerRadius>
-    <CornerRadius x:Key="RadiusXl">20</CornerRadius>
+    <CornerRadius x:Key="RadiusMd">6</CornerRadius>
+    <CornerRadius x:Key="RadiusLg">6</CornerRadius>
+    <CornerRadius x:Key="RadiusXl">10</CornerRadius>
 
     <!-- ===== Отступы: сетка 4 px ===== -->
     <sys:Double x:Key="Space1">4</sys:Double>

@@ -46,6 +46,8 @@ internal static class Program
         var store = new AppSettingsStore(Path.Combine(root, "settings.json"));
         store.Load().Language = args.Contains("en") ? "en" : "ru";
         store.Load().Animations = false;
+        store.Load().Theme = args.Contains("--light") ? "light" : "dark";
+        if (!store.Save()) throw new InvalidOperationException("Cannot save isolated fixture preferences: " + store.LastError);
         UserSettings.UsePreviewStore(store);
         var bindingTrace = new BindingTraceListener();
         PresentationTraceSources.DataBindingSource.Listeners.Add(bindingTrace);
@@ -96,9 +98,11 @@ internal static class Program
             throw new InvalidOperationException("History and release notes must be separate from the six primary tools.");
         ((Border)window.FindName("StatusBarHost")).DataContext = new { CpuText = "CPU · 8%", RamText = "RAM · 6.7 / 16 GB", DiskText = "C: · 128 GB" };
         Console.WriteLine("Shell loaded");
+        var initializedCaptionButtons = new HashSet<TitleBarButton>();
         // No Show(), Run(), startup code, real filesystem operations or OS mutations.
         foreach (var (tag, page) in new (string, Page)[] { ("cleanup", cleanup), ("privacy", privacy), ("optimize", optimize), ("startup", startup), ("system", system), ("disk", disk), ("settings", settings), ("history", history), ("whatsnew", news) })
         {
+            if (args.Contains("--settings-layout-only") && tag != "settings") continue;
             Console.WriteLine("Rendering " + tag);
             navigation.SelectedItem = navigation.Items.Cast<ListBoxItem>().FirstOrDefault(i => (string)i.Tag == tag);
             frame.Navigate(page);
@@ -108,11 +112,16 @@ internal static class Program
             warmupVisual.UpdateLayout(); Pump(600);
             CheckPressedButtons(page);
             if (args.Contains("--bindings-only")) continue;
-            foreach (var (width, height, scale) in new[] { (1360, 860, 1.0), (1120, 700, 1.0), (1360, 860, 2.0) })
+            foreach (var (width, height, scale) in new[] { (1360, 860, 1.0), (1120, 700, 1.0), (1360, 860, 2.0), (1120, 700, 2.0) })
             {
                 var visual = (FrameworkElement)window.Content;
                 visual.Measure(new Size(width, height)); visual.Arrange(new Rect(0, 0, width, height));
                 visual.UpdateLayout();
+                // WPF-UI initializes RenderButtonsForeground in Loaded. This headless host
+                // never shows the Window; raise only the dependency's caption Loaded event,
+                // without invoking Cleaner production startup or OS integration.
+                foreach (var caption in Descendants(visual).OfType<TitleBarButton>())
+                    if (initializedCaptionButtons.Add(caption)) caption.RaiseEvent(new RoutedEventArgs(FrameworkElement.LoadedEvent, caption));
                 if (tag == "cleanup")
                 {
                     foreach (var name in new[] { "SelectAllButton", "SelectNoneButton" })
@@ -156,7 +165,7 @@ internal static class Program
                         return bounds.Top >= 0 && bounds.Bottom <= viewport.ActualHeight;
                     });
                     Console.WriteLine($"{tag}: {visible} complete rows visible at 1120x700.");
-                    if (visible < (tag == "system" ? 7 : tag == "cleanup" ? 4 : 3))
+                    if (visible < (tag == "system" ? 7 : tag == "cleanup" ? 4 : 6))
                         throw new InvalidOperationException("The compact layout shows too few complete rows: " + tag);
                 }
                 Pump(500);
@@ -183,17 +192,23 @@ internal static class Program
             }
             if (tag == "history" && !args.Contains("--bindings-only"))
             {
-                var tabs = Descendants(history).OfType<TabControl>().First(); tabs.SelectedIndex = 1;
                 SaveFixtureImage(window, root, "history-chart");
+                var reportDetails = (Expander)history.FindName("HistoryDetails");
+                reportDetails.IsExpanded = true;
+                SaveFixtureImage(window, root, "history-details");
+                reportDetails.IsExpanded = false;
                 var original = history.DataContext; history.DataContext = new HistoryViewModel(() => Array.Empty<CleanupHistoryEntry>());
-                SaveFixtureImage(window, root, "history-empty"); history.DataContext = original; tabs.SelectedIndex = 0;
+                SaveFixtureImage(window, root, "history-empty"); history.DataContext = original;
             }
             if (tag == "privacy" && !args.Contains("--bindings-only"))
             {
                 var filesTab = Descendants(privacy).OfType<TabControl>().Single(t => t.Items.Cast<TabItem>().Any(i => Equals(i.Header, Loc.T("recovery.files.title"))));
-                filesTab.SelectedIndex = 1; SaveFixtureImage(window, root, "recovery-files");
+                filesTab.SelectedItem = filesTab.Items.Cast<TabItem>().Single(i => Equals(i.Header, Loc.T("recovery.files.title")));
+                SaveFixtureImage(window, root, "recovery-files");
                 if (!Descendants(privacy).OfType<System.Windows.Controls.TextBlock>().Any(t => t.Text == "old-cache.tmp"))
                     throw new InvalidOperationException("Quarantine file details were not rendered.");
+                filesTab.SelectedItem = filesTab.Items.Cast<TabItem>().Single(i => Equals(i.Header, Loc.T("design.session.details")));
+                SaveFixtureImage(window, root, "recovery-details");
                 filesTab.SelectedIndex = 0;
             }
             if (tag == "disk" && !args.Contains("--bindings-only"))
@@ -216,6 +231,15 @@ internal static class Program
                 using (var file = File.Create(Path.Combine(root, "settings-automation-1120x700-1x.png"))) encoder.Save(file);
                 scroll.ScrollToTop();
             }
+        }
+        if (args.Contains("--settings-layout-only"))
+        {
+            File.WriteAllLines(Path.Combine(root, "binding-diagnostics.txt"), bindingTrace.Messages);
+            if (bindingTrace.Messages.Count > 0) throw new InvalidOperationException(string.Join(Environment.NewLine, bindingTrace.Messages));
+            Console.WriteLine("Focused Settings layout render passed.");
+            Console.WriteLine(root);
+            app.Shutdown();
+            return;
         }
         CheckDiagnosticPreview(root);
         CheckPressedButtons((FrameworkElement)window.Content);
@@ -252,6 +276,24 @@ internal static class Program
         details.IsExpanded = false;
         Console.WriteLine("Header version, secondary navigation and system details checks passed.");
         var settingsVm = (SettingsViewModel)settings.DataContext;
+        var requestedTheme = UserSettings.GetTheme();
+        var themeSelector = (ComboBox)settings.FindName("ThemeSelector");
+        var cleanupTitle = Descendants(cleanup).OfType<System.Windows.Controls.TextBlock>().First(t => t.Text == Loc.T("t.ochistka"));
+        var themeGauge = Descendants(disk).OfType<Cleaner.App.Controls.DiskGauge>().First();
+        foreach (var theme in new[] { "light", "dark", requestedTheme })
+        {
+            themeSelector.SelectedValue = theme; Pump(100);
+            var palette = Appearance.Palette(theme, UserSettings.GetAccent());
+            frame.Navigate(cleanup); Pump(100);
+            var titleColor = ((SolidColorBrush)cleanupTitle.Foreground).Color;
+            frame.Navigate(disk); Pump(100);
+            if (UserSettings.GetTheme() != theme || new AppSettingsStore(Path.Combine(root, "settings.json")).Load().Theme != theme ||
+                titleColor != palette["TextPrimaryBrush"] ||
+                ((SolidColorBrush)themeGauge.LabelBrush).Color != palette["TextPrimaryBrush"] ||
+                ((SolidColorBrush)((Grid)window.Content).Background).Color != palette["BgBaseBrush"])
+                throw new InvalidOperationException($"Live theme {theme}: pref={UserSettings.GetTheme()}, saved={new AppSettingsStore(Path.Combine(root, "settings.json")).Load().Theme}, global={app.Resources["TextPrimaryBrush"]}, title={titleColor}, gauge={themeGauge.LabelBrush}, window={window.Background}, expectedText={palette["TextPrimaryBrush"]}, expectedBg={palette["BgBaseBrush"]}");
+        }
+        Console.WriteLine("Dark/light selector, existing page resources and preference persistence passed.");
         settingsVm.StartWithWindows = true;
         if (!fixtureStartup.IsEnabled) throw new InvalidOperationException("Startup toggle did not update its in-memory fixture.");
         settingsVm.StartWithWindows = false;
@@ -267,9 +309,14 @@ internal static class Program
         settingsVm.Density = "comfortable";
         if ((Thickness)app.Resources["OperationRowPadding"] != new Thickness(14, 10, 14, 10))
             throw new InvalidOperationException("Comfortable density was not applied.");
+        // Detached Frame pages refresh DynamicResource expressions when reattached.
+        // Assert the visible page's density after the same navigation/layout lifecycle as the app.
+        frame.Navigate(system); Pump(100);
+        ((FrameworkElement)window.Content).UpdateLayout();
         var densityRow = Descendants(system).OfType<Border>().First(row => ReferenceEquals(row.Style, app.Resources["CompactRowStyle"]));
         if (densityRow.Padding != new Thickness(14, 10, 14, 10)) throw new InvalidOperationException("Existing rows did not react to density changes.");
         settingsVm.Density = "compact";
+        Pump(100); ((FrameworkElement)window.Content).UpdateLayout();
         if (densityRow.Padding != new Thickness(10, 6, 10, 6)) throw new InvalidOperationException("Compact density was not restored.");
         settingsVm.Accent = "teal";
         settingsVm.ShowMetrics = false;
@@ -296,7 +343,7 @@ internal static class Program
             var visual = (FrameworkElement)window.Content;
             visual.Measure(new Size(width, height)); visual.Arrange(new Rect(0, 0, width, height)); visual.UpdateLayout(); Pump(100);
             if (safetyOverlay.TransformToAncestor(visual).Transform(new Point(0, 0)).Y < titleBar.ActualHeight)
-                throw new InvalidOperationException("The safety notice must leave the window title bar accessible.");
+                throw new InvalidOperationException($"The safety notice must leave the window title bar accessible: overlayY={safetyOverlay.TranslatePoint(new Point(), visual).Y}, titleHeight={titleBar.ActualHeight}, titleBounds={titleBar.TransformToAncestor(visual).TransformBounds(new Rect(titleBar.RenderSize))}.");
             foreach (var name in new[] { "CreatePointButton", "ContinueButton" })
             {
                 var button = (FrameworkElement)safetyView.FindName(name);
@@ -514,7 +561,10 @@ internal static class Program
         vm.SearchText = ""; vm.AppliedOnly = false; vm.HasPresetNote = false; vm.HasConflict = false; vm.HasPendingReboot = false;
         vm.Categories = repo.Tweaks.GroupBy(t => t.Category).Select(g => new
         {
-            Name = g.Key, IconSymbol = SymbolRegular.Settings24, CountText = "0 / " + g.Count(), HasVisibleTweaks = true,
+            Name = g.Key switch { "perf" => Loc.T("t.proizvoditelnost"), "privacy" => Loc.T("t.privatnost"),
+                "win11" => "Windows 11", "network" => Loc.T("t.set"), "maint" => Loc.T("t.obsluzhivanie"),
+                "games" => Loc.T("t.igry"), _ => g.Key },
+            IconSymbol = SymbolRegular.Settings24, CountText = "0 / " + g.Count(), HasVisibleTweaks = true,
             Tweaks = g.Select(t => new OptimizeTweakViewModel(t, loc[t.NameKey], loc[t.ShortKey], loc[t.DescKey], loc.Has(t.WarnKey) ? loc[t.WarnKey] : "", (_, _) => Task.CompletedTask)).ToArray()
         }).ToArray();
         vm.Presets = new PresetsRepository().OptimizePresets.Select(p => new OptimizePresetViewModel(p.Key, loc[p.Value.NameKey], p.Value.Keys)).ToArray(); return vm;
@@ -558,11 +608,21 @@ internal static class Program
         vm.ExpertMode = false;
         vm.Drives = new[] { new { Display = "Example drive · 512 GB", UsedPercent = 75.0 } }; vm.SelectedDrive = vm.Drives[0];
         vm.CapacityText = Loc.F("analytics.capacity", "384 GB", "128 GB", "512 GB");
-        vm.TreemapNodes = new[] { new DiskTreeNode("Projects — a folder with a very long name", Path.Combine(root, "Projects"), 600, true),
-            new DiskTreeNode("Media", Path.Combine(root, "Media"), 400, true), new DiskTreeNode("Downloads", Path.Combine(root, "Downloads"), 220, true),
-            new DiskTreeNode("very-long-file-name.log", Path.Combine(root, "fixture.log"), 18, false) };
+        vm.TreemapNodes = new[] { new DiskTreeNode("Projects — a folder with a very long name", Path.Combine(root, "Projects"), 182L * 1073741824, true),
+            new DiskTreeNode("Media", Path.Combine(root, "Media"), 96L * 1073741824, true), new DiskTreeNode("Downloads", Path.Combine(root, "Downloads"), 64L * 1073741824, true),
+            new DiskTreeNode("very-long-file-name.log", Path.Combine(root, "fixture.log"), 18L * 1048576, false) };
         vm.MapSelectionText = vm.TreemapNodes[0].Name + "\n" + vm.TreemapNodes[0].Path;
         vm.HasNoTreemap = false; vm.IsTreemapBusy = false; vm.HasShadowText = false; vm.HasNoResults = false;
+        vm.TopFolders = new[] {
+            new { Name = "Projects — a folder with a very long name", Path = Path.Combine(root, "Projects"), SizeText = "182 GB" },
+            new { Name = "Media", Path = Path.Combine(root, "Media"), SizeText = "96 GB" },
+            new { Name = "Downloads", Path = Path.Combine(root, "Downloads"), SizeText = "64 GB" }
+        };
+        vm.LargeFiles = new[] {
+            new { Path = Path.Combine(root, "Media", "example-video.mp4"), SizeText = "2.4 GB" },
+            new { Path = Path.Combine(root, "Downloads", "example-archive.zip"), SizeText = "1.2 GB" }
+        };
+        vm.FileFilters = new[] { Loc.T("ui.disk.filter.all"), "> 100 MB", "> 1 GB" }; vm.FileFilterIndex = 0;
         vm.Breadcrumbs = new[] { new { Title = "Example drive" } }; vm.SummaryText = "Preview · 3 folders"; vm.ProgressText = ""; return vm;
     }
 }

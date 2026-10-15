@@ -1,4 +1,4 @@
-name: Verify and package beta
+name: Verify and package test release
 on:
   push:
   pull_request:
@@ -13,10 +13,10 @@ jobs:
       run:
         shell: pwsh
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-      - uses: actions/setup-dotnet@v6
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
         with:
           dotnet-version: '10.0.x'
       - name: Restore and audit every dependency
@@ -34,11 +34,15 @@ jobs:
           dotnet tools/VisualPreview/bin/Debug/net10.0-windows/Cleaner.VisualPreview.dll --bindings-only
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           dotnet tools/VisualPreview/bin/Debug/net10.0-windows/Cleaner.VisualPreview.dll en --bindings-only
-      - name: Package portable x64 beta
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          dotnet tools/VisualPreview/bin/Debug/net10.0-windows/Cleaner.VisualPreview.dll --light --bindings-only
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          dotnet tools/VisualPreview/bin/Debug/net10.0-windows/Cleaner.VisualPreview.dll en --light --bindings-only
+      - name: Package portable x64 test release
         run: ./build-preview.ps1
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
-          name: Cleaner-beta-win-x64
+          name: Cleaner-preview-win-x64
           path: |
             artifacts/preview/*/*.zip
             artifacts/preview/*/*.sha256

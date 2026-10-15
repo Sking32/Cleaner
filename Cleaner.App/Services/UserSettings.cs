@@ -62,6 +62,19 @@ public static class UserSettings
     }
     public static event Action? HintsReset;
     public static string? LastSaveError => Store.LastError;
+    public static string GetTheme() => Load().Theme == "light" ? "light" : "dark";
+    public static bool SetTheme(string theme)
+    {
+        if (theme is not ("dark" or "light")) return false;
+        lock (Gate)
+        {
+            var previous = Load().Theme;
+            Load().Theme = theme;
+            if (!Store.Save()) { Load().Theme = previous; return false; }
+        }
+        Changed?.Invoke();
+        return true;
+    }
     public static bool GetAutoCleanupEnabled() => Load().AutoCleanupEnabled;
     public static int GetAutoCleanupInterval() => Load().AutoCleanupIntervalMinutes;
     public static bool SetAutoCleanup(bool enabled, int minutes)

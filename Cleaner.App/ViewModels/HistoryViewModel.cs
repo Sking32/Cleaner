@@ -36,6 +36,9 @@ public partial class HistoryViewModel : ObservableObject
     public ObservableCollection<HistoryItem> FilteredEntries { get; } = new();
     public ObservableCollection<HistoryChartItem> ChartItems { get; } = new();
     public bool HasNoChart => ChartItems.Count == 0;
+    public string ChartMaximumText => CleanupDetailRow.FormatBytes(ChartItems.FirstOrDefault()?.Maximum ?? 0);
+    public string ChartMidpointText => CleanupDetailRow.FormatBytes((ChartItems.FirstOrDefault()?.Maximum ?? 0) / 2);
+    public string ChartZeroText => CleanupDetailRow.FormatBytes(0);
     [ObservableProperty] private HistoryItem? _selectedEntry;
     [ObservableProperty] private string _searchText = "";
     [ObservableProperty] private string _statusText = "";
@@ -57,6 +60,8 @@ public partial class HistoryViewModel : ObservableObject
         var maximum = completed.Select(e => Math.Max(e.BytesFreed, e.BytesQuarantined)).DefaultIfEmpty(1).Max();
         foreach (var item in completed) ChartItems.Add(new(item, maximum));
         OnPropertyChanged(nameof(HasNoChart));
+        OnPropertyChanged(nameof(ChartMaximumText));
+        OnPropertyChanged(nameof(ChartMidpointText));
         Filter();
         SelectedEntry = FilteredEntries.FirstOrDefault(e => e.Entry.Id == selectedId) ?? FilteredEntries.FirstOrDefault();
     }

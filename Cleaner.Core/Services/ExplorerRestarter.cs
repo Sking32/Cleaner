@@ -22,6 +22,6 @@ public static class ExplorerRestarter
 
         try { Thread.Sleep(waitMsAfterKill); } catch { }
 
-        try { Process.Start("explorer.exe"); } catch (Exception logEx) { CoreLog.Warn("Перезапуск проводника: не удалось запустить explorer.exe", logEx); }
+        try { Process.Start(SystemExecutable.Resolve("explorer.exe")); } catch (Exception logEx) { CoreLog.Warn("Перезапуск проводника: не удалось запустить explorer.exe", logEx); }
     }
 }

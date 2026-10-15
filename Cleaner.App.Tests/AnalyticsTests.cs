@@ -44,6 +44,31 @@ public sealed class AnalyticsTests : IDisposable
         Assert.False(history.HasNoChart);
         Assert.True(new HistoryViewModel(() => Array.Empty<CleanupHistoryEntry>()).HasNoChart);
     }
+    [Fact] public void HistoryChartDisplaysOneByteScaleForBothMethodsAndResetsItWhenEmpty()
+    {
+        const long mb = 1048576;
+        var entries = new List<CleanupHistoryEntry> {
+            CleanupHistoryEntry.FromReport(new CleanupReport { AppVersion = "1.1.0-rc.1", Result = new() {
+                FilesDeleted = 1, BytesFreed = mb, FilesQuarantined = 1, BytesQuarantined = 4 * mb } }, "applied"),
+            CleanupHistoryEntry.FromReport(new CleanupReport { AppVersion = "1.1.0-rc.1", Result = new() {
+                FilesDeleted = 1, BytesFreed = 2 * mb, FilesQuarantined = 1, BytesQuarantined = mb } }, "applied")
+        };
+        var history = new HistoryViewModel(() => entries);
+        Assert.Equal("4 MB", history.ChartMaximumText);
+        Assert.Equal("2 MB", history.ChartMidpointText);
+        Assert.Equal("0 B", history.ChartZeroText);
+        Assert.All(history.ChartItems, item => Assert.Equal(4 * mb, item.Maximum));
+        var first = history.ChartItems.Single(item => item.Entry.BytesFreed == mb);
+        Assert.Equal(25, first.DeletedPercent);
+        Assert.Equal(100, first.QuarantinedPercent);
+        Assert.EndsWith(": 1 MB", first.DeletedText);
+        Assert.EndsWith(": 4 MB", first.QuarantinedText);
+        entries.Clear();
+        history.RefreshCommand.Execute(null);
+        Assert.Equal("0 B", history.ChartMaximumText);
+        Assert.Equal("0 B", history.ChartMidpointText);
+        Assert.True(history.HasNoChart);
+    }
     [Fact] public void SimpleModeIsDefaultAndPersistsWithoutChangingAutomation()
     {
         Assert.False(UserSettings.GetExpertMode()); Assert.False(UserSettings.GetAutoCleanupEnabled());

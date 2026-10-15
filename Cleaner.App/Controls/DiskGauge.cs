@@ -8,6 +8,17 @@ namespace Cleaner.App.Controls;
 /// <summary>Occupancy only, not a health or performance score.</summary>
 public sealed class DiskGauge : FrameworkElement
 {
+    public static readonly DependencyProperty TrackBrushProperty = DependencyProperty.Register(nameof(TrackBrush), typeof(Brush), typeof(DiskGauge),
+        new FrameworkPropertyMetadata(Brushes.DimGray, FrameworkPropertyMetadataOptions.AffectsRender));
+    public static readonly DependencyProperty LabelBrushProperty = DependencyProperty.Register(nameof(LabelBrush), typeof(Brush), typeof(DiskGauge),
+        new FrameworkPropertyMetadata(Brushes.White, FrameworkPropertyMetadataOptions.AffectsRender));
+    public Brush TrackBrush { get => (Brush)GetValue(TrackBrushProperty); set => SetValue(TrackBrushProperty, value); }
+    public Brush LabelBrush { get => (Brush)GetValue(LabelBrushProperty); set => SetValue(LabelBrushProperty, value); }
+    public DiskGauge()
+    {
+        SetResourceReference(TrackBrushProperty, "GaugeTrackBrush");
+        SetResourceReference(LabelBrushProperty, "TextPrimaryBrush");
+    }
     public static readonly DependencyProperty PercentProperty = DependencyProperty.Register(nameof(Percent), typeof(double), typeof(DiskGauge),
         new FrameworkPropertyMetadata(double.NaN, FrameworkPropertyMetadataOptions.AffectsRender));
     public static readonly DependencyProperty NoDataTextProperty = DependencyProperty.Register(nameof(NoDataText), typeof(string), typeof(DiskGauge),
@@ -46,11 +57,16 @@ public sealed class DiskGauge : FrameworkElement
             dc.DrawGeometry(null, new Pen(brush, 10) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round }, geometry);
         }
         var value = ClampPercent(Percent);
-        Arc(100, TryFindResource("BorderStrongBrush") as Brush ?? Brushes.DimGray);
-        if (double.IsFinite(value)) Arc(value, new SolidColorBrush(OccupancyColor(value)));
+        Arc(100, TrackBrush);
+        if (double.IsFinite(value))
+        {
+            var fill = new LinearGradientBrush(OccupancyColor(0), OccupancyColor(value), new Point(0, 0), new Point(1, 0));
+            if (value > 70) fill.GradientStops.Add(new GradientStop(OccupancyColor(70), 70 / value));
+            Arc(value, fill);
+        }
         var label = double.IsFinite(value) ? value.ToString("0.#", CultureInfo.CurrentCulture) + "%" : NoDataText;
         var text = new FormattedText(label, CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, new Typeface("Segoe UI"),
-            double.IsFinite(value) ? 26 : 14, TryFindResource("TextPrimaryBrush") as Brush ?? Brushes.White, VisualTreeHelper.GetDpi(this).PixelsPerDip);
+            double.IsFinite(value) ? 26 : 14, LabelBrush, VisualTreeHelper.GetDpi(this).PixelsPerDip);
         dc.DrawText(text, new Point(center.X - text.Width / 2, center.Y - text.Height - 2));
     }
     protected override AutomationPeer OnCreateAutomationPeer() => new FrameworkElementAutomationPeer(this);

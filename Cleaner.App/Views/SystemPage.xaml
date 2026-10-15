@@ -1,68 +1,80 @@
-<Page xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml" xmlns:loc="clr-namespace:Cleaner.App.Localization" xmlns:vm="clr-namespace:Cleaner.App.ViewModels" x:Class="Cleaner.App.Views.SystemPage" mc:Ignorable="d" d:DataContext="{d:DesignInstance Type=vm:SystemViewModel}" Title="{loc:Loc t.sistema}" Foreground="{StaticResource TextPrimaryBrush}" Background="{DynamicResource BgBaseBrush}">
+<Page xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml" xmlns:loc="clr-namespace:Cleaner.App.Localization" xmlns:vm="clr-namespace:Cleaner.App.ViewModels" x:Class="Cleaner.App.Views.SystemPage" mc:Ignorable="d" d:DataContext="{d:DesignInstance Type=vm:SystemViewModel}" Title="{loc:Loc t.sistema}" Foreground="{DynamicResource TextPrimaryBrush}" Background="{DynamicResource BgBaseBrush}">
     <Page.Resources>
-        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
     </Page.Resources>
     <Grid>
-        <Grid Margin="24,20,24,18">
+        <Grid Margin="20,16,20,16">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <!-- Шапка -->
             <StackPanel Grid.Row="0">
                 <Grid>
                     <StackPanel Margin="0,0,46,0">
-                        <TextBlock Text="{loc:Loc t.sistema}" Style="{StaticResource PageTitleStyle}"/>
-                        <TextBlock Text="{loc:Loc compatibility.pending}" Style="{StaticResource PageSubtitleStyle}" Margin="0,6,0,0" TextWrapping="Wrap"/>
+                        <TextBlock Text="{loc:Loc t.sistema}" Style="{StaticResource PageTitleStyle}" />
+                        <TextBlock Text="{loc:Loc compatibility.pending}" Style="{StaticResource PageSubtitleStyle}" Margin="0,4,0,0" TextWrapping="Wrap" />
                     </StackPanel>
-                    <ui:Button HorizontalAlignment="Right" VerticalAlignment="Top" Appearance="Transparent" Icon="{ui:SymbolIcon QuestionCircle24}" Command="{Binding ToggleHelpCommand}" ToolTip="{loc:Loc help.show}"/>
+                    <ui:Button HorizontalAlignment="Right" VerticalAlignment="Top" Appearance="Transparent" Icon="{ui:SymbolIcon QuestionCircle24}" Command="{Binding ToggleHelpCommand}" ToolTip="{loc:Loc help.show}" />
                 </Grid>
-                <ui:InfoBar Margin="0,16,0,0" Severity="Informational" Title="{loc:Loc help.system.title}" Message="{loc:Loc help.system.msg}" IsClosable="True" IsOpen="{Binding ShowHelp, Mode=TwoWay}"/>
+                <ui:InfoBar Margin="0,16,0,0" Severity="Informational" Title="{loc:Loc help.system.title}" Message="{loc:Loc help.system.msg}" IsClosable="True" IsOpen="{Binding ShowHelp, Mode=TwoWay}" />
             </StackPanel>
             <!-- Сведения о компьютере -->
             <StackPanel Grid.Row="1" Margin="0,12,0,0">
                 <!-- Плитки информации -->
-                <Expander x:Name="SystemDetails" AutomationProperties.Name="{loc:Loc design.system.details}" Margin="0,6,0,0" Style="{StaticResource CompactExpanderStyle}" Header="{loc:Loc design.system.details}" IsExpanded="False">
+                <Expander x:Name="SystemDetails" AutomationProperties.Name="{loc:Loc design.system.details}" Margin="0" Style="{StaticResource CompactExpanderStyle}" IsExpanded="False" Padding="0">
+                    <Expander.Header>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="{Binding WindowsVersion}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" ToolTip="{Binding WindowsVersion}" />
+                            <TextBlock Grid.Column="1" Text="{Binding WindowsBuild}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" VerticalAlignment="Center" Margin="12,0" />
+                            <TextBlock Grid.Column="2" Text="{loc:Loc design.system.details}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                        </Grid>
+                    </Expander.Header>
                     <Border Style="{StaticResource CategoryCardStyle}" Padding="10" Margin="0,4,0,0">
                         <UniformGrid Columns="4" Rows="2">
                             <StackPanel Margin="4,6">
-                                <TextBlock Text="Windows" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
-                                <TextBlock Cursor="Hand" MouseLeftButtonUp="OnCopyValueClick" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" Text="{Binding WindowsVersion}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" Margin="0,2,0,0"/>
+                                <TextBlock Text="Windows" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" />
+                                <TextBlock Cursor="Hand" MouseLeftButtonUp="OnCopyValueClick" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" Text="{Binding WindowsVersion}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" Margin="0,2,0,0" />
                             </StackPanel>
                             <StackPanel Margin="4,6">
-                                <TextBlock Text="{loc:Loc t.sborka}" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
-                                <TextBlock Cursor="Hand" MouseLeftButtonUp="OnCopyValueClick" ToolTip="{loc:Loc ui.copy_hint}" Text="{Binding WindowsBuild}" FontSize="14" FontWeight="SemiBold" Margin="0,2,0,0"/>
+                                <TextBlock Text="{loc:Loc t.sborka}" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" />
+                                <TextBlock Cursor="Hand" MouseLeftButtonUp="OnCopyValueClick" ToolTip="{loc:Loc ui.copy_hint}" Text="{Binding WindowsBuild}" FontSize="14" FontWeight="SemiBold" Margin="0,2,0,0" />
                             </StackPanel>
                             <StackPanel Margin="4,6">
-                                <TextBlock Text="{loc:Loc t.arhitektura}" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
-                                <TextBlock Cursor="Hand" MouseLeftButtonUp="OnCopyValueClick" ToolTip="{loc:Loc ui.copy_hint}" Text="{Binding Architecture}" FontSize="14" FontWeight="SemiBold" Margin="0,2,0,0"/>
+                                <TextBlock Text="{loc:Loc t.arhitektura}" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" />
+                                <TextBlock Cursor="Hand" MouseLeftButtonUp="OnCopyValueClick" ToolTip="{loc:Loc ui.copy_hint}" Text="{Binding Architecture}" FontSize="14" FontWeight="SemiBold" Margin="0,2,0,0" />
                             </StackPanel>
                             <StackPanel Margin="4,6">
-                                <TextBlock Text=".NET" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
-                                <TextBlock Cursor="Hand" MouseLeftButtonUp="OnCopyValueClick" ToolTip="{loc:Loc ui.copy_hint}" Text="{Binding DotNetVersion}" FontSize="14" FontWeight="SemiBold" Margin="0,2,0,0"/>
+                                <TextBlock Text=".NET" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" />
+                                <TextBlock Cursor="Hand" MouseLeftButtonUp="OnCopyValueClick" ToolTip="{loc:Loc ui.copy_hint}" Text="{Binding DotNetVersion}" FontSize="14" FontWeight="SemiBold" Margin="0,2,0,0" />
                             </StackPanel>
                             <StackPanel Margin="4,6">
-                                <TextBlock Text="{loc:Loc t.kompyuter}" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
-                                <TextBlock Cursor="Hand" MouseLeftButtonUp="OnCopyValueClick" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" Text="{Binding MachineName}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" Margin="0,2,0,0"/>
+                                <TextBlock Text="{loc:Loc t.kompyuter}" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" />
+                                <TextBlock Cursor="Hand" MouseLeftButtonUp="OnCopyValueClick" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" Text="{Binding MachineName}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" Margin="0,2,0,0" />
                             </StackPanel>
                             <StackPanel Margin="4,6">
-                                <TextBlock Text="{loc:Loc t.polzovatel}" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
-                                <TextBlock Cursor="Hand" MouseLeftButtonUp="OnCopyValueClick" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" Text="{Binding UserName}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" Margin="0,2,0,0"/>
+                                <TextBlock Text="{loc:Loc t.polzovatel}" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" />
+                                <TextBlock Cursor="Hand" MouseLeftButtonUp="OnCopyValueClick" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" Text="{Binding UserName}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" Margin="0,2,0,0" />
                             </StackPanel>
                             <StackPanel Margin="4,6">
-                                <TextBlock Text="{loc:Loc t.ozu_yadra}" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                                <TextBlock Text="{loc:Loc t.ozu_yadra}" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" />
                                 <TextBlock FontSize="14" FontWeight="SemiBold" Margin="0,2,0,0">
-                                    <Run Text="{Binding TotalMemoryText, Mode=OneWay}"/>
-                                    <Run Text=" • "/>
-                                    <Run Text="{Binding ProcessorCountText, Mode=OneWay}"/>
+                                    <Run Text="{Binding TotalMemoryText, Mode=OneWay}" />
+                                    <Run Text=" • " />
+                                    <Run Text="{Binding ProcessorCountText, Mode=OneWay}" />
                                 </TextBlock>
                             </StackPanel>
                             <StackPanel Margin="4,6">
-                                <TextBlock Text="CPU" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
-                                <TextBlock Cursor="Hand" MouseLeftButtonUp="OnCopyValueClick" Text="{Binding ProcessorIdentifier}" FontSize="12" TextTrimming="CharacterEllipsis" ToolTip="{Binding ProcessorIdentifier}" Margin="0,2,0,0"/>
+                                <TextBlock Text="CPU" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" />
+                                <TextBlock Cursor="Hand" MouseLeftButtonUp="OnCopyValueClick" Text="{Binding ProcessorIdentifier}" FontSize="12" TextTrimming="CharacterEllipsis" ToolTip="{Binding ProcessorIdentifier}" Margin="0,2,0,0" />
                             </StackPanel>
                         </UniformGrid>
                     </Border>
@@ -71,40 +83,54 @@
             <!-- Фильтр служб -->
             <Grid Grid.Row="2" Margin="0,10,0,0">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <ComboBox Grid.Column="1" Width="200" Margin="10,0,0,0" ItemsSource="{Binding FilterModes}" SelectedIndex="{Binding ServiceFilterMode, Mode=TwoWay}"/>
-                <ui:TextBox Grid.Column="0" PlaceholderText="{loc:Loc t.poisk_sluzhby_po_imeni_pusto_tolko}" Text="{Binding ServiceFilter, UpdateSourceTrigger=PropertyChanged}"/>
-                <TextBlock Grid.Column="2" Margin="12,0,0,0" VerticalAlignment="Center" FontSize="12" Foreground="{StaticResource TextMutedBrush}" Text="{Binding FoundText}"/>
+                <ComboBox Grid.Column="1" Width="200" Margin="10,0,0,0" ItemsSource="{Binding FilterModes}" SelectedIndex="{Binding ServiceFilterMode, Mode=TwoWay}" />
+                <ui:TextBox Grid.Column="0" PlaceholderText="{loc:Loc t.poisk_sluzhby_po_imeni_pusto_tolko}" Text="{Binding ServiceFilter, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock Grid.Column="2" Margin="12,0,0,0" VerticalAlignment="Center" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" Text="{Binding FoundText}" />
             </Grid>
             <!-- Список служб -->
-            <Border Grid.Row="3" Margin="0,10,0,0" Style="{StaticResource CategoryCardStyle}" Padding="4">
+            <Border Grid.Row="3" Margin="0,10,0,0" Style="{StaticResource CategoryCardStyle}" Padding="0">
                 <Grid>
-                    <TextBlock FontSize="12" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap" Margin="16,20,16,0" HorizontalAlignment="Center" VerticalAlignment="Top" Text="{loc:Loc t.sluzhby_ne_naydeny_izmenite_filtr}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock FontSize="12" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap" Margin="16,20,16,0" HorizontalAlignment="Center" VerticalAlignment="Top" Text="{loc:Loc t.sluzhby_ne_naydeny_izmenite_filtr}" Grid.Row="1">
                         <TextBlock.Style>
                             <Style TargetType="TextBlock">
-                                <Setter Property="Visibility" Value="Collapsed"/>
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding HasNoServices}" Value="True">
-                                        <Setter Property="Visibility" Value="Visible"/>
+                                        <Setter Property="Visibility" Value="Visible" />
                                     </DataTrigger>
                                 </Style.Triggers>
+                                <Setter Property="Visibility" Value="Collapsed" />
                             </Style>
                         </TextBlock.Style>
                     </TextBlock>
-                    <ListBox ItemsSource="{Binding FilteredServices}" Background="Transparent" BorderThickness="0" Padding="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled" VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling">
+                    <ListBox ItemsSource="{Binding FilteredServices}" Background="Transparent" BorderThickness="0" Padding="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled" VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling" Grid.Row="1">
                         <ListBox.ItemContainerStyle>
                             <Style TargetType="ListBoxItem">
-                                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                                <Setter Property="Padding" Value="0"/>
-                                <Setter Property="Margin" Value="0"/>
-                                <Setter Property="Background" Value="Transparent"/>
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                <Setter Property="Padding" Value="0" />
+                                <Setter Property="Margin" Value="0" />
+                                <Setter Property="Background" Value="Transparent" />
                                 <Setter Property="Template">
                                     <Setter.Value>
                                         <ControlTemplate TargetType="ListBoxItem">
-                                            <ContentPresenter/>
+                                            <Border x:Name="RowFocusSurface" Background="Transparent" BorderBrush="Transparent" BorderThickness="1" CornerRadius="4">
+                                                <ContentPresenter />
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                                                    <Setter TargetName="RowFocusSurface" Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                                                </Trigger>
+                                                <Trigger Property="IsSelected" Value="True">
+                                                    <Setter TargetName="RowFocusSurface" Property="Background" Value="{DynamicResource AccentSoftBrush}" />
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
                                         </ControlTemplate>
                                     </Setter.Value>
                                 </Setter>
@@ -115,90 +141,114 @@
                                 <Border Style="{StaticResource CompactRowStyle}">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="120" />
+                                            <ColumnDefinition Width="140" />
+                                            <ColumnDefinition Width="250" />
+                                            <ColumnDefinition Width="110" />
                                         </Grid.ColumnDefinitions>
                                         <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                            <TextBlock ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" Text="{Binding DisplayName}" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" Text="{Binding DisplayName}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" />
                                             <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
-                                                <TextBlock Text="{Binding Name}" FontFamily="Consolas" FontSize="10" Foreground="{StaticResource TextMutedBrush}"/>
-                                                <TextBlock Text=" • " FontSize="10" Foreground="{StaticResource TextMutedBrush}"/>
-                                                <TextBlock Text="{Binding StatusText}" FontSize="10" Foreground="{StaticResource TextMutedBrush}"/>
-                                                <TextBlock Text=" • " FontSize="10" Foreground="{StaticResource TextMutedBrush}"/>
-                                                <TextBlock Text="{Binding StartTypeRu}" FontSize="10" Foreground="{StaticResource TextMutedBrush}"/>
+                                                <TextBlock Text="{Binding Name}" FontFamily="Consolas" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" />
                                             </StackPanel>
                                         </StackPanel>
                                         <!-- Совет -->
-                                        <Border Grid.Column="1" Padding="8,2" CornerRadius="10" VerticalAlignment="Center" Margin="10,0,0,0" ToolTip="{Binding AdviceNote}">
-                                            <Border.Style>
-                                                <Style TargetType="Border">
-                                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding AdviceLevelName}" Value="recommended">
-                                                            <Setter Property="Visibility" Value="Visible"/>
-                                                            <Setter Property="Background" Value="#2234D399"/>
-                                                        </DataTrigger>
-                                                        <DataTrigger Binding="{Binding AdviceLevelName}" Value="caution">
-                                                            <Setter Property="Visibility" Value="Visible"/>
-                                                            <Setter Property="Background" Value="#22FBBF24"/>
-                                                        </DataTrigger>
-                                                        <DataTrigger Binding="{Binding AdviceLevelName}" Value="system">
-                                                            <Setter Property="Visibility" Value="Visible"/>
-                                                            <Setter Property="Background" Value="#227C7CFF"/>
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </Border.Style>
-                                            <TextBlock Text="{Binding BadgeText}" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                                        </Border>
                                         <!-- Статус -->
-                                        <Border Grid.Column="2" Padding="8,2" CornerRadius="10" VerticalAlignment="Center" Margin="10,0">
+                                        <Border Grid.Column="1" Padding="8,2" CornerRadius="6" VerticalAlignment="Center" Margin="0,0,10,0" HorizontalAlignment="Left">
                                             <Border.Style>
                                                 <Style TargetType="Border">
-                                                    <Setter Property="Background" Value="#252525"/>
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding IsRunning}" Value="True">
-                                                            <Setter Property="Background" Value="#1B5E20"/>
+                                                            <Setter Property="Background" Value="{DynamicResource BgOverlayBrush}" />
+                                                            <Setter Property="BorderBrush" Value="{DynamicResource SafeBrush}" />
                                                         </DataTrigger>
                                                     </Style.Triggers>
+                                                    <Setter Property="Background" Value="{DynamicResource BgOverlayBrush}" />
+                                                    <Setter Property="BorderThickness" Value="1" />
+                                                    <Setter Property="BorderBrush" Value="{DynamicResource BorderSubtleBrush}" />
                                                 </Style>
                                             </Border.Style>
-                                            <TextBlock Text="{Binding StatusText}" FontSize="10" FontWeight="SemiBold" Foreground="White"/>
+                                            <TextBlock Text="{Binding StatusText}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
                                         </Border>
                                         <!-- Кнопки -->
-                                        <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
-                                            <ui:Button Padding="6,2" Margin="0,0,4,0" Icon="{ui:SymbolIcon Play24}" ToolTip="{loc:Loc ui.service.start}" IsEnabled="{Binding CanStart}" Command="{Binding DataContext.StartServiceCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}"/>
-                                            <ui:Button Padding="6,2" Margin="0,0,4,0" Icon="{ui:SymbolIcon Dismiss24}" ToolTip="{loc:Loc t.ostanovit_2}" Command="{Binding DataContext.StopServiceCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}"/>
-                                            <ui:Button Padding="6,2" Icon="{ui:SymbolIcon ArrowClockwise24}" ToolTip="{loc:Loc t.perezapustit_2}" Command="{Binding DataContext.RestartServiceCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}"/>
+                                        <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <ui:Button Padding="6,2" Margin="0,0,4,0" Icon="{ui:SymbolIcon Play24}" ToolTip="{loc:Loc ui.service.start}" IsEnabled="{Binding CanStart}" Command="{Binding DataContext.StartServiceCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
+                                            <ui:Button Padding="6,2" Margin="0,0,4,0" Icon="{ui:SymbolIcon Dismiss24}" ToolTip="{loc:Loc t.ostanovit_2}" Command="{Binding DataContext.StopServiceCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
+                                            <ui:Button Padding="6,2" Icon="{ui:SymbolIcon ArrowClockwise24}" ToolTip="{loc:Loc t.perezapustit_2}" Command="{Binding DataContext.RestartServiceCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="2" Text="{Binding StartTypeRu}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis" ToolTip="{Binding StartTypeRu}" VerticalAlignment="Center" Margin="0,0,10,0" />
+                                        <StackPanel Grid.Column="3" VerticalAlignment="Center" Margin="0,0,12,0" Orientation="Horizontal">
+                                            <Border Padding="8,2" CornerRadius="6" VerticalAlignment="Center" Margin="0,0,8,0" ToolTip="{Binding AdviceNote}" HorizontalAlignment="Left">
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding AdviceLevelName}" Value="recommended">
+                                                                <Setter Property="Visibility" Value="Visible" />
+                                                                <Setter Property="Background" Value="{DynamicResource BgOverlayBrush}" />
+                                                                <Setter Property="BorderBrush" Value="{DynamicResource SafeBrush}" />
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding AdviceLevelName}" Value="caution">
+                                                                <Setter Property="Visibility" Value="Visible" />
+                                                                <Setter Property="Background" Value="{DynamicResource BgOverlayBrush}" />
+                                                                <Setter Property="BorderBrush" Value="{DynamicResource CautionBrush}" />
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding AdviceLevelName}" Value="system">
+                                                                <Setter Property="Visibility" Value="Visible" />
+                                                                <Setter Property="Background" Value="{DynamicResource BgOverlayBrush}" />
+                                                                <Setter Property="BorderBrush" Value="{DynamicResource InfoBrush}" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                        <Setter Property="BorderThickness" Value="1" />
+                                                        <Setter Property="BorderBrush" Value="{DynamicResource BorderSubtleBrush}" />
+                                                    </Style>
+                                                </Border.Style>
+                                                <TextBlock Text="{Binding BadgeText}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
+                                            </Border>
+                                            <TextBlock Text="{Binding AdviceNote}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="NoWrap" MaxHeight="20" ToolTip="{Binding AdviceNote}" TextTrimming="CharacterEllipsis" MaxWidth="155" VerticalAlignment="Center" />
                                         </StackPanel>
                                     </Grid>
                                 </Border>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
+                    <Border Background="{DynamicResource BgOverlayBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0,0,0,1" Padding="12,7" CornerRadius="4,4,0,0">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="120" />
+                                <ColumnDefinition Width="140" />
+                                <ColumnDefinition Width="250" />
+                                <ColumnDefinition Width="110" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="{loc:Loc graphite.name}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" />
+                            <TextBlock Grid.Column="1" Text="{loc:Loc graphite.state}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" />
+                            <TextBlock Grid.Column="2" Text="{loc:Loc graphite.startup}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" />
+                            <TextBlock Grid.Column="3" Text="{loc:Loc graphite.description}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" />
+                        </Grid>
+                    </Border>
                 </Grid>
             </Border>
             <!-- Футер -->
-            <Border Grid.Row="4" Margin="0,10,0,0" Padding="12,8" CornerRadius="12" Background="{StaticResource CardBgBrush}" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1">
+            <Border Grid.Row="4" Margin="0,10,0,0" Padding="12,8" CornerRadius="6" Background="{DynamicResource CardBgBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1">
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                        <TextBlock HorizontalAlignment="Left" Text="{Binding StatusText}" Foreground="{StaticResource TextPrimaryBrush}" TextWrapping="Wrap" MaxWidth="520" FontSize="13"/>
-                        <TextBlock Text="{Binding PendingRebootText}" Foreground="{StaticResource CautionBrush}" FontSize="12" FontWeight="SemiBold" Margin="0,2,0,0"/>
+                        <TextBlock HorizontalAlignment="Left" Text="{Binding StatusText}" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap" MaxWidth="520" FontSize="13" />
+                        <TextBlock Text="{Binding PendingRebootText}" Foreground="{DynamicResource CautionBrush}" FontSize="12" FontWeight="SemiBold" Margin="0,2,0,0" />
                     </StackPanel>
-                    <ui:Button Grid.Column="1" Margin="8,0" Padding="12,8" FontSize="13" Icon="{ui:SymbolIcon ArrowClockwise24}" Content="{loc:Loc t.sbrosit_flagi}" ToolTip="{loc:Loc t.sbrosit_status_trebuetsya_perezagruzka_u_tvi}" Command="{Binding ClearRebootFlagsCommand}"/>
-                    <ui:Button Grid.Column="2" Margin="8,0" Padding="12,8" FontSize="13" Appearance="Primary" Style="{StaticResource PrimaryButtonStyle}" Icon="{ui:SymbolIcon Power24}" Content="{loc:Loc t.perezagruzit}" ToolTip="{loc:Loc t.perezagruzit_sistemu_cherez_30_sekund}" Command="{Binding RebootNowCommand}"/>
-                    <ui:Button Grid.Column="3" Padding="12,8" FontSize="13" Icon="{ui:SymbolIcon ArrowClockwise24}" Content="{loc:Loc t.obnovit}" Command="{Binding RefreshCommand}"/>
+                    <ui:Button Grid.Column="1" Margin="8,0" Padding="12,8" FontSize="13" Icon="{ui:SymbolIcon ArrowClockwise24}" Content="{loc:Loc t.sbrosit_flagi}" ToolTip="{loc:Loc t.sbrosit_status_trebuetsya_perezagruzka_u_tvi}" Command="{Binding ClearRebootFlagsCommand}" />
+                    <ui:Button Grid.Column="2" Margin="8,0" Padding="12,8" FontSize="13" Appearance="Primary" Style="{StaticResource PrimaryButtonStyle}" Icon="{ui:SymbolIcon Power24}" Content="{loc:Loc t.perezagruzit}" ToolTip="{loc:Loc t.perezagruzit_sistemu_cherez_30_sekund}" Command="{Binding RebootNowCommand}" />
+                    <ui:Button Grid.Column="3" Padding="12,8" FontSize="13" Icon="{ui:SymbolIcon ArrowClockwise24}" Content="{loc:Loc t.obnovit}" Command="{Binding RefreshCommand}" />
                 </Grid>
             </Border>
-            <ui:ProgressRing Grid.Row="3" Width="32" Height="32" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,8,8,0" IsIndeterminate="True" Foreground="{DynamicResource AccentBrush}" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
+            <ui:ProgressRing Grid.Row="3" Width="32" Height="32" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,8,8,0" IsIndeterminate="True" Foreground="{DynamicResource AccentBrush}" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}" />
         </Grid>
     </Grid>
 </Page>

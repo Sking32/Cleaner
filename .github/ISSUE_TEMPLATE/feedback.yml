@@ -13,7 +13,7 @@ body:
     id: version
     attributes:
       label: App version / Версия приложения
-      placeholder: 1.1.0-beta.5
+      placeholder: 1.1.0-rc.1
     validations:
       required: true
   - type: dropdown

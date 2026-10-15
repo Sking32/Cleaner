@@ -19,11 +19,11 @@ public partial class CleanupPage : Page
 
     private void OnSizeChanged(object sender, System.Windows.SizeChangedEventArgs e)
     {
-        var compact = ActualWidth < 1050;
-        SummaryColumn.Width = new System.Windows.GridLength(compact ? 0 : 208);
+        var compact = ActualWidth < 860;
+        SummaryColumn.Width = new System.Windows.GridLength(compact ? 0 : 224);
         SelectionSummary.Visibility = compact ? System.Windows.Visibility.Collapsed : System.Windows.Visibility.Visible;
         CompactSummary.Visibility = compact ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
-        OperationTabs.Margin = new System.Windows.Thickness(0, 0, compact ? 0 : 20, 0);
+        OperationTabs.Margin = new System.Windows.Thickness(0, 0, compact ? 0 : 12, 0);
     }
 
     private void AnimateIn()

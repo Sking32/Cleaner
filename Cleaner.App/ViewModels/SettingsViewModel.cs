@@ -11,6 +11,23 @@ public sealed record SettingsChoice(string Key, string Label);
 
 public partial class SettingsViewModel : ObservableObject
 {
+    public IReadOnlyList<SettingsChoice> Themes { get; } = new[]
+    {
+        new SettingsChoice("dark", Loc.T("settings.theme.dark")),
+        new SettingsChoice("light", Loc.T("settings.theme.light"))
+    };
+    [ObservableProperty] private string _theme = UserSettings.GetTheme();
+    private bool _restoringTheme;
+    partial void OnThemeChanged(string value)
+    {
+        if (_restoringTheme) return;
+        if (!UserSettings.SetTheme(value))
+        {
+            _restoringTheme = true; Theme = UserSettings.GetTheme(); _restoringTheme = false;
+        }
+        Appearance.Apply();
+        Saved();
+    }
     [ObservableProperty] private bool _maintenanceBusy;
     [ObservableProperty] private string _maintenanceStatus = "";
     private bool CanMaintainLogs() => !MaintenanceBusy;

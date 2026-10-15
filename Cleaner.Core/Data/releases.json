@@ -2,6 +2,46 @@
   "schemaVersion": 1,
   "releases": [
     {
+      "version": "1.1.0-rc.1",
+      "date": "2026-10-16",
+      "text": {
+        "ru": {
+          "title": "Graphite: новый интерфейс и две темы",
+          "summary": "Полный редизайн девяти страниц, компактные списки и переключение темы без перезапуска. Это кандидат в релиз: реальные испытания Windows ещё необходимы.",
+          "added": [
+            "Тёмная и светлая темы в настройках с сохранением выбора.",
+            "Новая верхняя навигация; История, Что нового? и настройки отделены от основных инструментов."
+          ],
+          "changed": [
+            "Компактные таблицы очистки, оптимизации, автозагрузки и служб; обновлены страницы диска, защиты данных и истории.",
+            "График заполнения диска использует цвета темы, подписи и точные значения."
+          ],
+          "fixed": [
+            "Системные утилиты запускаются по проверенным абсолютным путям Windows.",
+            "Восстановление карантина использует проверенные дескрипторы и не перезаписывает существующие файлы; поддержаны старые папки и завершающие разделители пути.",
+            "Обновлены устаревшие справки, инструкции и проверки переключения темы."
+          ]
+        },
+        "en": {
+          "title": "Graphite: a new interface and two themes",
+          "summary": "A complete nine-page redesign, compact lists and theme switching without restart. This is a release candidate: real Windows validation remains necessary.",
+          "added": [
+            "Persistent dark and light themes in Settings.",
+            "Top navigation with History, What’s new? and Settings separated from the main tools."
+          ],
+          "changed": [
+            "Compact cleanup, optimization, startup and service tables; redesigned disk, data protection and history pages.",
+            "Disk occupancy visualization uses theme colors, labels and precise values."
+          ],
+          "fixed": [
+            "System utilities launch from trusted absolute Windows paths.",
+            "Quarantine recovery uses verified handles without overwriting existing files; legacy folders and trailing path separators are supported.",
+            "Updated stale help, instructions and live theme checks."
+          ]
+        }
+      }
+    },
+    {
       "version": "1.1.0-beta.7.1",
       "date": "2026-10-14",
       "text": {

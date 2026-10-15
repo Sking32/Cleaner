@@ -20,7 +20,10 @@ public sealed class AtomicFileTests
         {
             Assert.Equal("replacement", File.ReadAllText(source));
             if (++calls < 3) throw Win32(code);
-            File.Replace(source, target, null);
+            // Keep this injected retry-contract test independent of antivirus/indexer sharing locks.
+            // Native File.Replace under a real lock is covered separately below.
+            File.Copy(source, target, overwrite: true);
+            File.Delete(source);
         }, delays.Add);
         Assert.Equal(3, calls); Assert.Equal(new[] { 40, 80 }, delays); Assert.Equal("replacement", File.ReadAllText(path));
         Assert.Single(Directory.GetFiles(Path.GetDirectoryName(path)!));

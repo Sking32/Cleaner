@@ -39,7 +39,7 @@ public static class CommandRunner
             cancellationToken.ThrowIfCancellationRequested();
             var psi = new ProcessStartInfo
             {
-                FileName = fileName,
+                FileName = SystemExecutable.Resolve(fileName),
                 Arguments = arguments ?? "",
                 UseShellExecute = false,
                 CreateNoWindow = true,

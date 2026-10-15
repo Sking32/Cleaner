@@ -2,14 +2,16 @@
 
 [Русский](README.ru.md) · English
 
-**1.1.0-beta.7.1 — test release.** Cleaner helps inspect temporary files, understand results, quarantine selected data and recover it. It does not guarantee a faster computer. Real Windows compatibility checks and user feedback are required before a stable release.
+**1.1.0-rc.1 — test release.** Cleaner helps inspect temporary files, understand results, quarantine selected data and recover it. It does not guarantee a faster computer. Real Windows compatibility checks and user feedback are required before a stable release.
+
+**Graphite appearance:** choose Dark or Light in Settings. The entire interface updates immediately and remembers your choice. This release candidate still requires the Windows compatibility matrix and novice-user trials before a stable release. Legacy quarantine items whose restore location is on another volume are preserved for manual recovery; automatic cross-volume restore is currently blocked rather than using an unverified path-based copy.
 
 ## Download and start
 
-1. Open [Releases](https://github.com/Sking32/Cleaner/releases). Download `Cleaner-1.1.0-beta.7.1-win-x64.zip` under **Assets**. **Source code** archives are not the runnable app. If beta.7.1 is not published yet, obtain the complete ZIP from its author.
+1. Open [Releases](https://github.com/Sking32/Cleaner/releases). Download `Cleaner-1.1.0-rc.1-win-x64.zip` under **Assets**. **Source code** archives are not the runnable app. If RC1 is not published yet, obtain the complete ZIP from its author.
 2. Extract the entire ZIP to an ordinary writable folder. Keep `Data` beside `Cleaner.App.exe`; do not run directly from the ZIP.
 3. Start `Cleaner.App.exe`. The package includes .NET; no separate runtime installation is required.
-4. Optional: download `.zip.sha256` and compare it with `Get-FileHash -Algorithm SHA256 .\Cleaner-1.1.0-beta.7.1-win-x64.zip`. A matching checksum confirms archive integrity, not software safety.
+4. Optional: download `.zip.sha256` and compare it with `Get-FileHash -Algorithm SHA256 .\Cleaner-1.1.0-rc.1-win-x64.zip`. A matching checksum confirms archive integrity, not software safety.
 
 Targets: **Windows 11 x64** and **Windows 10 22H2 x64**. The real-machine validation matrix is still pending. ARM64, Insider, macOS and Linux are outside this release. The EXE is not signed; do not disable Windows protection or antivirus to run it.
 
@@ -54,7 +56,7 @@ Use [Issues — bug or feature request](https://github.com/Sking32/Cleaner/issue
 
 Include app version, Windows version and build, architecture, language, display scale, reproduction steps, expected and actual results. Attach a diagnostic export for cleanup problems.
 
-Exports show a preview first. Personal paths, file names and free-form error text are hidden by default. Review the preview and screenshots before sharing. Include personal details only deliberately; never publish quarantine contents, your full profile or registry backups. Cleaner does not send reports or files automatically.
+Diagnostic exports from the graphical app show a preview first. Personal paths, file names and free-form error text are hidden by default. Review the preview and screenshots before sharing. Include personal details only deliberately; never publish quarantine contents, your full profile or registry backups. The graphical app does not send reports or files automatically. The separately built CLI can write unredacted reports/logs and send results to an explicitly configured webhook; its output does not use this preview.
 
 [Tester checklist](https://github.com/Sking32/Cleaner/blob/master/docs/testing/FRIEND_TESTING.md) · [Compatibility](https://github.com/Sking32/Cleaner/blob/master/docs/testing/COMPATIBILITY.md)
 

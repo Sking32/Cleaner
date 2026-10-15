@@ -6,6 +6,7 @@ namespace Cleaner.App.Services;
 
 public sealed class AppSettingsData
 {
+    public string Theme { get; set; } = "dark";
     public string? Language { get; set; }
     public int SafetyNoticeVersion { get; set; }
     public bool AutoCleanupEnabled { get; set; }
@@ -62,6 +63,7 @@ public sealed class AppSettingsStore
             _data.CleanupPresets ??= new();
             _data.CleanupPresets = _data.CleanupPresets.Where(p => p != null && !string.IsNullOrWhiteSpace(p.Id)
                 && !string.IsNullOrWhiteSpace(p.Name) && p.Keys != null).Take(30).ToList();
+            if (_data.Theme is not ("dark" or "light")) _data.Theme = "dark";
             if (_data.Density is not ("compact" or "comfortable")) _data.Density = "compact";
             if (!InAppCleanupSchedule.AllowedMinutes.Contains(_data.AutoCleanupIntervalMinutes))
             { _data.AutoCleanupIntervalMinutes = 1440; _data.AutoCleanupEnabled = false; }
